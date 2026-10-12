@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import math
 import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
@@ -161,17 +162,50 @@ def can_succeed(opt: Option, attrs: Mapping[str, int]) -> bool:
 # 因为过关是硬门槛，这个期望天然奖励「把某项属性顶过门槛」，也天然抑制
 # 「每项都涨一点、结果一项都过不了」。
 #
-# 量级参考（见 tools/_exact_adventure.py 与 tools/_sweep2_adventure.py）：
-#   当前线上贪心 78.25 / 本方案 80.49 / 理论最优（不知题序）81.33
-#   / 上帝视角（预知题序）87.19 —— 后者不可达。
+# 量级参考（4000 条相同题序成对比较，见 tools/simulate_adventure.py、
+# tools/adventure_upper_bound.py）：
+#   改造前 78.59  →  当前 80.57  →  理论最优（不知题序）81.33
+#   →  上帝视角（预知题序）87.19 —— 后者不可达。
+# 满分率 5.25% → 7.28%；阶段 4/5 逐题成功率 Q7 37→43% Q8 38→46% Q9 40→46%
+# Q10 16→20%。
 
-# 参与估值的关键阶段：4 与 5 合计 55 分（满分 100），是分数的决定性来源。
-VALUE_STAGES: Sequence[int] = (4, 5)
+# 参与估值的关键阶段：3+4+5 合计 82 分（满分 100），是分数的决定性来源。
+# 包含阶段 3（不只是 4+5）是为了让「前 6 题该往哪个属性投资」更早拿到信号，
+# 成对比较实测优于只用 4+5（+0.49 vs +0.17）。
+VALUE_STAGES: Sequence[int] = (3, 4, 5)
 
-# 价值项与原评分的混合比例。价值项量级在几十、原评分在个位到十几，
-# 0.5 让价值项主导，同时保留原评分做近似平局时的细化（实测 0.5 / 2.0 / 8.0
-# 相差仅 0.2 分，0.5 最好）。
-VALUE_BLEND = 0.5
+# 价值项与原评分的混合比例。价值项量级在几十、原评分在个位到十几。
+# 0.25 由成对比较扫出（4000 条相同题序 × 2 个独立题序池，配对差 / t 值）：
+#   blend 0.05 → +0.19 / +0.02    0.10 → +0.39 / +0.21
+#   blend 0.15 → +0.45 / +0.36    0.25 → +0.49 / +0.44   ← 最优
+#   blend 0.40 → +0.33 / +0.30    1.00 → +0.11
+VALUE_BLEND = 0.25
+
+# 软边距尺度：把「还差几点达标」换成 sigmoid((属性 - 门槛) / VALUE_SCALE)。
+#
+# 为什么不能用 0/1 硬判定：过关确实是硬门槛，但**决策需要梯度**。硬判定下
+# 「灵巧 7 → 8」这类变化只要没跨过门槛就完全不改变价值，启发式因此看不见
+# 「再堆 1 点灵巧就能吃下阶段 4 的两个 12 分」，也就不会集中投资——实测个案里
+# 这正是后 4 题全灭的原因。换成软边距后任何位置的属性增长都有梯度。
+#
+# 1.0 由同一批扫描选出（0.8 → +0.47 / +0.38，1.2 → +0.46 / +0.41，1.0 最好）。
+VALUE_SCALE = 1.0
+
+# 无门槛选项在软边距里的「超标余量」，等效于「肯定能过」。
+VALUE_FREE_MARGIN = 8.0
+
+# 生存因子：健康 >= 该值时不打折，只剩更少血时价值按比例缩水。
+#
+# 为什么要单独处理健康：健康见底会让剩余题目**全部作废**（丢分最狠的一种失败），
+# 但纯期望分对「健康从 3 掉到 2」毫无感觉（未来没有任何选项要求健康 >= 4）。
+# 打折后决策愿意为「别掉到 1 点血」付一点代价。
+#
+# 实测（4000 局成对比较 × 2 个独立题序池）：
+#   关闭        池A 80.482 / 池B 80.504，第 9 题前早死 186 / 178 局
+#   2.0         池A 80.573 / 池B 80.588，早死 100 / 101 局（+0.091 / +0.083）
+#   3.0         池A 80.251 / 池B 80.275，早死 71 / 75 局（-0.231 / -0.229）
+# 3.0 虽然早死更少，但过度保守反而丢分，故取 2.0。
+VALUE_HEALTH_FULL = 2.0
 
 _stage_meta: Dict[int, Dict[str, Any]] = {}
 _stage_meta_ready = False
@@ -234,8 +268,12 @@ def future_value(
 ) -> float:
     """按当前属性估算「后面几个关键阶段的期望得分」。
 
-    对每个事件取「4 个选项里只要有一个能过就算成功」，再对该阶段题库求平均。
-    过关是硬门槛，所以这个期望天然奖励「把某项属性顶过门槛」。
+    对每个事件取「4 个选项里最可能通过的那一个」，通过概率用软边距
+    (sigmoid) 估计而不是 0/1 硬判定；再对该阶段题库求平均。
+
+    为什么要软边距：过关本身是硬门槛，但**决策需要梯度**。硬判定下
+    「灵巧 7 → 8」只要没跨过门槛就完全不改变价值，启发式因此看不见
+    「再堆 1 点灵巧就能吃下阶段 4 的两个 12 分」这件事，于是不会集中投资。
     """
     _ensure_value_index(events)
     key = tuple(int(attrs.get(a, 0)) for a in ATTRS)
@@ -253,8 +291,24 @@ def future_value(
         win, lose = _stage_scores.get(st, (0, 0))
         acc = 0.0
         for _name, opts in entries:
-            acc += win if any(can_succeed(o, attrs) for o in opts) else lose
+            best_p = 0.0
+            for o in opts:
+                if o.always_fail:
+                    continue
+                req = o.require or {}
+                if not req:
+                    margin = VALUE_FREE_MARGIN
+                else:
+                    margin = min(
+                        float(attrs.get(k, 0)) - float(v) for k, v in req.items()
+                    )
+                p = 1.0 / (1.0 + math.exp(-margin / VALUE_SCALE))
+                if p > best_p:
+                    best_p = p
+            acc += win * best_p + lose * (1.0 - best_p)
         total += acc / len(entries) * _stage_questions.get(st, 1)
+    if VALUE_HEALTH_FULL > 0:
+        total *= min(1.0, int(attrs.get("健康", 0)) / VALUE_HEALTH_FULL)
     _value_cache[key] = total
     return total
 

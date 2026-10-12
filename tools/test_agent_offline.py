@@ -148,13 +148,20 @@ def run(question, options, attrs, initial=None):
 
 
 print("=== 场景 1：危险任务，战力 4（满足「接受」门槛 战力4）===")
+# 本场景只校验「识别 → 决策 → 返回正确 box」这条链路。
+# 不锁定具体选项：战力4 时「接受」(战力+1) 与「推荐叛徒」(智慧+1) 都能成功、
+# 收益等价（都是距目标 6 点的 +1），由价值函数择一，选哪个都不构成正确性问题。
 attrs = {"健康": 3, "战力": 4, "智慧": 4, "魅力": 5, "运气": 3, "灵巧": 6}
 res = run(DANGER_QUESTION, DANGER_OPTIONS, attrs)
 check("命中并返回结果", res is not None)
 if res:
     check("识别为「危险任务」", res.detail.get("event") == "危险任务", res.detail.get("event"))
-    check("选中第 1 项「接受」", res.detail.get("option") == 1, res.detail.get("option"))
-    check("box 对应第 1 行", tuple(res.box) == BOXES[0], f"{res.box} vs {BOXES[0]}")
+    check("选中一个必定成功的选项", res.detail.get("will_succeed") is True,
+          f"选了「{res.detail.get('text')}」")
+    _opt = res.detail.get("option")
+    check("box 与选中项对应", tuple(res.box) == BOXES[_opt - 1],
+          f"{res.box} vs {BOXES[_opt - 1]}")
+    print(f"     选中第 {_opt} 项「{res.detail.get('text')}」")
     print(f"     决策理由：{res.detail.get('reason')}")
 
 print("\n=== 场景 2：危险任务，战力 3（四项全不满足门槛）===")
@@ -316,15 +323,17 @@ check("正常答题界面仍能决策", res13 is not None and res13.detail.get("
 
 print("\n=== 场景 12：战力接近门槛时，不该为了加健康而牺牲战力 ===")
 # 登山黑影第2项「给他一拳」：成功收益 健康+1 / 战力-1（该事件门槛是战力6）
-# 战力接近上限门槛(10)时减 1 会失守，应避开；战力富余时换健康才是划算的
+# 战力贴近上限门槛(10)时减 1 会失守，必须避开 —— 这是本场景要守住的性质。
+#
+# 注：战力富余(12/15)时本策略**也不换健康**，因为软边距 sigmoid 不饱和，
+# 门槛之上的属性仍有边际价值。这一取舍是实测定的：给 margin 加上限
+# （tools/_sweep5_cap.py，cap 0~3 × scale 0.7/1.0 × 2 个独立题序池）全部变差
+# 0.01~0.13 分，因此保留不饱和版本。
 _events = adventure.logic.load_events()
-for _power, _avoid in ((9, True), (10, True), (12, False), (15, False)):
+for _power in (9, 10):
     _attrs = {"健康": 4, "战力": _power, "智慧": 5, "魅力": 5, "运气": 5, "灵巧": 5}
     _d = adventure.logic.choose(_events, "登山黑影", _attrs)
-    if _avoid:
-        check(f"战力{_power} 时不牺牲战力（避开第2项）", _d.index != 1, f"选了「{_d.text}」")
-    else:
-        check(f"战力{_power} 富余时可换健康（选第2项）", _d.index == 1, f"选了「{_d.text}」")
+    check(f"战力{_power} 时不牺牲战力（避开第2项）", _d.index != 1, f"选了「{_d.text}」")
     for _i, _t, _ok2, _sc in _d.all_scores:
         print(f"       第{_i}项 {_t:<6} 可成功={str(_ok2):<5} 评分={_sc:+7.2f}")
 
@@ -389,6 +398,27 @@ _v10 = adventure.logic.future_value({**_fd, "战力": 10}, _events)
 check("战力 9→10 跨过阶段5门槛，后续期望上升", _v10 > _v9, f"{_v9:.2f} -> {_v10:.2f}")
 check("健康归零时后续期望为 0",
       adventure.logic.future_value({**_fd, "健康": 0}, _events) == 0.0)
+
+print("\n=== 场景 19：软边距与生存因子 ===")
+check("价值函数只看阶段 3+4+5", tuple(adventure.logic.VALUE_STAGES) == (3, 4, 5),
+      adventure.logic.VALUE_STAGES)
+check("混合比例 = 0.25", adventure.logic.VALUE_BLEND == 0.25, adventure.logic.VALUE_BLEND)
+check("软边距尺度 = 1.0", adventure.logic.VALUE_SCALE == 1.0, adventure.logic.VALUE_SCALE)
+check("生存因子阈值 = 2.0", adventure.logic.VALUE_HEALTH_FULL == 2.0,
+      adventure.logic.VALUE_HEALTH_FULL)
+
+# 软边距的核心性质：门槛**之下**的属性增长必须有梯度。
+# 硬判定版本下「灵巧 7 → 8」（阶段4 的门槛是 8）若不跨过阈值就毫无变化，
+# 启发式于是看不见「再堆 1 点就能吃下阶段 4 的两个 12 分」，后 4 题会全灭。
+_va = adventure.logic.future_value({**_fd, "灵巧": 7}, _events)
+_vb = adventure.logic.future_value({**_fd, "灵巧": 8}, _events)
+check("门槛之下（灵巧 7→8）有梯度", _vb > _va, f"{_va:.2f} -> {_vb:.2f}")
+
+# 生存因子：健康 >= 2 不打折，只剩 1 点血折半。
+# 早死会让剩余题目全部作废，所以「血从 3 掉到 1」必须比纯期望分更值钱。
+_h2 = adventure.logic.future_value({**_fd, "健康": 2}, _events)
+_h1 = adventure.logic.future_value({**_fd, "健康": 1}, _events)
+check("只剩 1 点血时后续期望被打折", _h1 < _h2, f"血2={_h2:.2f} 血1={_h1:.2f}")
 
 print("\n" + ("全部通过" if ok else "存在失败项"))
 sys.exit(0 if ok else 1)
