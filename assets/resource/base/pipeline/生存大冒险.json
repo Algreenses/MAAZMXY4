@@ -101,6 +101,7 @@
         "on_error": [
             "生存大冒险_结束"
         ],
+        "timeout": 90000,
         "post_wait_freezes": {
             "time": 300,
             "timeout": 5000,
