@@ -463,5 +463,51 @@ check("清表后状态数归零", adventure.logic.exact_stats()[0] == 0,
       adventure.logic.exact_stats()[0])
 adventure.logic.EXACT_RESET_THRESHOLD = _old
 
+print("\n=== 场景 22：事件正则必须只命中自己 ===")
+# 「危险任务」原本配了过宽的「族长」，于是题干「冒险前，族长准备送你一件礼物」
+# 也被判成危险任务：代理按危险任务的四个选项评估、再把「第几项」用到礼物事件上，
+# 选项顺序对得上但 require / 收益全错位。日志里该题干出现 6 次，全部判错，
+# 实测代价 -0.24 分/局（tools/_gap_mismatch.py）。
+_gift = "冒险前，族长准备送你一件礼物，你会选择"
+_task = "在你准备离开村子去冒险时，族长想交给你一个很危险的任务，你会接受吗"
+_weapon = "在冒险准备前，突然发现自己没有一把称手的好武器，你会"
+_shop = "冒险前，你决定到商店买些必需品，但是钱不太够，你会"
+check("礼物题干 →「冒险前神秘礼物」", adventure._match_event(_gift) == "冒险前神秘礼物",
+      adventure._match_event(_gift))
+check("危险任务题干 →「危险任务」", adventure._match_event(_task) == "危险任务",
+      adventure._match_event(_task))
+check("没好武器题干 →「冒险前没好武器」",
+      adventure._match_event(_weapon) == "冒险前没好武器", adventure._match_event(_weapon))
+check("商品买卖题干 →「商品买卖必备」",
+      adventure._match_event(_shop) == "商品买卖必备", adventure._match_event(_shop))
+
+print("\n=== 场景 23：题号由事件反推（同一题被重复读取时不推进） ===")
+# 线上原本拿「决策次数」当题号。点击落不到新题上时同一题会被再答一次，
+# 决策次数就比真实进度多，之后每一题的价值评估都偏后一个阶段 ——
+# 实测第 1 题后多一次重复就掉约 2 分（tools/_gap_drift2.py）。
+# 事件名唯一确定了阶段，同阶段题号连续且事件不会重复抽到，所以按事件反推才可靠。
+_logic = adventure.logic
+_logic.exact_choice(_events, "冒险前没好武器", dict(adventure.DEFAULT_ATTRS), 0)  # 确保表已建
+_st2 = sorted(n for n, s in _logic._exact_event_stage.items() if s == 2)
+_st4 = sorted(n for n, s in _logic._exact_event_stage.items() if s == 4)
+check("每个阶段都能反查事件", len(_st2) >= 3 and len(_st4) >= 1,
+      f"阶段2 {len(_st2)} 个事件 / 阶段4 {len(_st4)} 个事件")
+_ans: dict = {}
+check("阶段 1 事件 → 第 1 题（0 基 0）",
+      _logic.question_for_event("冒险前没好武器", _ans) == 0,
+      _logic.question_for_event("冒险前没好武器", _ans))
+check("同一题重复读取 → 题号不变",
+      _logic.question_for_event("冒险前没好武器", _ans) == 0,
+      _logic.question_for_event("冒险前没好武器", _ans))
+check("阶段 2 第 1 个事件 → 第 2 题（0 基 1）",
+      _logic.question_for_event(_st2[0], _ans) == 1, _logic.question_for_event(_st2[0], _ans))
+check("阶段 2 第 2 个事件 → 第 3 题（0 基 2）",
+      _logic.question_for_event(_st2[1], _ans) == 2, _logic.question_for_event(_st2[1], _ans))
+check("阶段 2 再多的事件被夹在该阶段题号上界",
+      _logic.question_for_event(_st2[2], _ans) == 2, _logic.question_for_event(_st2[2], _ans))
+check("阶段 4 第 1 个事件 → 第 7 题（0 基 6）",
+      _logic.question_for_event(_st4[0], _ans) == 6, _logic.question_for_event(_st4[0], _ans))
+check("未知事件 → None", _logic.question_for_event("不存在的世界", {}) is None)
+
 print("\n" + ("全部通过" if ok else "存在失败项"))
 sys.exit(0 if ok else 1)

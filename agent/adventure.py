@@ -79,6 +79,13 @@ class _State:
     # 本局答到第几题（0 基）。精确后向归纳要靠它定位「还剩哪些阶段」，
     # 否则第 5 题也会按「10 题全在」来估值。
     question: int = 0
+    # 本局各阶段已答过的事件名 {阶段: [事件名, ...]}。
+    # 题号优先由「事件属于哪个阶段、在该阶段里排第几个」反推
+    # （见 logic.question_for_event），决策次数只作兜底 ——
+    # 点击落不到新题上时同一题会被再答一次，用次数会一路把题号推高。
+    stage_seen: Dict[int, list] = {}
+    # 本局的策略/耗时那行只打一次（重复读取第 1 题时不再刷屏）
+    strategy_logged: bool = False
 
 
 STATE = _State()
@@ -599,6 +606,8 @@ class AdventureInit(CustomAction):
         # 新的一局：题号归零；精确归纳表只在长得过大时才重建
         # （表只依赖题库、与角色无关，所以连续几局通常能整表复用）
         STATE.question = 0
+        STATE.stage_seen = {}
+        STATE.strategy_logged = False
         if logic.maybe_reset_exact_memo():
             _log("精确归纳表超过 %d 条，已清空重建（下一局首题会慢一次）"
                  % logic.EXACT_RESET_THRESHOLD)
@@ -661,15 +670,22 @@ class AdventureRead(CustomRecognition):
 
         event = _match_event(question) or _match_event_by_options(option_texts)
         if event:
+            # 题号优先由「事件属于哪个阶段、在该阶段排第几个」反推：
+            # 点击落不到新题上时同一题会被再答一次，用决策次数推题号会一路偏高，
+            # 之后每一题的价值评估都偏后一个阶段（实测代价很大）。
+            derived = logic.question_for_event(event, STATE.stage_seen)
+            if derived is None:
+                derived = STATE.question  # 题库元信息不全时的兜底
+            STATE.question = derived + 1
             # 传入题号，走精确后向归纳（首题会当场建表 10~16 秒，之后每题命中缓存）
             _t0 = time.time()
             decision = logic.choose(
-                _events(), event, attrs, question=STATE.question
+                _events(), event, attrs, question=derived
             )
             _cost = time.time() - _t0
             STATE.attrs = _apply(attrs, decision.gains)
-            STATE.question += 1
-            if STATE.question == 1:
+            if derived == 0 and not STATE.strategy_logged:
+                STATE.strategy_logged = True
                 states, _nodes = logic.exact_stats()
                 _log(
                     f"本局策略：{'精确后向归纳' if decision.exact else '启发式'}"

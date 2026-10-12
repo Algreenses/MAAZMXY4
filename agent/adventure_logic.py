@@ -367,6 +367,8 @@ _exact_qstage: list = []  # 题号（0 基）→ 阶段
 _exact_stages: list = []  # 参与归纳的阶段（按题号顺序去重）
 _exact_compiled: Dict[int, list] = {}  # 阶段 → 该阶段每个事件的编译选项表
 _exact_event_opts: Dict[str, list] = {}  # 事件名 → 编译后的选项表
+_exact_event_stage: Dict[str, int] = {}  # 事件名 → 所属阶段（用于反推题号）
+_exact_stage_qs: Dict[int, list] = {}  # 阶段 → 该阶段的题号列表（0 基）
 _exact_cap: list = []  # 属性截断上限（与参考实现 adventure_upper_bound.CAP 同步）
 _exact_ai: Dict[str, int] = {}
 _exact_hidx = ATTRS.index("健康")
@@ -412,6 +414,34 @@ def exact_stats() -> Tuple[int, int]:
     return len(_exact_memo), _exact_states
 
 
+def question_for_event(event: str, answered: Dict[int, list]) -> Optional[int]:
+    """由「这一题是什么事件」反推它是本局第几题（0 基），推不出返回 None。
+
+    题号**不能**用「决策次数」推。点击有时落不到新题上（截图还是上一题），
+    同一题于是被再答一次，决策次数就比真实进度多；一旦多算，
+    之后每一题的价值评估都会偏后一个阶段（实测第 1 题后多一次就掉 2.0 分）。
+    而事件名唯一确定了阶段，同一阶段里的题号是连续的、事件不会重复抽到，
+    所以「阶段 + 该阶段内已答过几个不同事件」就是可靠题号。
+
+    answered 由调用方（agent 的局内状态）持有，形如 {阶段: [事件名, ...]}；
+    本函数会就地把新事件登记进去。事件已在列表里 = 同一题被重复读取，
+    返回同一题号、不推进。
+    """
+    st = _exact_event_stage.get(event)
+    if st is None:
+        return None
+    qs = _exact_stage_qs.get(st) or []
+    if not qs:
+        return None
+    seen = answered.setdefault(int(st), [])
+    if event in seen:
+        idx = seen.index(event)
+    else:
+        idx = len(seen)
+        seen.append(event)
+    return qs[min(idx, len(qs) - 1)]
+
+
 def _exact_pairs(delta: Optional[Mapping[str, int]]) -> tuple:
     """把属性增减字典编译成 ((属性下标, 整数增量), ...)，省掉归纳内层的字典开销。"""
     if not delta:
@@ -429,6 +459,7 @@ def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
     """按题库建「题号→阶段、阶段→编译后的选项」索引（只建一次）。"""
     global _exact_src, _exact_qstage, _exact_stages, _exact_compiled, _exact_cap, _exact_ai
     global _exact_event_opts
+    global _exact_event_stage, _exact_stage_qs
     if not EXACT_ENABLED:
         return False
     key = id(events)
@@ -495,6 +526,10 @@ def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
     _exact_stages = sorted({s for s in qstage})
     _exact_compiled = compiled
     _exact_event_opts = event_opts
+    _exact_stage_qs = {st: [n for n, s in enumerate(qstage) if s == st] for st in set(qstage)}
+    _exact_event_stage = {
+        name: st for st, entries in _stage_entries.items() for name, _opts in entries
+    }
     _exact_cap = cap
     _exact_src = key
     reset_exact_memo()
