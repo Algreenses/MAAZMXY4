@@ -4,15 +4,20 @@
 #
 """用记忆化后向归纳，算出「不知道未来题序」前提下的**真正最优**平均分。
 
-意义：上帝视角（已知这一局的事件顺序）能拿约 86.7 分，但那是不可达的。
+意义：上帝视角（已知这一局的事件顺序）能拿约 87 分，但那是不可达的。
 真正有意义的上界是这里算的：策略只知道各阶段的题库分布，不知道这一局会抽到
-哪几个事件。这个上界才决定「脚本还有多少提升空间」—— 目前是 81.33，
-而线上策略是 80.23，剩下 1.10 分的空间。
+哪几个事件。这个上界才决定「脚本还有多少提升空间」——线上策略已经就是
+这个最优策略本身（agent/adventure_logic.py 的精确后向归纳），所以真正剩下的
+空间只有它自己「不知道题序」与「上帝视角」之间的差。
 
     V(q, attrs) = E_{事件 e ~ 阶段(q) 的题库} [ max_{选项 o} ( 本题得分 + V(q+1, attrs') ) ]
 
+初始六维不是一组而是 7 组（游戏里 7 个角色各一组，见
+tools/simulate_adventure.py 的 CHARACTERS），角色之间差距极大：
+小猪最弱 66.2、小唐最强 83.3。所以默认把 7 个角色全算一遍。
+
 用法：
-    py tools/adventure_upper_bound.py
+    py tools/adventure_upper_bound.py [角色名 ...]     # 不给就全算
 """
 
 from __future__ import annotations
@@ -52,7 +57,9 @@ for _a in ATTRS:
             if _v:
                 _mx = max(_mx, int(_v))
     CAP.append(_mx if _a != "健康" else 99)
-print(f"属性截断上限：{dict(zip(ATTRS, CAP))}")
+
+# 注意：这里不能在模块层 print —— adventure_xcheck.py 会 import 本模块，
+# 否则每次导入都会往标准输出塞一行。需要打印请放 main()。
 
 
 def can_ok(o, t: Tuple[int, ...]) -> bool:
@@ -127,24 +134,37 @@ def greedy_over_optimal(q: int, attrs: Tuple[int, ...]) -> int:
 
 
 def main() -> None:
+    names = sys.argv[1:] or list(sim.CHARACTERS)
+    unknown = [n for n in names if n not in sim.CHARACTERS]
+    if unknown:
+        raise SystemExit(f"未知角色：{unknown}；可选 {list(sim.CHARACTERS)}")
+
     t0 = time.time()
-    print(f"初始六维 {dict(zip(ATTRS, INIT))}")
-    print("开始后向归纳（记忆化）…\n")
+    print(f"属性截断上限：{dict(zip(ATTRS, CAP))}")
+    print(f"角色 {len(names)} 个；共享记忆化表（默认角色小玉 {dict(zip(ATTRS, INIT))}）\n")
+    print(f"{'角色':<5} {'最优均分':>9} {'状态数':>12}   六维（"
+          + "/".join(ATTRS) + "）")
+    print("-" * 78)
 
-    root = V(0, INIT)
+    bounds: Dict[str, float] = {}
+    for name in names:
+        init = tuple(int(sim.CHARACTERS[name][a]) for a in ATTRS)
+        before = len(memo)
+        root = V(0, init)
+        bounds[name] = root
+        print(f"{name:<5} {root:9.3f} {len(memo) - before:12,}   "
+              + "/".join(str(v) for v in init))
     dt = time.time() - t0
+    mean = sum(bounds.values()) / len(bounds)
+    print("-" * 78)
+    print(f"{'等权':<5} {mean:9.3f} {len(memo):12,}   （7 个角色等权平均）")
+    print(f"\n记忆化状态数合计 = {len(memo):,}   递归展开节点 = {NODES:,}   耗时 {dt:.1f}s\n")
 
-    print(f"★ 「不知道未来题序」前提下的最优平均分 = {root:.3f}")
-    print(f"  记忆化状态数 = {len(memo):,}   递归展开节点 = {NODES:,}   耗时 {dt:.1f}s\n")
-
-    print("各深度（第 q 题作答前）被访问到的不同属性组合数：")
-    for q in sorted(DEPTH_STATES):
-        print(f"  q={q + 1:>2}: {DEPTH_STATES[q]:>10,}")
-    print()
-
-    # 用精确最优策略实跑，验证 root 与实际一致
+    # 用精确最优策略实跑，验证 root 与实际一致（只验第一个角色就够）
     import random
 
+    first = names[0]
+    init_d = sim.CHARACTERS[first]
     RUNS = int(os.environ.get("RUNS", "4000"))
     SEED = 20261012
 
@@ -162,11 +182,22 @@ def main() -> None:
         return best_idx
 
     total = 0.0
+    scores: list[int] = []
     for i in range(RUNS):
         rng = random.Random(SEED + i)
         seq = [rng.choice(DECK.pools[QS[q]]) for q in range(10)]
-        total += sim.play_seq(seq, exact_pick, sim.INIT_ATTRS)
-    print(f"实跑 {RUNS} 局验证：平均 {total / RUNS:.3f}（与理论值 {root:.3f} 应当吻合）")
+        s = sim.play_seq(seq, exact_pick, init_d)
+        scores.append(s)
+        total += s
+    emp = total / RUNS
+    var = sum((s - emp) ** 2 for s in scores) / (RUNS - 1)
+    se = (var / RUNS) ** 0.5
+    print(f"实跑 {RUNS} 局验证（{first}）：平均 {emp:.3f} ±{se:.3f}"
+          f"（单局标准差 {var ** 0.5:.1f}；与理论值 {bounds[first]:.3f} 之差 "
+          f"{emp - bounds[first]:+.3f}）")
+    print("注：单局分数方差很大，几万局内二者相差零点几个标准差以内的波动属正常，"
+          "不代表实现有分歧。\n     证明实现等价请用 tools/adventure_xcheck.py："
+          "逐个角色比较参考值与生产逻辑的期望。")
 
 
 if __name__ == "__main__":

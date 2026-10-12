@@ -327,7 +327,7 @@ print("\n=== 场景 12：战力接近门槛时，不该为了加健康而牺牲�
 #
 # 注：战力富余(12/15)时本策略**也不换健康**，因为软边距 sigmoid 不饱和，
 # 门槛之上的属性仍有边际价值。这一取舍是实测定的：给 margin 加上限
-# （tools/_sweep5_cap.py，cap 0~3 × scale 0.7/1.0 × 2 个独立题序池）全部变差
+# （cap 0~3 × scale 0.7/1.0 × 2 个独立题序池，共 12 组）全部变差
 # 0.01~0.13 分，因此保留不饱和版本。
 _events = adventure.logic.load_events()
 for _power in (9, 10):
@@ -361,16 +361,13 @@ check("剩 1 点血的代价高于剩 4 点",
 check("血量充足（≥7）扣 1 点代价很低",
       adventure.logic._attr_weight("健康", -1, {"健康": 9}) <= 1.0)
 
-print("\n=== 场景 15：血量贴近健康门槛时优先补血，超出后转堆其他属性 ===")
-# 冒险前神秘礼物 4 个选项都能成功：绝世秘籍(健康+1/战力+1)、招财猫(运气+1) 等
-# 健康门槛在题库里只有 3/5/6 三处，对应的目标值是 3：
-#   健康 2 时 +1 正好跨过门槛 → 优先补血；
-#   健康 ≥4 已经达标，再补 1 点不如去堆离门槛更远的属性。
-# （实测：健康目标 3 → 平均 80.23，目标 4 → 79.31，目标 6 → 78.97）
-for _hp, _want in ((2, 1), (4, 2), (6, 2), (9, 2)):
-    _a = {"健康": _hp, "战力": 4, "智慧": 4, "魅力": 4, "运气": 4, "灵巧": 4}
-    _d = adventure.logic.choose(_events, "冒险前神秘礼物", _a)
-    check(f"健康{_hp} 时选择第{_want+1}项", _d.index == _want, f"选了「{_d.text}」")
+print("\n=== 场景 15：精确策略在血量贴近门槛时优先补血 ===")
+# 冒险前神秘礼物 4 个选项都能成功，其中「绝世秘籍」是 健康+1/战力+1。
+# 线上主路径是精确后向归纳，所以这里断言精确策略的行为。
+_a2 = {"健康": 2, "战力": 4, "智慧": 4, "魅力": 4, "运气": 4, "灵巧": 4}
+_d = adventure.logic.choose(_events, "冒险前神秘礼物", _a2, question=0)
+check("健康 2 时选到补血项「绝世秘籍」", _d.index == 1, f"选了「{_d.text}」")
+check("该决策确实走精确后向归纳", _d.exact is True)
 
 print("\n=== 场景 16：健康目标取题库常见门槛，而不是最高门槛 ===")
 # 健康门槛最高只到 6，且仅出现 3 次（战力/灵巧/魅力/智慧都有 33~37 处、最高 10）。
@@ -383,14 +380,20 @@ for _k, _v in (("战力", 10), ("灵巧", 10), ("魅力", 10), ("智慧", 10), (
     check(f"{_k}目标 = {_v}", adventure.logic.THRESHOLD_TARGETS.get(_k) == _v,
           adventure.logic.THRESHOLD_TARGETS.get(_k))
 
-print("\n=== 场景 17：价值函数 —— 为「跨过后 4 题门槛」让步于眼前的小收益 ===")
-# 真实回归样本「飞天大盗」：
-#   布置陷阱 评分最高(+14) 但只加到运气/智慧，对阶段4/5（门槛 8~10）毫无帮助；
-#   联合盗宝 评分较低(+11) 但战力 +2，朝着阶段4/5 的战力门槛推进。
-# 改造前的贪心会选前者，改造后选后者 —— 这正是平均分 78.37 → 80.23 的来源。
+print("\n=== 场景 17：精确策略为「跨过后 4 题门槛」让步于眼前的小收益 ===")
+# 真实回归样本「飞天大盗」，第 7 题（属阶段 4，门槛 8~10）：
+#   布置陷阱 评分最高，但只加运气/智慧；
+#   寻踪作战 加战力但扣 1 血；联合盗宝 加战力 2 且不额外扣血。
+# 朝阶段 4/5 的战力门槛推进才是正解 —— 精确策略选「联合盗宝」。
 _fd = {"健康": 4, "战力": 6, "智慧": 6, "魅力": 6, "运气": 5, "灵巧": 6}
-_d = adventure.logic.choose(_events, "飞天大盗", _fd)
-check("选「联合盗宝」而不是评分更高的「布置陷阱」", _d.index == 0, f"选了「{_d.text}」")
+_d = adventure.logic.choose(_events, "飞天大盗", _fd, question=6)
+check("选「联合盗宝」（战力+2）而不是评分更高的「布置陷阱」",
+      _d.index == 0, f"选了「{_d.text}」")
+check("第 7 题的精确期望 = 38.14", abs(_d.value - 38.1429) < 0.01, f"{_d.value:.4f}")
+# 启发式回退路径（0.125/0.7）在同样输入下选「寻踪作战」：同样推进战力、
+# 但不扣血，步数上略保守。它只在精确归纳不可用时兜底，所以这点差异可接受。
+_dh = adventure.logic.choose(_events, "飞天大盗", _fd)
+check("启发式回退路径也选到推进战力的项", _dh.index == 1, f"选了「{_dh.text}」")
 
 print("\n=== 场景 18：价值函数的基本性质 ===")
 _v9 = adventure.logic.future_value({**_fd, "战力": 9}, _events)
@@ -399,11 +402,13 @@ check("战力 9→10 跨过阶段5门槛，后续期望上升", _v10 > _v9, f"{_
 check("健康归零时后续期望为 0",
       adventure.logic.future_value({**_fd, "健康": 0}, _events) == 0.0)
 
-print("\n=== 场景 19：软边距与生存因子 ===")
+print("\n=== 场景 19：启发式回退路径的参数（软边距 + 生存因子） ===")
+# 注意：线上主路径是精确后向归纳，下面这些 VALUE_* 常量**只影响回退路径**。
+# 它们的值是在真实 7 角色初始分布上重调出来的（4 个全新池合并 +0.084）。
 check("价值函数只看阶段 3+4+5", tuple(adventure.logic.VALUE_STAGES) == (3, 4, 5),
       adventure.logic.VALUE_STAGES)
-check("混合比例 = 0.25", adventure.logic.VALUE_BLEND == 0.25, adventure.logic.VALUE_BLEND)
-check("软边距尺度 = 1.0", adventure.logic.VALUE_SCALE == 1.0, adventure.logic.VALUE_SCALE)
+check("混合比例 = 0.125", adventure.logic.VALUE_BLEND == 0.125, adventure.logic.VALUE_BLEND)
+check("软边距尺度 = 0.7", adventure.logic.VALUE_SCALE == 0.7, adventure.logic.VALUE_SCALE)
 check("生存因子阈值 = 2.0", adventure.logic.VALUE_HEALTH_FULL == 2.0,
       adventure.logic.VALUE_HEALTH_FULL)
 
@@ -419,6 +424,44 @@ check("门槛之下（灵巧 7→8）有梯度", _vb > _va, f"{_va:.2f} -> {_vb:
 _h2 = adventure.logic.future_value({**_fd, "健康": 2}, _events)
 _h1 = adventure.logic.future_value({**_fd, "健康": 1}, _events)
 check("只剩 1 点血时后续期望被打折", _h1 < _h2, f"血2={_h2:.2f} 血1={_h1:.2f}")
+
+print("\n=== 场景 20：精确后向归纳（线上主路径） ===")
+# 这一节的价值不只是「能跑」：它盯住的是与 tools/adventure_upper_bound.py
+# （独立实现）逐决策对齐后的定值。曾因为状态键里题号字段与「健康」字段重叠，
+# 同一局面算出 53.15 而不是 78.83；靠这里的定值才能立刻发现。
+check("EXACT_ENABLED 打开", adventure.logic.EXACT_ENABLED is True)
+_x = adventure.logic.choose(_events, "冒险前没好武器", dict(adventure.DEFAULT_ATTRS),
+                            question=0)
+check("小玉初始六维下第 1 题选「找族长借一件」", _x.index == 1, f"选了「{_x.text}」")
+check("第 1 题确实走精确后向归纳", _x.exact is True)
+check("第 1 题精确期望 = 78.83", abs(_x.value - 78.8336) < 0.01, f"{_x.value:.4f}")
+check("归纳表已建立", adventure.logic.exact_stats()[0] > 100000,
+      f"{adventure.logic.exact_stats()[0]:,} 状态")
+_r = adventure.logic.exact_choice(_events, "飞天大盗", _fd, 6)
+check("第 7 题「飞天大盗」精确期望 = 38.1429", abs(_r[1] - 38.1429) < 0.01,
+      f"{_r[1]:.4f}")
+adventure.logic.reset_exact_memo()
+check("强制清空归纳表后状态数归零", adventure.logic.exact_stats()[0] == 0,
+      adventure.logic.exact_stats()[0])
+
+print("\n=== 场景 21：精确归纳表跨局复用（不是每局重建） ===")
+# 「每局重建」每局要白等 10~16 秒。表只依赖题库、与角色无关，所以线上只在
+# 累计状态数超过阈值时才清空；这里两个分支都要盯住。
+check("阈值常量 = 400000", adventure.logic.EXACT_RESET_THRESHOLD == 400_000,
+      adventure.logic.EXACT_RESET_THRESHOLD)
+adventure.logic.choose(_events, "冒险前没好武器", dict(adventure.DEFAULT_ATTRS),
+                       question=0)
+_n1 = adventure.logic.exact_stats()[0]
+check("建表后状态数 > 10 万", _n1 > 100000, f"{_n1:,}")
+check("未超阈值时不清表", adventure.logic.maybe_reset_exact_memo() is False)
+check("状态数保持不变", adventure.logic.exact_stats()[0] == _n1,
+      f"{adventure.logic.exact_stats()[0]:,}")
+_old = adventure.logic.EXACT_RESET_THRESHOLD
+adventure.logic.EXACT_RESET_THRESHOLD = 10
+check("超过阈值时清表", adventure.logic.maybe_reset_exact_memo() is True)
+check("清表后状态数归零", adventure.logic.exact_stats()[0] == 0,
+      adventure.logic.exact_stats()[0])
+adventure.logic.EXACT_RESET_THRESHOLD = _old
 
 print("\n" + ("全部通过" if ok else "存在失败项"))
 sys.exit(0 if ok else 1)

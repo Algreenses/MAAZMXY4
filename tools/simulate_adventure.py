@@ -19,22 +19,27 @@
     6,6,6,9,4,9,6,6,6,9 = 67
 与结算面板 OCR 到的「生存大冒险中获得67积分」一致。
 
-分数现状（4000 条相同题序的成对比较，初始六维为小玉）：
-    改造前的线上贪心（阈值分档 + 硬门槛价值函数）  78.59
-    ★ 现采用的「贪心 + 软边距价值函数 + 生存因子」  80.57    (+1.99)
-    满分率                                          5.25% → 7.28%
-    上帝视角：预知这一局的事件顺序再最优            约 87.1   （不可达，仅供参考）
+分数现状（4 个全新题序池 × 400 条 × 7 个真实角色 = 11,200 对，成对比较，
+见 tools/adventure_report.py）：
+    改造前的线上贪心（阈值分档 + 硬门槛价值函数）  73.21
+    启发式「贪心 + 软边距价值函数 + 生存因子」      75.00    (+1.79)
+    ★ 现采用的「精确后向归纳」                    75.88    (+2.67)
+    不知题序时的理论最优（7 角色等权）            76.32    （剩下 0.44）
+    上帝视角：预知这一局的事件顺序再最优            约 87      （不可达，仅供参考）
 
-不知题序时的理论最优是 **81.33**：用精确动态规划
+「精确后向归纳」就是把上面那个 DP 直接搬进线上：
     V(q, attrs) = E_{事件 ~ 阶段题库}[ max_o (本题得分 + V(q+1, attrs + delta)) ]
-对 10 题做过完整后向归纳（约 65 万个记忆化状态，20 秒内算完，
-见 tools/adventure_upper_bound.py）。当前价值函数是它的低成本近似（80.57），
-差 0.76；之所以不上精确表：要落盘 ~53 万个状态（约 3.7MB）并引入查表机制，
-只为换不到 1 分，性价比不划算。
+    第 1 题当场建表（10~20 秒，29~48 万状态），之后每题命中缓存；
+    表跨局保留，超过 40 万条才清空（见 agent/adventure_logic.py 的
+    EXACT_RESET_THRESHOLD）。所以线上已经就是理论最优策略，「不知题序」与
+    「上帝视角」之间那 11 分是信息差，抢不到。
+
+初始六维不是一组而是 7 组（游戏每局随机给一个角色），角色之间差距极大：
+小猪最弱 66.20、小唐最强 83.33（见 tools/adventure_upper_bound.py）。
 
 用法：
     py tools/simulate_adventure.py                  # 跑对比
-    py tools/simulate_adventure.py --runs 2000      # 加大样本
+    py tools/simulate_adventure.py --runs 2000      # 加大样本（每角色）
     py tools/simulate_adventure.py --stats          # 只看题库门槛统计
 """
 
@@ -71,7 +76,12 @@ STAGE_SCORE: Dict[int, Tuple[int, int]] = {
     5: (19, 9),
 }
 
-# 截图实测「小玉」的初始六维（与 agent/adventure.py 的 DEFAULT_ATTRS 一致）
+# 真实初始分布：游戏每局随机给一个角色，共 7 个。
+# 数值由 debug/screencap 的「生存属性」面板截图逐格读出，并用
+# debug/adventure/adventure.log 的 24 局决策反推验证过（21 局能被唯一角色复现，
+# 且用真实初值重放 98% 的「必定成功/必然失败」判定都对得上，见
+# tools/adventure_check_chars.py）。
+# 每个角色的理论上界见 tools/adventure_upper_bound.py。
 INIT_ATTRS: Dict[str, int] = {
     "健康": 3,
     "战力": 3,
@@ -80,6 +90,18 @@ INIT_ATTRS: Dict[str, int] = {
     "运气": 3,
     "灵巧": 6,
 }
+
+CHARACTERS: Dict[str, Dict[str, int]] = {
+    "小沙": {"健康": 3, "战力": 3, "智慧": 4, "魅力": 3, "运气": 3, "灵巧": 6},
+    "小吒": {"健康": 5, "战力": 4, "智慧": 4, "魅力": 4, "运气": 3, "灵巧": 4},
+    "小唐": {"健康": 3, "战力": 4, "智慧": 5, "魅力": 5, "运气": 4, "灵巧": 3},
+    "小猪": {"健康": 6, "战力": 4, "智慧": 3, "魅力": 3, "运气": 3, "灵巧": 3},
+    "小玉": {"健康": 3, "战力": 3, "智慧": 4, "魅力": 5, "运气": 3, "灵巧": 6},
+    "小猴": {"健康": 4, "战力": 5, "智慧": 4, "魅力": 3, "运气": 4, "灵巧": 4},
+    "小白": {"健康": 4, "战力": 3, "智慧": 4, "魅力": 4, "运气": 5, "灵巧": 4},
+}
+
+assert CHARACTERS["小玉"] == INIT_ATTRS, "小玉必须与 agent/adventure.py 的 DEFAULT_ATTRS 一致"
 
 ATTRS = logic.ATTRS
 
@@ -218,8 +240,12 @@ def apply_delta(attrs: Dict[str, int], delta: Mapping[str, int]) -> Dict[str, in
 
 
 def greedy_pick(deck: Deck, name: str, attrs: Mapping[str, int], q: int = 0) -> int:
-    """当前线上策略：先「能否成功」，再「后续关键阶段的期望得分」。"""
-    return logic.choose(deck.events, name, attrs).index
+    """当前线上策略：精确后向归纳（题号交给逻辑层定位剩余阶段）。
+
+    `logic.EXACT_ENABLED` 为假或题库元信息残缺时，logic 内部会自动退回启发式，
+    所以这里不需要分支 —— 模拟器跑的永远是线上那条真实路径。
+    """
+    return logic.choose(deck.events, name, attrs, question=q).index
 
 
 # 改造前的参数（健康目标 6、排序键只看阈值评分、没有价值函数），仅用于对照实验
@@ -410,34 +436,46 @@ def oracle_score(deck: Deck, rng: random.Random, init: Mapping[str, int]) -> int
 # 对比
 # --------------------------------------------------------------------------- #
 def compare(deck: Deck, runs: int, seed: int, rollouts: int) -> None:
-    print(f"=== 策略对比（每策略 {runs} 局，seed={seed}）===")
-    print(f"初始六维：{INIT_ATTRS}")
+    nchar = len(CHARACTERS)
+    print(f"=== 策略对比（每策略每角色 {runs} 局，seed={seed}）===")
+    print(f"真实初始分布：{nchar} 个角色等权，合计 {nchar * runs} 局")
     print("满分 100，全失败 48\n")
 
-    results: Dict[str, List[int]] = {}
-
-    def run_policy(tag: str, policy) -> None:
-        rng = random.Random(seed)
-        scores = [play(deck, rng, policy, INIT_ATTRS) for _ in range(runs)]
-        results[tag] = scores
-
-    run_policy("改造前（旧参数）", legacy_pick)
-    run_policy("当前策略（贪心+价值函数）", greedy_pick)
-    run_policy("安全策略（保命优先）", safe_pick)
-    run_policy(
-        f"单步前瞻（{rollouts} 次 rollout）",
-        lambda d, n, a, q: lookahead_pick(d, n, a, q, rollouts, random.Random(seed + q), greedy_pick),
+    lookahead = (
+        lambda d, n, a, q: lookahead_pick(  # noqa: E731
+            d, n, a, q, rollouts, random.Random(seed + q), greedy_pick
+        )
     )
+    policies: Dict[str, Any] = {
+        "改造前（旧参数）": legacy_pick,
+        "当前策略（贪心+价值函数）": greedy_pick,
+        "安全策略（保命优先）": safe_pick,
+        f"单步前瞻（{rollouts} 次 rollout）": lookahead,
+    }
 
-    # 上帝视角上界
-    rng_o = random.Random(seed)
-    oracle = [oracle_score(deck, rng_o, INIT_ATTRS) for _ in range(runs)]
-    results["★上帝视角（已知题序最优）"] = oracle
+    def sweep(policy) -> Dict[str, List[int]]:
+        out: Dict[str, List[int]] = {}
+        for cname, init in CHARACTERS.items():
+            rng = random.Random(seed)
+            out[cname] = [play(deck, rng, policy, init) for _ in range(runs)]
+        return out
 
-    base = statistics.mean(results["改造前（旧参数）"])
+    per_char: Dict[str, Dict[str, List[int]]] = {
+        tag: sweep(p) for tag, p in policies.items()
+    }
+    oracle: Dict[str, List[int]] = {}
+    for cname, init in CHARACTERS.items():
+        rng_o = random.Random(seed)
+        oracle[cname] = [oracle_score(deck, rng_o, init) for _ in range(runs)]
+    per_char["★上帝视角（已知题序最优）"] = oracle
+
+    base = statistics.mean(
+        [s for v in per_char["改造前（旧参数）"].values() for s in v]
+    )
     print(f"{'策略':<28}{'平均分':>8}{'中位':>7}{'最低':>7}{'最高':>7}{'满分率':>9}{'相对提升':>10}")
     print("-" * 78)
-    for tag, scores in results.items():
+    for tag, d in per_char.items():
+        scores = [s for v in d.values() for s in v]
         m = statistics.mean(scores)
         perfect = sum(1 for s in scores if s == 100) / len(scores)
         print(
@@ -446,67 +484,67 @@ def compare(deck: Deck, runs: int, seed: int, rollouts: int) -> None:
         )
     print()
 
+    # 逐角色平均分：角色之间差距很大（小猪最弱、小唐最强），必须分开看
+    print("逐角色平均分：")
+    print(f"{'策略':<28}" + "".join(f"{c:>8}" for c in CHARACTERS))
+    for tag, d in per_char.items():
+        print(f"{tag:<28}" + "".join(f"{statistics.mean(d[c]):>8.2f}" for c in CHARACTERS))
+    print()
+
     # 逐题成功率
     print("逐题成功率与平均得分：")
-    print(f"{'策略':<24}" + "".join(f"{'Q'+str(i+1):>7}" for i in range(10)))
-    for tag, _ in results.items():
-        if tag.startswith("★"):
-            continue
-        rng = random.Random(seed + 999)
-        policy = {
-            "改造前（旧参数）": legacy_pick,
-            "当前策略（贪心+价值函数）": greedy_pick,
-            "安全策略（保命优先）": safe_pick,
-        }.get(tag)
-        if policy is None:
-            policy = lambda d, n, a, q: lookahead_pick(d, n, a, q, rollouts, random.Random(0), greedy_pick)
+    for tag, policy in policies.items():
+        print(f"{tag:<24}" + "".join(f"{'Q'+str(i+1):>7}" for i in range(10)))
         succ = [0] * 10
         pts = [0] * 10
         n = 0
-        for _ in range(runs):
-            tr: list = []
-            play(deck, rng, policy, INIT_ATTRS, trace=tr)
-            n += 1
-            for (qi, stage, nm, txt, ok, delta, tot, a2) in tr:
-                if ok:
-                    succ[qi - 1] += 1
-                pts[qi - 1] += STAGE_SCORE[stage][0 if ok else 1]
-        print(f"{tag:<24}" + "".join(f"{succ[i]/n:>7.0%}" for i in range(10)))
+        for init in CHARACTERS.values():
+            rng = random.Random(seed + 999)
+            for _ in range(runs):
+                tr: list = []
+                play(deck, rng, policy, init, trace=tr)
+                n += 1
+                for (qi, stage, nm, txt, ok, delta, tot, a2) in tr:
+                    if ok:
+                        succ[qi - 1] += 1
+                    pts[qi - 1] += STAGE_SCORE[stage][0 if ok else 1]
+        print(f"{'':<24}" + "".join(f"{succ[i]/n:>7.0%}" for i in range(10)))
         print(f"{'  平均得分':<22}" + "".join(f"{pts[i]/n:>7.1f}" for i in range(10)))
     print()
 
     # 死亡分布
     print("健康归零题号分布（未完赛占比）：")
-    for tag in results:
-        if tag.startswith("★"):
-            continue
-        rng = random.Random(seed + 555)
-        policy = {
-            "改造前（旧参数）": legacy_pick,
-            "当前策略（贪心+价值函数）": greedy_pick,
-            "安全策略（保命优先）": safe_pick,
-        }.get(tag)
-        if policy is None:
-            policy = lambda d, n, a, q: lookahead_pick(d, n, a, q, rollouts, random.Random(0), greedy_pick)
+    total_runs = runs * nchar
+    for tag, policy in policies.items():
         die = Counter()
-        for _ in range(runs):
-            attrs = dict(INIT_ATTRS)
-            for q in range(10):
-                stage = deck.stage_of_question(q)
-                nm = rng.choice(deck.pools[stage])
-                opt = logic.get_options(deck.events[nm])[policy(deck, nm, attrs, q)]
-                attrs = apply_delta(attrs, opt.success if logic.can_succeed(opt, attrs) else opt.fail)
-                if attrs.get("健康", 0) <= 0:
-                    die[q + 1] += 1
-                    break
+        for init in CHARACTERS.values():
+            rng = random.Random(seed + 555)
+            for _ in range(runs):
+                attrs = dict(init)
+                for q in range(10):
+                    stage = deck.stage_of_question(q)
+                    nm = rng.choice(deck.pools[stage])
+                    opt = logic.get_options(deck.events[nm])[
+                        policy(deck, nm, attrs, q)
+                    ]
+                    attrs = apply_delta(
+                        attrs, opt.success if logic.can_succeed(opt, attrs) else opt.fail
+                    )
+                    if attrs.get("健康", 0) <= 0:
+                        die[q + 1] += 1
+                        break
         tot = sum(die.values())
         detail = " ".join(f"Q{k}:{v}" for k, v in sorted(die.items()))
-        print(f"  {tag:<28} 共 {tot}/{runs} = {tot/runs:.1%}   {detail}")
+        print(
+            f"  {tag:<28} 共 {tot}/{total_runs} = {tot/total_runs:.1%}   {detail}"
+        )
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--runs", type=int, default=800)
+    ap.add_argument(
+        "--runs", type=int, default=150, help="每个角色跑多少局（真实分布下总局数 = 7×）"
+    )
     ap.add_argument("--seed", type=int, default=20261012)
     ap.add_argument("--rollouts", type=int, default=24)
     ap.add_argument("--stats", action="store_true")

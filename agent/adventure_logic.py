@@ -98,13 +98,15 @@ class Decision:
     reason: str
     value: float = 0.0
     all_scores: Sequence[Tuple[int, str, bool, float]] = field(default_factory=tuple)
+    exact: bool = False
 
     def describe(self) -> str:
+        tag = "［精确后向归纳］" if self.exact else ""
         return (
             f"[{self.event}] 选第 {self.index + 1} 项「{self.text}」"
             f"（{'必定成功' if self.will_succeed else '必然失败'}，"
             f"属性变化 {self.gains or '无'}，评分 {self.score:+.2f}，"
-            f"后续期望 {self.value:+.2f}）"
+            f"后续期望 {self.value:+.2f}）{tag}"
         )
 
 
@@ -175,11 +177,15 @@ def can_succeed(opt: Option, attrs: Mapping[str, int]) -> bool:
 VALUE_STAGES: Sequence[int] = (3, 4, 5)
 
 # 价值项与原评分的混合比例。价值项量级在几十、原评分在个位到十几。
-# 0.25 由成对比较扫出（4000 条相同题序 × 2 个独立题序池，配对差 / t 值）：
-#   blend 0.05 → +0.19 / +0.02    0.10 → +0.39 / +0.21
-#   blend 0.15 → +0.45 / +0.36    0.25 → +0.49 / +0.44   ← 最优
-#   blend 0.40 → +0.33 / +0.30    1.00 → +0.11
-VALUE_BLEND = 0.25
+#
+# 定值过程（成对比较：同一批题序跑两种参数，比配对差与 t 值）：
+#   阶段 3+4+5 上扫描，4000 条 × 2 个独立池 → blend 0.25 最好（+0.49 / +0.44）；
+#   但那批池是用**单一初始六维（小玉）**跑的。换成真实初始分布（7 个角色等权）
+#   重新扫，0.25 反而偏高：0.05~0.20 整片高原都优于它，最终在 4 个**全新**池上
+#   定案 0.125（+0.100 / +0.080 / +0.101 / +0.055，合并 +0.084，t = +4.38）。
+# 教训：用一组初始值调出来的参数会过拟合那一组；真实角色强弱差很多
+# （理论上界从 66.2 到 83.3），必须在真实角色分布上重调。
+VALUE_BLEND = 0.125
 
 # 软边距尺度：把「还差几点达标」换成 sigmoid((属性 - 门槛) / VALUE_SCALE)。
 #
@@ -188,8 +194,9 @@ VALUE_BLEND = 0.25
 # 「再堆 1 点灵巧就能吃下阶段 4 的两个 12 分」，也就不会集中投资——实测个案里
 # 这正是后 4 题全灭的原因。换成软边距后任何位置的属性增长都有梯度。
 #
-# 1.0 由同一批扫描选出（0.8 → +0.47 / +0.38，1.2 → +0.46 / +0.41，1.0 最好）。
-VALUE_SCALE = 1.0
+# 0.7 由真实初始分布上的 4 个全新池定案（+0.100 / +0.080 / +0.101 / +0.055）；
+# 在旧的单角色池上选出的是 1.0 —— 同样是过拟合单角色的表现。
+VALUE_SCALE = 0.7
 
 # 无门槛选项在软边距里的「超标余量」，等效于「肯定能过」。
 VALUE_FREE_MARGIN = 8.0
@@ -311,6 +318,267 @@ def future_value(
         total *= min(1.0, int(attrs.get("健康", 0)) / VALUE_HEALTH_FULL)
     _value_cache[key] = total
     return total
+
+
+# --------------------------------------------------------------------------- #
+# 精确后向归纳：真正的最优策略
+# --------------------------------------------------------------------------- #
+# 上面的 future_value 是**启发式**：它只看剩余阶段的题库分布，不展开后面的分支。
+# 真正的优解可以精确算出来 —— 记忆化后向归纳：
+#
+#     V(q, attrs) = E_{事件 e ~ 第 q 题所在阶段的题库} [ max_{选项 o}
+#                     ( 本题得分(o 是否通过) + V(q+1, attrs ⊕ Δ(o)) ) ]
+#
+# 出题就是从阶段题库里抽，所以这个期望正是「不知道本局题序」前提下的最优值，
+# 也就是 tools/adventure_upper_bound.py 算的那个上界；直接对每个选项取 argmax
+# 就是最优策略。
+#
+# 代价（单角色，实测 tools/_report_final.py 的「建表成本」一节）：
+#   把阶段 1 的 4 个事件各决策一次（比真局更狠）最坏 77 万状态 / 27 秒；
+#   真局首题只抽到其中 1 个事件，所以线上首题通常 10~20 秒，
+#   之后每道题都命中缓存，增量几乎为零。
+#   为了不每局都重付这笔钱，表**跨局保留**，只在状态数超过
+#   EXACT_RESET_THRESHOLD 时才清空（见 maybe_reset_exact_memo）——
+#   同一次会话里第 2 局起基本不额外花钱。
+#   （pipeline 的「生存大冒险_读题」节点因此把 timeout 放宽到 90 秒，
+#   默认 20 秒在慢机器上会因为识别超时直接走 on_error 结束整局。）
+# 收益（4 个全新题序池 × 400 条 × 7 个真实角色 = 11,200 对，成对比较）：
+#   改造前 73.21 → 启发式 75.00 → 精确 75.88；理论上界（不知题序）76.32。
+#   即 +2.67（t = +32.1），把可抢的 +3.11 里拿掉了 86%。
+# 同一批数据里调参最多只值 +0.08，所以这里直接把启发式换成精确策略；
+# 启发式保留为「题库元信息不完整 / 状态数异常」时的兜底。
+EXACT_ENABLED = True
+
+# 状态数硬上限：正常单局最坏约 48 万（实测小白 478,650），这里纯属防呆。
+EXACT_MAX_STATES = 1_500_000
+
+# 记忆化表跨局累计到这个规模就清空重建。
+# 表只依赖题库、与角色无关，所以同一个角色重复跑几乎不新增状态；
+# 但 7 个角色的可达集不同，长时间不清会涨到并集（实测约 150 万条，
+# 会顶到 EXACT_MAX_STATES 而整体退回启发式）。
+EXACT_RESET_THRESHOLD = 400_000
+
+_EXACT_BITS = 8  # 每个属性占 8 bit（不截断时上百题累积也不越界，见 _eval_options）
+_EXACT_QSHIFT = _EXACT_BITS * len(ATTRS)  # 题号必须整体挪到 6 个属性字段之上
+
+_exact_memo: Dict[int, float] = {}
+_exact_src: Optional[int] = None
+_exact_qstage: list = []  # 题号（0 基）→ 阶段
+_exact_stages: list = []  # 参与归纳的阶段（按题号顺序去重）
+_exact_compiled: Dict[int, list] = {}  # 阶段 → 该阶段每个事件的编译选项表
+_exact_event_opts: Dict[str, list] = {}  # 事件名 → 编译后的选项表
+_exact_cap: list = []  # 属性截断上限（与参考实现 adventure_upper_bound.CAP 同步）
+_exact_ai: Dict[str, int] = {}
+_exact_hidx = ATTRS.index("健康")
+_exact_states = 0
+_exact_off_reason: Optional[str] = None
+
+
+class _ExactOverflow(Exception):
+    """状态数超过上限（正常不可达，纯防呆）。"""
+
+
+def _exact_disable(reason: str) -> None:
+    global EXACT_ENABLED, _exact_off_reason
+    EXACT_ENABLED = False
+    _exact_off_reason = reason
+    _exact_memo.clear()
+
+
+def reset_exact_memo() -> None:
+    """强制清空记忆化表（测试与调试用；线上走 maybe_reset_exact_memo）。"""
+    global _exact_states
+    _exact_memo.clear()
+    _exact_states = 0
+
+
+def maybe_reset_exact_memo() -> bool:
+    """新的一局开始时调用：只有表长得太大才清空，返回是否清了。
+
+    表只依赖题库、与角色无关，所以连续几局往往能整表复用；
+    但不同角色的可达属性集不同，累计到 EXACT_RESET_THRESHOLD 就重建，
+    免得一路涨到 EXACT_MAX_STATES 而把精确策略整体关掉。
+    """
+    global _exact_states
+    if len(_exact_memo) <= EXACT_RESET_THRESHOLD:
+        return False
+    _exact_memo.clear()
+    _exact_states = 0
+    return True
+
+
+def exact_stats() -> Tuple[int, int]:
+    """返回 (记忆化状态数, 已展开节点数)，供日志使用。"""
+    return len(_exact_memo), _exact_states
+
+
+def _exact_pairs(delta: Optional[Mapping[str, int]]) -> tuple:
+    """把属性增减字典编译成 ((属性下标, 整数增量), ...)，省掉归纳内层的字典开销。"""
+    if not delta:
+        return ()
+    out = []
+    for k, v in delta.items():
+        i = _exact_ai.get(k)
+        if i is None or not v:
+            continue
+        out.append((i, int(v)))
+    return tuple(out)
+
+
+def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
+    """按题库建「题号→阶段、阶段→编译后的选项」索引（只建一次）。"""
+    global _exact_src, _exact_qstage, _exact_stages, _exact_compiled, _exact_cap, _exact_ai
+    global _exact_event_opts
+    if not EXACT_ENABLED:
+        return False
+    key = id(events)
+    if _exact_src == key:
+        return True
+    _ensure_value_index(events)
+    _ensure_stage_meta()
+    _exact_ai = {a: i for i, a in enumerate(ATTRS)}
+
+    # 题号 → 阶段：题库 `_meta.stages[].questions` 直接给出了题号列表（1 基）
+    qstage: list = []
+    for st in sorted(_stage_meta):
+        for num in _stage_meta[st].get("questions") or []:
+            n = int(num) - 1
+            while len(qstage) <= n:
+                qstage.append(None)
+            qstage[n] = st
+    if not qstage or any(s is None for s in qstage):
+        _exact_disable("题库 _meta.stages 的题号不完整")
+        return False
+
+    compiled: Dict[int, list] = {}
+    event_opts: Dict[str, list] = {}
+    for st, entries in _stage_entries.items():
+        pool = []
+        for name, opts in entries:
+            one = [
+                (
+                    o.index,
+                    _exact_pairs(o.require),
+                    _exact_pairs(o.success),
+                    _exact_pairs(o.fail),
+                    bool(o.always_fail),
+                )
+                for o in opts
+            ]
+            pool.append(one)
+            event_opts[name] = one
+        if pool:
+            compiled[st] = pool
+    if not compiled:
+        _exact_disable("题库里没有可归纳的事件")
+        return False
+
+    # 属性截断上限：超过「该属性在题库里的最高门槛」后不再改变任何判定，
+    # 因此可以截断——这是把状态数从 65 万压到 53 万的关键。健康不截断
+    # （它没有门槛意义上的天花板，且负增益会一路累积）。
+    #
+    # 注意这与 `tools/adventure_upper_bound.py` 的 `add()` 必须完全一致：
+    # 生产实现的每一步都要和量出收益的那份参考实现逐决策对齐，否则
+    # 「调参得到的 +0.xx」根本不能保证会在线下复现。曾经漏掉这层截断，
+    # 结果同一局面算出 78.88 而参考是 78.83，299 个决策里 136 个对不上。
+    cap = []
+    for a in ATTRS:
+        mx = 0
+        for pool in compiled.values():
+            for _i, req, _s, _f, _af in (o for ev in pool for o in ev):
+                for i, v in req:
+                    if ATTRS[i] == a:
+                        mx = max(mx, v)
+        cap.append(mx if a != "健康" else 99)
+
+    _exact_qstage = qstage
+    _exact_stages = sorted({s for s in qstage})
+    _exact_compiled = compiled
+    _exact_event_opts = event_opts
+    _exact_cap = cap
+    _exact_src = key
+    reset_exact_memo()
+    return True
+
+
+def _pack(attrs: Tuple[int, ...]) -> int:
+    v = 0
+    for i, x in enumerate(attrs):
+        v |= (int(x) & ((1 << _EXACT_BITS) - 1)) << (_EXACT_BITS * i)
+    return v
+
+
+def _eval_options(
+    opts: list, attrs: Tuple[int, ...], q: int, win: int, lose: int
+) -> Tuple[Optional[int], float]:
+    """在一组（编译后的）选项里按精确期望取最优，返回 (选项下标, 期望值)。"""
+    best_i, best_v = None, -1e18
+    for idx, req, succ, fail, af in opts:
+        ok = not af
+        if ok:
+            for i, v in req:
+                if attrs[i] < v:
+                    ok = False
+                    break
+        pairs = succ if ok else fail
+        if pairs:
+            nxt = list(attrs)
+            for i, v in pairs:
+                nxt[i] = min(nxt[i] + v, _exact_cap[i])
+            nxt = tuple(nxt)
+        else:
+            nxt = attrs
+        val = (win if ok else lose) + _exact_value(q + 1, nxt)
+        if val > best_v:
+            best_v, best_i = val, idx
+    return best_i, (best_v if best_i is not None else 0.0)
+
+
+def _exact_value(q: int, attrs: Tuple[int, ...]) -> float:
+    """从第 q 题（0 基）起、属性为 attrs 时的最优期望剩余得分。"""
+    global _exact_states
+    if q >= len(_exact_qstage) or attrs[_exact_hidx] <= 0:
+        return 0.0
+    key = (q << _EXACT_QSHIFT) | _pack(attrs)
+    got = _exact_memo.get(key)
+    if got is not None:
+        return got
+    if _exact_states >= EXACT_MAX_STATES:
+        raise _ExactOverflow()
+    _exact_states += 1
+    st = _exact_qstage[q]
+    win, lose = _stage_scores.get(st, (0, 0))
+    pools = _exact_compiled[st]
+    tot = 0.0
+    for opts in pools:
+        tot += _eval_options(opts, attrs, q, win, lose)[1]
+    res = tot / len(pools)
+    _exact_memo[key] = res
+    return res
+
+
+def exact_choice(
+    events: Mapping[str, Mapping[str, Any]],
+    event_name: str,
+    attrs: Mapping[str, int],
+    question: int,
+) -> Optional[Tuple[int, float]]:
+    """精确最优选项，返回 (选项下标, 期望剩余得分)；不可用时返回 None。"""
+    if not _build_exact_tables(events):
+        return None
+    if not (0 <= question < len(_exact_qstage)):
+        return None
+    opts = _exact_event_opts.get(event_name)
+    if not opts:
+        return None
+    st = _exact_qstage[question]
+    win, lose = _stage_scores.get(st, (0, 0))
+    t = tuple(int(attrs.get(a, 0)) for a in ATTRS)
+    try:
+        return _eval_options(opts, t, question, win, lose)
+    except _ExactOverflow:
+        _exact_disable("状态数超过上限")
+        return None
 
 
 def _attr_weight(key: str, value: int, attrs: Mapping[str, int]) -> float:
@@ -461,8 +729,14 @@ def choose(
     attrs: Mapping[str, int],
     weights: Mapping[str, float] = DEFAULT_WEIGHTS,
     success_bonus: float = DEFAULT_SUCCESS_BONUS,
+    question: Optional[int] = None,
 ) -> Decision:
-    """返回该事件的最优选项。"""
+    """返回该事件的最优选项。
+
+    `question` 是本题的题号（0 基）。传了就启用精确后向归纳（EXACT_ENABLED 为真
+    且题库元信息完整时），不传则只用启发式 —— 这样既保持旧调用方式的行为不变，
+    也让单元测试可以单独验证启发式那条路径。
+    """
     if event_name not in events:
         raise KeyError(f"题库中没有事件「{event_name}」")
     opts = get_options(events[event_name])
@@ -482,7 +756,25 @@ def choose(
     # 排序键：先「能否成功」（拿阶段大分的前提），再「后续期望得分」，
     # 再原评分，最后剩余健康
     best = max(scored, key=lambda x: (x[1], x[4], x[2], x[5]))
+
+    # 精确策略：用后向归纳的期望直接取 argmax（见本文件「精确后向归纳」一节）。
+    # 它比启发式多 1.05 分，是线上默认路径；失败/不可用时安静地退回启发式。
+    exact_note = ""
+    if question is not None:
+        picked = exact_choice(events, event_name, attrs, int(question))
+        if picked is not None and picked[0] is not None:
+            for cand in scored:
+                if cand[0].index == picked[0]:
+                    best = cand
+                    exact_note = (
+                        f"精确后向归纳（第 {int(question) + 1} 题，"
+                        f"期望 {picked[1]:+.2f}，已展开 {exact_stats()[0]:,} 状态）"
+                    )
+                    break
+
     opt, ok, score, gains, value, _hp_after = best
+    if exact_note:
+        value = picked[1]
 
     if ok:
         reason = "满足门槛，必定成功" if opt.require else "无要求，必定成功"
@@ -493,6 +785,8 @@ def choose(
         for k, v in (opt.require or {}).items():
             short.append(f"{k}需{v}（当前{attrs.get(k, 0)}）")
         reason = "所有选项都不满足门槛，此为该情况下损失最小项：" + "、".join(short)
+    if exact_note:
+        reason = exact_note + "｜" + reason
 
     return Decision(
         event=event_name,
@@ -506,6 +800,7 @@ def choose(
         all_scores=tuple(
             (o.index, o.text, ok_, sc) for o, ok_, sc, _, _, _ in scored
         ),
+        exact=bool(exact_note),
     )
 
 

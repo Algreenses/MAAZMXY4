@@ -76,6 +76,9 @@ class _State:
     """跨题保存的属性账本：OCR 读不到时作为兜底，也便于日志追踪。"""
 
     attrs: Dict[str, int] = {}
+    # 本局答到第几题（0 基）。精确后向归纳要靠它定位「还剩哪些阶段」，
+    # 否则第 5 题也会按「10 题全在」来估值。
+    question: int = 0
 
 
 STATE = _State()
@@ -593,6 +596,12 @@ class AdventureInit(CustomAction):
             if value is not None:
                 attrs[name] = value
         STATE.attrs = attrs
+        # 新的一局：题号归零；精确归纳表只在长得过大时才重建
+        # （表只依赖题库、与角色无关，所以连续几局通常能整表复用）
+        STATE.question = 0
+        if logic.maybe_reset_exact_memo():
+            _log("精确归纳表超过 %d 条，已清空重建（下一局首题会慢一次）"
+                 % logic.EXACT_RESET_THRESHOLD)
         if attrs:
             _log(f"账本初始化（来自输入项）：{attrs}")
         else:
@@ -652,8 +661,21 @@ class AdventureRead(CustomRecognition):
 
         event = _match_event(question) or _match_event_by_options(option_texts)
         if event:
-            decision = logic.choose(_events(), event, attrs)
+            # 传入题号，走精确后向归纳（首题会当场建表 10~16 秒，之后每题命中缓存）
+            _t0 = time.time()
+            decision = logic.choose(
+                _events(), event, attrs, question=STATE.question
+            )
+            _cost = time.time() - _t0
             STATE.attrs = _apply(attrs, decision.gains)
+            STATE.question += 1
+            if STATE.question == 1:
+                states, _nodes = logic.exact_stats()
+                _log(
+                    f"本局策略：{'精确后向归纳' if decision.exact else '启发式'}"
+                    f"（首题决策耗时 {_cost:.1f}s，归纳表 {states:,} 状态，"
+                    f"EXACT_ENABLED={logic.EXACT_ENABLED}）"
+                )
             _log(f"{decision.describe()}｜题干：{question}")
             detail = {
                 "event": event,
