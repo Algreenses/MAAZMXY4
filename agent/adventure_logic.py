@@ -50,16 +50,18 @@ DEFAULT_SUCCESS_BONUS = 8.0
 #   战力 10（36 处）  灵巧 10（37 处）  魅力 10（35 处）
 #   智慧 10（33 处）  运气  9（35 处）  健康  6（**仅 3 处**）
 #
-# 注意健康：它的门槛极少、最高只到 6，所以目标设 6 而不是 8。
-# 设高了会让健康在"未达标"区间权重虚高，出现"为了加 1 点健康去砍别的属性"。
-# 健康真正的风险是归零导致本轮提前结束，那个由 ZERO_PENALTY 单独兜底。
+# 注意健康：它的门槛只有 3/5/6 三处，target 取 3。
+# 实测（1500 局成对比较，见 tools/simulate_adventure.py）：target 从 6 降到 3，
+# 平均分 78.44 → 80.11。原因是 target=6 时健康在 3~5 区间每 +1 都落进 NEAR 档，
+# 拿 6.0×1.5=9.0 分，压过了堆战力/智慧/灵巧的收益；而健康真正的风险只有
+# 「归零提前结束」，那件事由 ZERO_PENALTY 单独兜底。
 THRESHOLD_TARGETS: Dict[str, int] = {
     "战力": 10,
     "灵巧": 10,
     "魅力": 10,
     "智慧": 10,
     "运气": 9,
-    "健康": 6,
+    "健康": 3,
 }
 
 # 阈值导向的打分参数：离门槛越近的属性，收益价值越高（"差一点就补上"）
@@ -93,13 +95,15 @@ class Decision:
     gains: Dict[str, int]
     score: float
     reason: str
+    value: float = 0.0
     all_scores: Sequence[Tuple[int, str, bool, float]] = field(default_factory=tuple)
 
     def describe(self) -> str:
         return (
             f"[{self.event}] 选第 {self.index + 1} 项「{self.text}」"
             f"（{'必定成功' if self.will_succeed else '必然失败'}，"
-            f"属性变化 {self.gains or '无'}，评分 {self.score:+.2f}）"
+            f"属性变化 {self.gains or '无'}，评分 {self.score:+.2f}，"
+            f"后续期望 {self.value:+.2f}）"
         )
 
 
@@ -141,6 +145,118 @@ def can_succeed(opt: Option, attrs: Mapping[str, int]) -> bool:
     if not opt.require:
         return True
     return all(int(attrs.get(k, 0)) >= int(v) for k, v in opt.require.items())
+
+
+# --------------------------------------------------------------------------- #
+# 价值函数：把「该堆哪项属性」从阈值分档升级为「后续关键阶段的期望得分」
+# --------------------------------------------------------------------------- #
+# 决策的真实处境：每阶段的事件是从该阶段题库里**随机抽**的（同一事件可能重复
+# 出现，日志里 唐僧受伤 一局内出现过两次），所以脚本无法预知这一局会碰到哪些
+# 事件，只能按题库分布做期望最优。
+#
+# 原做法（_gain_score 的阈值分档）在 target=10 时所有属性 gap 都 > MID_GAP，
+# 权重全部落进 FAR_WEIGHT=1.0，退化成「谁的总增益数值大」，与"能不能过关"脱钩。
+#
+# 现做法：直接估算「带着当前属性去打后面几个关键阶段，期望能拿多少分」。
+# 因为过关是硬门槛，这个期望天然奖励「把某项属性顶过门槛」，也天然抑制
+# 「每项都涨一点、结果一项都过不了」。
+#
+# 量级参考（见 tools/_exact_adventure.py 与 tools/_sweep2_adventure.py）：
+#   当前线上贪心 78.25 / 本方案 80.49 / 理论最优（不知题序）81.33
+#   / 上帝视角（预知题序）87.19 —— 后者不可达。
+
+# 参与估值的关键阶段：4 与 5 合计 55 分（满分 100），是分数的决定性来源。
+VALUE_STAGES: Sequence[int] = (4, 5)
+
+# 价值项与原评分的混合比例。价值项量级在几十、原评分在个位到十几，
+# 0.5 让价值项主导，同时保留原评分做近似平局时的细化（实测 0.5 / 2.0 / 8.0
+# 相差仅 0.2 分，0.5 最好）。
+VALUE_BLEND = 0.5
+
+_stage_meta: Dict[int, Dict[str, Any]] = {}
+_stage_meta_ready = False
+_stage_entries: Dict[int, list] = {}
+_stage_questions: Dict[int, int] = {}
+_stage_scores: Dict[int, Tuple[int, int]] = {}
+_value_cache: Dict[Tuple[int, ...], float] = {}
+_value_ready = False
+_value_src: Optional[int] = None
+
+
+def _ensure_stage_meta() -> None:
+    """从题库 `_meta.stages` 读每个阶段的题数与成败得分（只读一次）。"""
+    global _stage_meta_ready
+    if _stage_meta_ready:
+        return
+    for s in (load_data().get("_meta") or {}).get("stages") or []:
+        _stage_meta[int(s["stage"])] = s
+    _stage_meta_ready = True
+
+
+def _ensure_value_index(events: Mapping[str, Mapping[str, Any]]) -> None:
+    """按传入的 events 建「阶段 → 事件与选项 / 题数 / 分数」索引。
+
+    用 `id(events)` 做缓存键：调用方换了题库（换文件或换字典）会自动重建，
+    而正常运行时每道题都命中缓存，不会重复解析。
+    """
+    global _value_ready, _value_src
+    key = id(events)
+    if _value_ready and _value_src == key:
+        return
+    _ensure_stage_meta()
+    _stage_entries.clear()
+    _stage_questions.clear()
+    _stage_scores.clear()
+    _value_cache.clear()
+    for st, s in _stage_meta.items():
+        _stage_questions[st] = len(s.get("questions") or [])
+        _stage_scores[st] = (
+            int(s.get("score_success", 0)),
+            int(s.get("score_fail", 0)),
+        )
+    for name, body in events.items():
+        st = int(body.get("stage") or 0)
+        _stage_entries.setdefault(st, []).append((name, get_options(body)))
+    _value_ready = True
+    _value_src = key
+
+
+def apply_delta(attrs: Mapping[str, int], delta: Mapping[str, int]) -> Dict[str, int]:
+    """返回施加属性变化后的新属性字典。"""
+    out = dict(attrs)
+    for k, v in (delta or {}).items():
+        out[k] = int(out.get(k, 0)) + int(v)
+    return out
+
+
+def future_value(
+    attrs: Mapping[str, int], events: Mapping[str, Mapping[str, Any]]
+) -> float:
+    """按当前属性估算「后面几个关键阶段的期望得分」。
+
+    对每个事件取「4 个选项里只要有一个能过就算成功」，再对该阶段题库求平均。
+    过关是硬门槛，所以这个期望天然奖励「把某项属性顶过门槛」。
+    """
+    _ensure_value_index(events)
+    key = tuple(int(attrs.get(a, 0)) for a in ATTRS)
+    got = _value_cache.get(key)
+    if got is not None:
+        return got
+    if key[ATTRS.index("健康")] <= 0:
+        _value_cache[key] = 0.0
+        return 0.0
+    total = 0.0
+    for st in VALUE_STAGES:
+        entries = _stage_entries.get(st) or []
+        if not entries:
+            continue
+        win, lose = _stage_scores.get(st, (0, 0))
+        acc = 0.0
+        for _name, opts in entries:
+            acc += win if any(can_succeed(o, attrs) for o in opts) else lose
+        total += acc / len(entries) * _stage_questions.get(st, 1)
+    _value_cache[key] = total
+    return total
 
 
 def _attr_weight(key: str, value: int, attrs: Mapping[str, int]) -> float:
@@ -302,11 +418,17 @@ def choose(
     scored = []
     for opt in opts:
         ok, score, gains = evaluate(opt, attrs, weights, success_bonus)
-        scored.append((opt, ok, score, gains))
+        nxt = apply_delta(attrs, gains)
+        # 排序主键：选完之后「带着新属性去打后面关键阶段的期望得分」。
+        # 原评分只作次级项，用于近似平局时细化（实测 0.5 最优，2.0/8.0 差 0.1~0.3）。
+        value = future_value(nxt, events) + VALUE_BLEND * score
+        # 末位平局键：前面全相同时，留更多血更安全（血是唯一能让本局提前结束的资源）
+        scored.append((opt, ok, score, gains, value, int(nxt.get("健康", 0))))
 
-    # 排序键：先「能否成功」，再评分（都失败时评分即"损失最小"）
-    best = max(scored, key=lambda x: (x[1], x[2]))
-    opt, ok, score, gains = best
+    # 排序键：先「能否成功」（拿阶段大分的前提），再「后续期望得分」，
+    # 再原评分，最后剩余健康
+    best = max(scored, key=lambda x: (x[1], x[4], x[2], x[5]))
+    opt, ok, score, gains, value, _hp_after = best
 
     if ok:
         reason = "满足门槛，必定成功" if opt.require else "无要求，必定成功"
@@ -326,7 +448,10 @@ def choose(
         gains=gains,
         score=score,
         reason=reason,
-        all_scores=tuple((o.index, o.text, ok_, sc) for o, ok_, sc, _ in scored),
+        value=value,
+        all_scores=tuple(
+            (o.index, o.text, ok_, sc) for o, ok_, sc, _, _, _ in scored
+        ),
     )
 
 
