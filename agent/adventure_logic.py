@@ -28,6 +28,62 @@ from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
 ATTRS: Sequence[str] = ("战力", "智慧", "魅力", "灵巧", "运气", "健康")
 
+# 七个可选角色（每局随机一位）及其初始六维，顺序同 ATTRS。
+# 来源：debug/screencap 里「角色」行逐帧像素聚类（7 组，见 adventure_ui.json 的 character_roi）
+#       + 开局面板逐格读出，并用 debug/adventure/adventure.log 的 24 局判定反推交叉验证
+#       （7 个向量能复现 98% 的「必定成功/必然失败」判定）。
+# 用途：开局先认角色，就能拿到**权威**的初始六维 —— 三级属性 OCR 全失败且账本为空时
+#       （实测确实发生过），原来会退化成 attrs={}，整个价值函数的地基就错了。
+CHARACTERS: Dict[str, Dict[str, int]] = {
+    "小沙": {"战力": 3, "智慧": 4, "魅力": 3, "灵巧": 6, "运气": 3, "健康": 3},
+    "小吒": {"战力": 4, "智慧": 4, "魅力": 4, "灵巧": 4, "运气": 3, "健康": 5},
+    "小唐": {"战力": 4, "智慧": 5, "魅力": 5, "灵巧": 3, "运气": 4, "健康": 3},
+    "小猪": {"战力": 4, "智慧": 3, "魅力": 3, "灵巧": 3, "运气": 3, "健康": 6},
+    "小玉": {"战力": 3, "智慧": 4, "魅力": 5, "灵巧": 6, "运气": 3, "健康": 3},
+    "小猴": {"战力": 5, "智慧": 4, "魅力": 3, "灵巧": 4, "运气": 4, "健康": 4},
+    "小白": {"战力": 3, "智慧": 4, "魅力": 4, "灵巧": 4, "运气": 5, "健康": 4},
+}
+
+# 角色名只有 7 个、都是两个字且第二个字互不相同（沙/吒/唐/猪/玉/猴/白），
+# 所以「末字」就是唯一键 —— 形近字 OCR 认错第一个字不影响判定。
+_CHAR_TAIL: Dict[str, str] = {name[-1]: name for name in CHARACTERS}
+
+# 实测见过的形近误认（我自己的转写和 OCR 都出现过）：小圤→小吒、小塘→小唐、小砂→小沙。
+_CHAR_ALIAS: Dict[str, str] = {
+    "小圤": "小吒", "小叱": "小吒", "小咤": "小吒",
+    "小塘": "小唐", "小糖": "小唐",
+    "小砂": "小沙", "小纱": "小沙",
+    "小诸": "小猪", "小朱": "小猪",
+    "小候": "小猴", "小侯": "小猴",
+    "小王": "小玉", "小五": "小玉",
+}
+
+
+def character_attrs(text: str) -> Optional[Dict[str, int]]:
+    """把 OCR 到的「角色」文本映射成初始六维；认不出来返回 None。
+
+    三层判定，越靠前越可信：
+      1. 去除非汉字后正好是角色名（或整个文本包含某个角色名）
+      2. 已知形近误认别名
+      3. 末字唯一命中（末字表 7 个字互不相同，所以这一层也很硬）
+    认不准就返回 None，让调用方退回属性 OCR —— 宁可不用也不要猜错角色，
+    因为角色一错，整局的属性基线就全错了。
+    """
+    if not text:
+        return None
+    chars = "".join(c for c in str(text) if "\u4e00" <= c <= "\u9fff")
+    if not chars:
+        return None
+    for name in CHARACTERS:
+        if name in chars:
+            return dict(CHARACTERS[name])
+    if chars in _CHAR_ALIAS:
+        return dict(CHARACTERS[_CHAR_ALIAS[chars]])
+    hit = _CHAR_TAIL.get(chars[-1])
+    if hit:
+        return dict(CHARACTERS[hit])
+    return None
+
 _DEFAULT_DATA = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "assets", "data", "adventure.json"
 )
@@ -349,14 +405,17 @@ def future_value(
 # 启发式保留为「题库元信息不完整 / 状态数异常」时的兜底。
 EXACT_ENABLED = True
 
-# 状态数硬上限：正常单局最坏约 48 万（实测小白 478,650），这里纯属防呆。
-EXACT_MAX_STATES = 1_500_000
+# 状态数硬上限。实测（tools/measure_table_warm.py）：
+#   单角色单事件（= 线上首题）最坏约 38~48 万状态，10~20 秒；
+#   7 个角色的并集约 112 万~150 万状态。
+# 上限取 180 万，正好能**把 7 个角色的并集整表常驻**：于是每个角色只付一次建表钱，
+# 之后不管随机抽到谁都命中缓存，拉表工作量为零。
+# 内存代价约 150 MB（CPython 每条约 100 B），这是「不再重建」的对价。
+EXACT_MAX_STATES = 1_800_000
 
-# 记忆化表跨局累计到这个规模就清空重建。
-# 表只依赖题库、与角色无关，所以同一个角色重复跑几乎不新增状态；
-# 但 7 个角色的可达集不同，长时间不清会涨到并集（实测约 150 万条，
-# 会顶到 EXACT_MAX_STATES 而整体退回启发式）。
-EXACT_RESET_THRESHOLD = 400_000
+# 到上限时在半数处裁剪，而不是把精确策略整体关掉（旧行为）。
+# 归纳表是**纯缓存**：丢条目只会重算，不会改变任何判定结果。
+_EXACT_MAX_TRIMS = 3  # 单次决策内最多裁几次；再多说明工作集本身就超上限，只能降级
 
 _EXACT_BITS = 8  # 每个属性占 8 bit（不截断时上百题累积也不越界，见 _eval_options）
 _EXACT_QSHIFT = _EXACT_BITS * len(ATTRS)  # 题号必须整体挪到 6 个属性字段之上
@@ -373,6 +432,7 @@ _exact_cap: list = []  # 属性截断上限（与参考实现 adventure_upper_bo
 _exact_ai: Dict[str, int] = {}
 _exact_hidx = ATTRS.index("健康")
 _exact_states = 0
+_exact_trims = 0
 _exact_off_reason: Optional[str] = None
 
 
@@ -388,25 +448,39 @@ def _exact_disable(reason: str) -> None:
 
 
 def reset_exact_memo() -> None:
-    """强制清空记忆化表（测试与调试用；线上走 maybe_reset_exact_memo）。"""
-    global _exact_states
+    """强制清空记忆化表（测试与调试用）。"""
+    global _exact_states, _exact_trims
     _exact_memo.clear()
     _exact_states = 0
+    _exact_trims = 0
+
+
+def _trim_exact_memo() -> None:
+    """缓存到上限时丢掉最早插入的一半。
+
+    表是纯缓存，丢条目只会让后续重算，**不会改变任何判定结果** ——
+    所以这里选择「重算」而不是旧实现的「把精确策略永久关掉」
+    （旧行为代价 1.05 分/局，而且是静默的）。
+    """
+    global _exact_states, _exact_trims
+    n = len(_exact_memo)
+    if not n:
+        return
+    for k in list(_exact_memo)[: n // 2]:
+        del _exact_memo[k]
+    _exact_states = len(_exact_memo)
+    _exact_trims += 1
 
 
 def maybe_reset_exact_memo() -> bool:
-    """新的一局开始时调用：只有表长得太大才清空，返回是否清了。
+    """新的一局开始时调用；现在**不再按局清空**，永远返回 False。
 
-    表只依赖题库、与角色无关，所以连续几局往往能整表复用；
-    但不同角色的可达属性集不同，累计到 EXACT_RESET_THRESHOLD 就重建，
-    免得一路涨到 EXACT_MAX_STATES 而把精确策略整体关掉。
+    旧实现按 EXACT_RESET_THRESHOLD=40 万清表，而单个角色就要 38~48 万状态，
+    结果是**每一局都在重建**（日志里每局都是「拉表耗时 10~16s」）。
+    现在改成整表常驻 + 到上限时半数裁剪，7 个角色各付一次即可。
+    函数名保留是为了不打断既有调用方。
     """
-    global _exact_states
-    if len(_exact_memo) <= EXACT_RESET_THRESHOLD:
-        return False
-    _exact_memo.clear()
-    _exact_states = 0
-    return True
+    return False
 
 
 def exact_stats() -> Tuple[int, int]:
@@ -579,7 +653,9 @@ def _exact_value(q: int, attrs: Tuple[int, ...]) -> float:
     if got is not None:
         return got
     if _exact_states >= EXACT_MAX_STATES:
-        raise _ExactOverflow()
+        if _exact_trims >= _EXACT_MAX_TRIMS:
+            raise _ExactOverflow()
+        _trim_exact_memo()
     _exact_states += 1
     st = _exact_qstage[q]
     win, lose = _stage_scores.get(st, (0, 0))
@@ -599,6 +675,7 @@ def exact_choice(
     question: int,
 ) -> Optional[Tuple[int, float]]:
     """精确最优选项，返回 (选项下标, 期望剩余得分)；不可用时返回 None。"""
+    global _exact_trims
     if not _build_exact_tables(events):
         return None
     if not (0 <= question < len(_exact_qstage)):
@@ -609,6 +686,7 @@ def exact_choice(
     st = _exact_qstage[question]
     win, lose = _stage_scores.get(st, (0, 0))
     t = tuple(int(attrs.get(a, 0)) for a in ATTRS)
+    _exact_trims = 0  # 单次决策内的裁剪次数预算（见 _trim_exact_memo）
     try:
         return _eval_options(opts, t, question, win, lose)
     except _ExactOverflow:

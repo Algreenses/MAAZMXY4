@@ -65,8 +65,8 @@ def build_cost() -> None:
         print(f"  {cname:<5} {dt:8.1f} {st:10,d}   "
               f"{first.index + 1}「{first.text}」期望 {first.value:.2f}")
     print(f"  最坏：{worst_t:.1f}s / {worst_s:,} 状态"
-          f"（EXACT_MAX_STATES = {logic.EXACT_MAX_STATES:,}，"
-          f"EXACT_RESET_THRESHOLD = {logic.EXACT_RESET_THRESHOLD:,}）")
+          f"（EXACT_MAX_STATES = {logic.EXACT_MAX_STATES:,}；"
+          f"表整表常驻，7 角色并集约 112~150 万，故上限取 180 万）")
 
 
 def main() -> None:

@@ -444,24 +444,32 @@ adventure.logic.reset_exact_memo()
 check("强制清空归纳表后状态数归零", adventure.logic.exact_stats()[0] == 0,
       adventure.logic.exact_stats()[0])
 
-print("\n=== 场景 21：精确归纳表跨局复用（不是每局重建） ===")
-# 「每局重建」每局要白等 10~16 秒。表只依赖题库、与角色无关，所以线上只在
-# 累计状态数超过阈值时才清空；这里两个分支都要盯住。
-check("阈值常量 = 400000", adventure.logic.EXACT_RESET_THRESHOLD == 400_000,
-      adventure.logic.EXACT_RESET_THRESHOLD)
+print("\n=== 场景 21：精确归纳表整表常驻（不在局间重建） ===")
+# 旧的「累计超过 40 万状态就清空」几乎等于**每局都重建**：单个角色就要 38~48 万状态
+# （实测 tools/measure_table_warm.py）。现在整表常驻，7 个角色各付一次即可，
+# 所以这里盯住三件事：上限够装下并集、换角色不清表、裁剪只失效缓存而不改判定。
+check("EXACT_MAX_STATES 能装下 7 角色并集（实测 112~150 万）",
+      adventure.logic.EXACT_MAX_STATES >= 1_500_000, adventure.logic.EXACT_MAX_STATES)
 adventure.logic.choose(_events, "冒险前没好武器", dict(adventure.DEFAULT_ATTRS),
                        question=0)
 _n1 = adventure.logic.exact_stats()[0]
 check("建表后状态数 > 10 万", _n1 > 100000, f"{_n1:,}")
-check("未超阈值时不清表", adventure.logic.maybe_reset_exact_memo() is False)
+check("新一局不清表", adventure.logic.maybe_reset_exact_memo() is False)
 check("状态数保持不变", adventure.logic.exact_stats()[0] == _n1,
       f"{adventure.logic.exact_stats()[0]:,}")
-_old = adventure.logic.EXACT_RESET_THRESHOLD
-adventure.logic.EXACT_RESET_THRESHOLD = 10
-check("超过阈值时清表", adventure.logic.maybe_reset_exact_memo() is True)
-check("清表后状态数归零", adventure.logic.exact_stats()[0] == 0,
-      adventure.logic.exact_stats()[0])
-adventure.logic.EXACT_RESET_THRESHOLD = _old
+_d1 = adventure.logic.choose(_events, "冒险前没好武器",
+                             dict(adventure.logic.CHARACTERS["小唐"]), question=0)
+_n2 = adventure.logic.exact_stats()[0]
+check("换角色后表只增不减（跨角色复用）", _n2 >= _n1, f"{_n1:,} → {_n2:,}")
+_n3 = adventure.logic.exact_stats()[0]
+adventure.logic._trim_exact_memo()
+check("到上限时裁剪掉一半", adventure.logic.exact_stats()[0] <= _n3 // 2 + 1,
+      f"{_n3:,} → {adventure.logic.exact_stats()[0]:,}")
+_d2 = adventure.logic.choose(_events, "冒险前没好武器",
+                             dict(adventure.logic.CHARACTERS["小唐"]), question=0)
+check("裁剪只是缓存失效，决策与期望值完全不变",
+      _d2.index == _d1.index and abs(_d2.value - _d1.value) < 1e-9,
+      f"idx {_d1.index} vs {_d2.index}，期望 {_d1.value:.4f} vs {_d2.value:.4f}")
 
 print("\n=== 场景 22：事件正则必须只命中自己 ===")
 # 「危险任务」原本配了过宽的「族长」，于是题干「冒险前，族长准备送你一件礼物」
@@ -508,6 +516,53 @@ check("阶段 2 再多的事件被夹在该阶段题号上界",
 check("阶段 4 第 1 个事件 → 第 7 题（0 基 6）",
       _logic.question_for_event(_st4[0], _ans) == 6, _logic.question_for_event(_st4[0], _ans))
 check("未知事件 → None", _logic.question_for_event("不存在的世界", {}) is None)
+
+print("\n=== 场景 24：开局先识别角色，用角色锁死初始六维 ===")
+# 三级属性 OCR 全失败且账本为空时（实测发生过），原来会退化成 attrs={}，
+# 整个价值函数的地基就错了。左侧木牌第一行的「角色」不依赖数值 OCR，
+# 是同一时刻可用的权威初值来源。
+_C = _logic.CHARACTERS
+check("7 个角色齐备且都是六维", len(_C) == 7 and all(len(v) == 6 for v in _C.values()),
+      sorted(_C))
+check("小玉向量与 adventure.DEFAULT_ATTRS 一致",
+      dict(_C["小玉"]) == dict(adventure.DEFAULT_ATTRS))
+check("角色名末字互不相同（可作唯一键）", len({n[-1] for n in _C}) == 7,
+      "".join(sorted(n[-1] for n in _C)))
+check("精确名可解析", _logic.character_attrs("小玉") == dict(_C["小玉"]))
+check("带前后噪声文本仍可解析", _logic.character_attrs("角色 小唐 ") == dict(_C["小唐"]))
+check("已知形近误认别名可解析（小圤→小吒）",
+      _logic.character_attrs("小圤") == dict(_C["小吒"]))
+check("末字唯一命中（小猴被认成小侯）",
+      _logic.character_attrs("小侯") == dict(_C["小猴"]), _logic.character_attrs("小侯"))
+check("空文本/查无此人返回 None",
+      _logic.character_attrs("") is None and _logic.character_attrs("查无此人") is None)
+
+_pipe_path = os.path.join(ROOT, "assets", "resource", "base", "pipeline", "生存大冒险.json")
+_pipe = json.load(open(_pipe_path, encoding="utf-8"))
+check("管线里有「角色」OCR 节点", adventure.CHARACTER_NODE in _pipe, adventure.CHARACTER_NODE)
+_pipe_roi = _pipe.get(adventure.CHARACTER_NODE, {}).get("recognition", {}).get("param", {}).get("roi")
+check("节点 ROI 与 adventure_ui.json 的 character_roi 一致",
+      _pipe_roi == UI["layout"]["character_roi"],
+      f"{_pipe_roi} vs {UI['layout']['character_roi']}")
+
+
+def _opening(char, ocr_attrs, q=0):
+    adventure.STATE.char_checked = False
+    ctx = FakeContext({adventure.CHARACTER_NODE: [char] if char else []})
+    return adventure._opening_attrs(ctx, Argv.image, dict(ocr_attrs), q)
+
+
+check("属性 OCR 全失败 → 用角色初值", _opening("小玉", {}) == dict(_C["小玉"]))
+check("OCR 与角色完全一致 → 保持 OCR", _opening("小玉", dict(_C["小玉"])) == dict(_C["小玉"]))
+check("OCR 只差一处 → 判为读错一位，按角色纠正",
+      _opening("小玉", {**_C["小玉"], "战力": 5}) == dict(_C["小玉"]))
+check("OCR 差两处以上 → 判为中途接手，保留 OCR",
+      _opening("小玉", {**_C["小玉"], "战力": 5, "智慧": 6})
+      == {**_C["小玉"], "战力": 5, "智慧": 6})
+check("非第 1 题不做角色覆盖", _opening("小玉", {"战力": 9}, q=3) == {"战力": 9})
+check("角色认不出 → 保留 OCR", _opening("查无此人", {"战力": 9}) == {"战力": 9})
+check("重复读取第 1 题只认一次角色",
+      (_opening("小玉", {}), adventure.STATE.char_checked)[1] is True)
 
 print("\n" + ("全部通过" if ok else "存在失败项"))
 sys.exit(0 if ok else 1)

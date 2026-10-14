@@ -47,6 +47,7 @@ COLLECTED_PATH = os.path.join(LOG_DIR, "collected.jsonl")
 LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
+CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
 BULK_ATTR_NODE = "生存大冒险_属性全部"
@@ -86,6 +87,11 @@ class _State:
     stage_seen: Dict[int, list] = {}
     # 本局的策略/耗时那行只打一次（重复读取第 1 题时不再刷屏）
     strategy_logged: bool = False
+    # 开局认出的角色名与它的初始六维（第 1 题时识别一次）
+    character: str = ""
+    char_checked: bool = False
+    # 本局建精确归纳表用了多久（用于把「拉表工作量」量化到日志里）
+    table_cost: float = 0.0
 
 
 STATE = _State()
@@ -292,6 +298,60 @@ def _read_attrs(context: Context, image: Any) -> Optional[Dict[str, int]]:
 
     _log("属性识别三级尝试全部失败，回退账本")
     return None
+
+
+def _read_character(context: Context, image: Any) -> str:
+    """OCR 左侧木牌第一行的角色名（如「小玉」）。认不出来返回空串。
+
+    这一行只在「局内」存在：结算面板上该 ROI 是空的 —— 实测 221 张截图按这个
+    ROI 聚类正好分成「7 个角色 + 2 组全空」，所以空结果本身也可以当
+    「已经离开答题界面」的旁证。
+    """
+    if image is None:
+        return ""
+    text = _ocr(context, image, CHARACTER_NODE)
+    return (text or "").strip()
+
+
+def _opening_attrs(
+    context: Context, image: Any, ocr_attrs: Dict[str, int], question: int
+) -> Dict[str, int]:
+    """开局（第 1 题）用「角色」锁死初始六维。
+
+    为什么可信：题号 0 只可能是本局第 1 题，此时属性还没被任何选项改动过，
+    所以面板上一定是角色的初始六维；反过来，中途接手一局时第一个事件属于别的
+    阶段，题号不会是 0。
+
+    三档处理，越靠前越保守：
+      · 属性 OCR 全失败（attrs 为空，账本也为空）→ 直接用角色初值，这是主要的修复点
+      · OCR 与角色完全一致 → 记一行日志
+      · 只差一个属性 → 判为 OCR 读错一位，按角色纠正
+      · 差两处以上 → 判为「中途接手」，信任 OCR，只记录不一致
+    """
+    if STATE.char_checked or question != 0:
+        return ocr_attrs
+    STATE.char_checked = True
+
+    name = _read_character(context, image)
+    vector = logic.character_attrs(name) if name else None
+    STATE.character = name
+    if not vector:
+        _log(f"开局：角色行 OCR 得到「{name}」，未匹配到 7 个角色，初值仍以属性 OCR 为准")
+        return ocr_attrs
+
+    if not ocr_attrs:
+        _log(f"开局：角色={name}，属性 OCR 不可用 → 用角色初值锁死六维 {vector}")
+        return vector
+    if ocr_attrs == vector:
+        _log(f"开局：角色={name}，与属性 OCR 完全一致 {vector}")
+        return ocr_attrs
+
+    diff = {k: (ocr_attrs.get(k), vector[k]) for k in vector if ocr_attrs.get(k) != vector[k]}
+    if len(diff) == 1:
+        _log(f"开局：角色={name}，属性 OCR 有 1 处偏差 {diff} → 按角色纠正为 {vector}")
+        return vector
+    _log(f"开局：角色={name}，与属性 OCR 有 {len(diff)} 处不一致 {diff} → 判为中途接手，按 OCR 走")
+    return ocr_attrs
 
 
 def _locate_question(image: Any) -> Optional[List[int]]:
@@ -603,14 +663,18 @@ class AdventureInit(CustomAction):
             if value is not None:
                 attrs[name] = value
         STATE.attrs = attrs
-        # 新的一局：题号归零；精确归纳表只在长得过大时才重建
-        # （表只依赖题库、与角色无关，所以连续几局通常能整表复用）
+        # 新的一局：题号归零、局内状态清空（归纳表**不动**，见下）
         STATE.question = 0
         STATE.stage_seen = {}
         STATE.strategy_logged = False
-        if logic.maybe_reset_exact_memo():
-            _log("精确归纳表超过 %d 条，已清空重建（下一局首题会慢一次）"
-                 % logic.EXACT_RESET_THRESHOLD)
+        STATE.character = ""
+        STATE.char_checked = False
+        STATE.table_cost = 0.0
+        # 归纳表现在整表常驻（不再按局清空）：每个角色只付一次建表钱，
+        # 之后无论随机到谁都直接命中缓存 —— 这里把常驻规模打进日志，方便看「拉表工作量」。
+        resident, _nodes = logic.exact_stats()
+        if resident:
+            _log(f"复用上一局留下的归纳表：{resident:,} 状态（本局不再重建）")
         if attrs:
             _log(f"账本初始化（来自输入项）：{attrs}")
         else:
@@ -677,19 +741,29 @@ class AdventureRead(CustomRecognition):
             if derived is None:
                 derived = STATE.question  # 题库元信息不全时的兜底
             STATE.question = derived + 1
-            # 传入题号，走精确后向归纳（首题会当场建表 10~16 秒，之后每题命中缓存）
+            # 开局（第 1 题）：先用「角色」锁死初始六维，再拉表 ——
+            # 初值对了，归纳表才只展开这一局真正会走到的状态，不做无用功。
+            attrs = _opening_attrs(context, image, attrs, derived)
+            STATE.attrs = dict(attrs)
+            # 传入题号，走精确后向归纳（每个角色第一次拉表 10~20 秒；
+            # 之后整表常驻，同一角色乃至其他角色都直接命中缓存）
             _t0 = time.time()
             decision = logic.choose(
                 _events(), event, attrs, question=derived
             )
             _cost = time.time() - _t0
+            STATE.table_cost = _cost
             STATE.attrs = _apply(attrs, decision.gains)
             if derived == 0 and not STATE.strategy_logged:
                 STATE.strategy_logged = True
                 states, _nodes = logic.exact_stats()
                 _log(
+                    f"开局：角色={STATE.character or '未识别'}"
+                    f"｜第 1 题={event}｜初值={' '.join(f'{k}{v}' for k, v in attrs.items())}"
+                )
+                _log(
                     f"本局策略：{'精确后向归纳' if decision.exact else '启发式'}"
-                    f"（首题决策耗时 {_cost:.1f}s，归纳表 {states:,} 状态，"
+                    f"（拉表耗时 {_cost:.1f}s，归纳表 {states:,} 状态，"
                     f"EXACT_ENABLED={logic.EXACT_ENABLED}）"
                 )
             _log(f"{decision.describe()}｜题干：{question}")

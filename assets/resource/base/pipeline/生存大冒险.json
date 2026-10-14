@@ -127,6 +127,20 @@
             }
         }
     },
+    "生存大冒险_角色": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    112,
+                    258,
+                    64,
+                    30
+                ],
+                "only_rec": true
+            }
+        }
+    },
     "生存大冒险_属性_健康": {
         "recognition": {
             "type": "OCR",
