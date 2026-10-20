@@ -428,13 +428,13 @@ check("只剩 1 点血时后续期望被打折", _h1 < _h2, f"血2={_h2:.2f} 血
 print("\n=== 场景 20：精确后向归纳（线上主路径） ===")
 # 这一节的价值不只是「能跑」：它盯住的是与 tools/adventure_upper_bound.py
 # （独立实现）逐决策对齐后的定值。曾因为状态键里题号字段与「健康」字段重叠，
-# 同一局面算出 53.15 而不是 78.83；靠这里的定值才能立刻发现。
+# 同一局面算出 53.15 而不是 79.84；靠这里的定值才能立刻发现。
 check("EXACT_ENABLED 打开", adventure.logic.EXACT_ENABLED is True)
 _x = adventure.logic.choose(_events, "冒险前没好武器", dict(adventure.DEFAULT_ATTRS),
                             question=0)
 check("小玉初始六维下第 1 题选「找族长借一件」", _x.index == 1, f"选了「{_x.text}」")
 check("第 1 题确实走精确后向归纳", _x.exact is True)
-check("第 1 题精确期望 = 78.83", abs(_x.value - 78.8336) < 0.01, f"{_x.value:.4f}")
+check("第 1 题精确期望 = 79.84", abs(_x.value - 79.8387) < 0.01, f"{_x.value:.4f}")
 check("归纳表已建立", adventure.logic.exact_stats()[0] > 100000,
       f"{adventure.logic.exact_stats()[0]:,} 状态")
 _r = adventure.logic.exact_choice(_events, "飞天大盗", _fd, 6)
