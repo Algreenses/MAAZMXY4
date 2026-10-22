@@ -1,0 +1,180 @@
+{
+  "悬赏（追捕飞贼）-刷取次数": {
+    "max_hit": 1,
+    "post_delay": 0,
+    "next": [
+      "悬赏（追捕飞贼）-点击任务"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 58
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-回放战斗": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "file": "{回放文件}",
+          "speed": 1
+        }
+      }
+    },
+    "post_delay": 0,
+    "next": [
+      "悬赏（追捕飞贼）-点击设置"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 248
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-成功进入追捕飞贼关卡": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "飞天大盗场景.png"
+        ]
+      }
+    },
+    "post_delay": 20,
+    "timeout": 20000,
+    "next": [
+      "悬赏（追捕飞贼）-回放战斗"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 2240,
+        "y": 72
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-点击任务": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "pre_delay": 1000,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 20000,
+    "next": [
+      "悬赏（追捕飞贼）-点击悬赏任务"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-点击前往副本": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "前往副本"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 20000,
+    "next": [
+      "悬赏（追捕飞贼）-成功进入追捕飞贼关卡"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1920,
+        "y": 42
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-点击悬赏任务": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "悬赏任务"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 500,
+    "timeout": 20000,
+    "next": [
+      "悬赏（追捕飞贼）-点击前往副本"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1600,
+        "y": 42
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-点击设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ]
+      }
+    },
+    "pre_delay": 2000,
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "悬赏（追捕飞贼）-返回地图"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 320,
+        "y": 58
+      }
+    }
+  },
+  "悬赏（追捕飞贼）-返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "悬赏（追捕飞贼）-刷取次数",
+      "停止运行"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 100
+      }
+    }
+  }
+}

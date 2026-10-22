@@ -1,98 +1,185 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<p align="center">
-  <img alt="LOGO" src="https://cdn.jsdelivr.net/gh/Inkyu-Zero/MAAZMXY4@main/docs/images/icon.png" width="256" height="256" />
-</p>
+# 造梦西游4 · MAA 自动化脚本（MAAZMXY4）
 
-<div align="center">
+> 基于 MaaFramework 的《造梦西游4》日常自动化脚本，跑在「造梦盒子」客户端上。
+> 后台截图 + 后台点击，不注入游戏进程、不改游戏文件。共 14 个任务。
 
-# MAA造梦西游4 (MAAZMXY4)
+---
 
-</div>
+本项目采用 **[PolyForm Noncommercial License 1.0.0](LICENSE)**（非商业许可），
+**不是** OSI 认可的开源协议，属于 **source-available（源码可见）**。
 
-基于 **MaaFramework** 的《造梦西游4》自动化脚本，运行在 **造梦盒子** 客户端上。
+| | |
+| --- | --- |
+| ✅ 允许 | 个人免费使用、学习研究、修改代码、免费分享（须随附 `LICENSE`） |
+| ❌ 禁止 | **售卖**、任何**商业用途**、删除版权声明、伪装成原创、转授权 |
 
-> 本项目基于 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 项目模板创建。
+完整条款见 [`LICENSE`](LICENSE)，中文通俗说明见 [`许可说明.md`](许可说明.md)，
+第三方组件许可见 [`NOTICE`](NOTICE)。
 
-## ✨ 功能
+---
+
+## 这是什么
+
+《造梦西游4》的副本刷取与活动自动化脚本，基于 **MaaFramework** 的 Project Interface V2。
+
+本程序做的事：
+
+1. **后台截图**：用 MaaFramework 的 `FramePool` 抓游戏窗口，**窗口被别的程序挡住也能抓**，
+   统一缩放到短边 720，所有坐标按 720p 基准换算。
+2. **后台点击/按键**：用 `SendMessage` 发消息，**不移动真实鼠标、不抢键盘焦点**，
+   跑起来该干嘛干嘛。
+3. **副本循环**：自动从大地图点进目标副本 → 释放法宝与剑阵 → 打完退出 → 再进，按「刷取次数」循环。
+4. **录制回放**：不确定怎么打？先手动打一遍并录下来，之后让脚本照着你的操作重放。
+
+## 任务列表
 
 | 任务 | 说明 |
-|---|---|
-| **进入游戏** | 自动选择账号 → 进入游戏 → 点击开始游戏 → 选择存档 |
-| **刷取灵魂** | 自动刷取灵魂（剑阵+法宝秒杀遁地大盗），支持循环次数、卡死自动重启 |
-| **领取奖励** | 进入游戏后依次处理 7 项奖励/活动，每项可单独开关 |
-| **清日常** | 自动完成每日日常：扫荡竞技场 / 斗宠大会 / 守护须弥山 / 噩梦诛仙四剑 / 噩梦冥河老祖，每项可单独开关 |
+| --- | --- |
+| 伽岚（万世冥阁） | 副本循环，可设刷取次数与回放文件 |
+| 贪妄（金蟾宝宫） | 同上 |
+| 无冥（孤魂岭） | 同上 |
+| 摩多（七叶树窟） | 同上 |
+| 摩多（幕山） | 同上 |
+| 烛时（钟晷极地） | 同上 |
+| 朱电（琉璃宫） | 同上 |
+| 悬赏（遁地大盗） | 悬赏任务，需先接取该悬赏并回到主线地图 |
+| 悬赏（守卫宝烛） | 同上 |
+| 悬赏（守卫太宗） | 同上 |
+| 悬赏（追捕飞贼） | 同上 |
+| 生存大冒险·自动答题 | 活动答题，OCR 读题 + 期望值推演选最优选项 |
+| 录制战斗过程 | 录制你自己的操作，供上面的副本任务回放 |
+| 打开录制文件夹 | 打开 `recordings/` 目录，方便管理录制文件 |
 
-**领取奖励 7 项**：
-1. 领取 VIP 每日奖励
-2. 领取暑假来就送奖励
-3. 进行联盟贡献
-4. 冒险领取骰子
-5. 领取十五天登录奖励
-6. 领取宠物养成并重新采集
-7. 领取坐骑养成并重新采集
+## 主要特性
 
-**清日常 5 项**：
-1. 扫荡竞技场（自动扫荡 10 次后关闭）
-2. 打斗宠大会（最多挑战 10 次，战斗结束自动返回继续）
-3. 扫荡守护须弥山（依次扫荡 城南 → 城东 → 城北）
-4. 扫荡噩梦诛仙四剑（扫荡次数可配置）
-5. 扫荡噩梦冥河老祖（扫荡次数可配置）
+- **无痕后台**：`FramePool` 截图 + `SendMessage` 输入，窗口被遮挡照常运行。
+- **任意分辨率**：不用校准坐标，720p 基准自动等比换算到你的实际画面。
+- **录制回放**：把你的操作录成 JSON，副本任务里直接重放，不需要写任何代码。
+- **绝对时刻调度**：回放按时间轴对齐（`timeBeginPeriod(1)` 提升到 1ms 精度），
+  不会像 `sleep` 那样越跑越慢。
+- **弹窗命名**：按 `F10` 保存时弹框让你自己起名，回放下拉列表自动刷新。
+- **实时通知**：录制开始/保存/停止会弹 Windows 系统通知。
 
-> 每项当天已扫过会正常跳过；扫荡时若出现「取消」弹窗会先点掉再关闭面板。
+## 环境要求
 
-## 🎮 社区刷取方法分享
+- Windows 10（1903 及以上）/ 11，64 位
+- **无需安装 Python、不需要管理员权限**
+- 游戏客户端「造梦盒子」窗口标题里必须含「造梦盒子」
+  （窗口类名 `ApolloRuntimeContentWindow`，会自动识别）
+- **请勿最小化游戏窗口**：被其他窗口挡住没问题，最小化会抓不到画面
 
-不同玩家的角色、战力、技能不同，刷取方式也各异。项目支持**玩家自由分享/下载刷取方法**：
+> ⚠️ 请把整个文件夹放在**普通目录**（桌面、D 盘都行）。
+> 如果放在带「低完整性标签」的受限目录里，Windows 会禁止程序抓取其它窗口，
+> 表现为启动后提示「抓不到游戏画面」。
 
-**方法存储**：每个刷取方法是独立的 pipeline 文件，存放在仓库 `community-scripts/` 目录。
+## 使用（发布包版，推荐）
 
-**玩家下载（在项目根目录运行）**：
+### 第 1 步：下载并解压
+
+到 [Releases](https://github.com/Inkyu-Zero/MAAZMXY4/releases) 下载最新的 7z 压缩包
+（约 101 MB，解压后约 328 MB），用 7-Zip 解压到任意目录。
+
+解压后目录长这样：
+
+```
+MAA造梦西游4/
+├─ MAA造梦西游4.exe      ← 双击这个
+├─ interface.json
+├─ agent/                 ← Python Agent（答题/录制/回放）
+├─ resource/base/         ← Pipeline、图片、OCR 模型
+└─ runtimes/              ← 客户端依赖 + 内嵌 Python 运行时
+```
+
+### 第 2 步：运行
+
+1. 先启动游戏「造梦盒子」，进入游戏画面。
+2. 双击 `MAA造梦西游4.exe`。
+3. 左侧「任务列表」里勾选要跑的任务，在右侧面板设置任务参数
+   （如「刷取次数」「回放文件」）。
+4. 点「开始任务」。
+
+## 录制回放怎么用
+
+以「伽岚（万世冥阁）」为例：
+
+1. **先录一遍**：启动游戏，手动点进副本，然后运行「录制战斗过程」任务。
+2. 进入副本后按 **F9** 开始录制。
+3. 正常打完这一波（放技能、跑位、按什么键都行）。
+4. 走到副本出口前按 **F10**，弹框里给这次录制起个名字（如 `伽岚材料`）。
+5. 之后运行「伽岚（万世冥阁）」，在「回放文件」下拉里选 `伽岚材料`，
+   设好「刷取次数」，点开始即可。
+
+> 只需要录 **进入副本后到退出副本前** 的操作，进出副本由脚本自己处理。
+> 想调整回放速度，可以在任务的 `custom_action_param` 里改 `speed`（默认 1.0）。
+
+## 使用（源码版）
+
+需要自己准备运行环境：
+
+1. 安装 [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) 客户端。
+2. 把本仓库的 `interface.json`、`agent/`、`resource/base/` 放进客户端目录。
+3. Python Agent 需要 3.12 与 `maa`、`numpy`、`pywin32`、`pynput`、`Pillow`
+   （发布包里已自带 `runtimes/python`，可直接复用）。
+4. 用客户端的「加载项目」指向本仓库根目录。
+
+改完 Pipeline 后记得校验：
+
 ```bash
-python tools/sync_community.py --list                    # 1. 查看仓库有哪些刷取方法（含简述）
-python tools/sync_community.py --only 刷取灵魂_高战通用      # 2. 下载指定方法（可多个 --only）
-python tools/sync_community.py                           #    或下载全部
-python tools/sync_community.py --gitee                   #    从 Gitee 拉取（默认 GitHub）
-```
-下载后脚本**自动把方法注册为任务**，重启 MFA 客户端即可在任务列表看到并选择使用。
-
-**玩家分享**：把你调试好的刷取方法（`resource/base/pipeline/community/` 下的 .json 文件）上传到仓库 `community-scripts/` 目录，附上角色/战力/打法简述，供他人下载。
-
-> 示例方法 `刷取灵魂_高战通用.json` 已随仓库发布，可直接下载体验。
-
-## 📦 使用
-
-从 **Releases** 下载最新版压缩包，解压后运行 `MAA造梦西游4.exe`，在 **MFA 任务管理器** 中配置：
-
-- **账号名称** / **存档序号**（进入游戏用）
-- **循环次数** / **卡死重启**（刷取灵魂用）
-- 7 项奖励开关（领取奖励用）
-- 扫荡竞技场 / 斗宠大会 / 须弥山 / 噩梦扫荡等开关（清日常用，扫荡次数可配置）
-
-> 游戏需通过 **造梦盒子** 客户端启动，脚本基于窗口截图识别。
-
-## 📁 项目结构
-
-```
-assets/
-├── interface.json      # 界面配置（任务、选项、版本、GitHub 自动更新）
-└── resource/base/      # 流水线(pipeline) + 模板图片(image) + OCR模型(model)
+python tools/check_adventure.py     # 生存大冒险题库与事件自检
 ```
 
-> 根目录的 `interface.json` 和 `resource/` 是本仓库 Release 中随应用分发的本地运行副本，不入库；**脚本以 `assets/` 为规范目录**。
+## 常见问题
 
-## 🔧 开发
+**Q：提示「抓不到游戏画面」？**
 
-- 用 [MaaPE](https://github.com/MaaXYZ/MaaPE) 可视化编辑流水线（`assets/resource/base/pipeline/`）
-- 界面配置在 `assets/interface.json`
-- 资源校验：`npx @nekosu/maa-tools check`（CI 会自动执行）
+1. 确认游戏窗口标题含「造梦盒子」，且没有最小化。
+2. 确认整个文件夹不在带「低完整性标签」的受限目录里
+   （管理员 PowerShell 执行 `icacls "<目录>" /setintegritylevel (OI)(CI)Medium /T /C` 可修复）。
+3. 如果游戏以**管理员权限**运行，脚本也要用管理员权限运行。
 
-## 📄 版本
+**Q：点关卡没反应，或者点进了别的关卡？**
 
-- **v0.4** — 当前版本
-- v0.3 — 上一版本
+鼠标悬停在关卡上会触发高亮贴图。脚本已经用「点到就移开」的方式规避，
+如果仍然偶发，把「刷取次数」设小一点先观察，或换用录制回放版本。
 
-## 🙏 感谢
+**Q：回放和录制时的手感不一样？**
 
-- [MaaFramework](https://github.com/MaaXYZ/MaaFramework)
-- [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia)
-- [MaaPE](https://github.com/MaaXYZ/MaaPE)
+回放按时间轴对齐，误差在 ±25ms 以内。如果游戏卡顿，可以把 `speed` 调到 `0.8` 放慢。
+
+**Q：「回放文件」下拉里没有我刚录的？**
+
+下拉在**保存时**自动刷新，但客户端缓存了界面，需要**重启客户端**才能看到新条目。
+或者直接选「（手动选择文件…）」弹框选文件。
+
+## 文件说明
+
+| 路径 | 用途 |
+| --- | --- |
+| `interface.json` | Project Interface V2 定义：任务、controller、option |
+| `agent/` | Python Agent：`adventure*`（答题）、`battle_record`（录制）、`battle_player`（回放）、`toast`（通知） |
+| `resource/base/pipeline/` | 所有 Pipeline 节点 |
+| `resource/base/image/` | 模板匹配用的图片 |
+| `resource/base/model/ocr/` | OCR 模型（`det.onnx` / `rec.onnx` / `keys.txt`） |
+| `assets/` | 数据表（`adventure.json` 题库、`adventure_ui.json` 界面识别）与资源镜像 |
+| `recordings/` | 录制文件（运行时生成） |
+| `tools/` | 开发用：离线模拟器、上界求解、题库自检 |
+
+## 免责声明
+
+- 本项目仅供**学习与个人使用**，使用风险自负。
+- 本项目**不对游戏进行任何注入和反编译**，仅通过截图与窗口消息模拟操作，
+  但仍有可能被游戏判定为第三方工具，**存在封号风险**。
+- 请遵守游戏的用户协议。因使用本项目导致的账号处罚、数据损失，作者不承担责任。
+- 本项目**完全免费**。如果你是从任何渠道**付费**获得的，请立即申请退款，
+  并向作者举报。
+
+## 致谢
+
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework) —— 本项目的基础框架，
+  后台截图与窗口消息输入都来自它。
+- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) —— 分发包使用的客户端。
+- [造梦盒子（zmBox）](https://gitee.com/duskeye/zmBox) —— 本项目运行所依附的游戏客户端环境。
+- [RapidOCR](https://github.com/RapidAI/RapidOCR)、[numpy](https://numpy.org/)、
+  [pywin32](https://github.com/mhammond/pywin32)、[pynput](https://github.com/moses-palmer/pynput)
+  —— 识别与输入所依赖的库。
+- 以及造梦西游4 的玩家社区，攻略与题库整理都离不开大家。

@@ -1,0 +1,160 @@
+{
+  "朱电（琉璃宫）-回放战斗": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "file": "示例-最小",
+          "speed": 1
+        }
+      }
+    },
+    "post_delay": 0,
+    "next": [
+      "朱电（琉璃宫）-点击设置"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 320,
+        "y": 103
+      }
+    }
+  },
+  "朱电（琉璃宫）-点击场外": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          135,
+          553,
+          32,
+          25
+        ]
+      }
+    },
+    "post_delay": 150,
+    "next": [
+      "朱电（琉璃宫）-点击琉璃宫"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1600,
+        "y": 119
+      }
+    }
+  },
+  "朱电（琉璃宫）-点击琉璃宫": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 0,
+    "timeout": 2000,
+    "next": [
+      "朱电（琉璃宫）-识别琉璃宫场景"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "朱电（琉璃宫）-点击设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ]
+      }
+    },
+    "pre_delay": 2000,
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "朱电（琉璃宫）-返回地图"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 93
+      }
+    }
+  },
+  "朱电（琉璃宫）-识别琉璃宫场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 0,
+    "timeout": 600,
+    "next": [
+      "朱电（琉璃宫）-回放战斗"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    }
+  },
+  "朱电（琉璃宫）-返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "朱电（琉璃宫）-刷取次数",
+      "停止运行"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    }
+  },
+  "朱电（琉璃宫）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "next": [
+      "朱电（琉璃宫）-点击琉璃宫"
+    ],
+    "max_hit": 1,
+    "post_delay": 0
+  }
+}

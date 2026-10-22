@@ -466,13 +466,18 @@ debug/
 logs/
 temp/
 backup/
-agent/
+# agent 源码要入库，只忽略字节码
+agent/__pycache__/
+agent/*.pyc
 libs/
 runtimes/
 plugins/
 *.bak
 
 *.ico
-
-# 构建产物
-/dist/
+# 应用图标要入库（打包与通知都要用）
+!新图标.ico
+dist/
+python/
+*.bak-*
+interface.json.bak*

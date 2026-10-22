@@ -1,662 +1,444 @@
 {
-  "interface_version": 2,
-  "name": "MAA造梦西游4",
-  "label": "MAAZMXY4",
-  "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
-  "version": "0.4",
-  "license": "本脚本基于 MaaFramework 开发，作者 InkyuZero。完全免费，禁止任何形式的倒卖与付费分发。",
-  "agent": {
-    "child_exec": "py",
-    "child_args": [
-      "./agent/main.py"
-    ]
-  },
-  "resource": [
-    {
-      "name": "默认",
-      "path": [
-        "./resource/base"
-      ]
-    }
-  ],
-  "task": [
-    {
-      "name": "进入游戏",
-      "entry": "点击账号",
-      "description": "自动登录并进入游戏。\n\n**使用前**：在上方设置「账号名称」和「存档序号」（1-8）。\n流程：选账号 → 进游戏 → 点开始游戏 → 选存档",
-      "option": [
-        "账号名称",
-        "存档序号"
-      ]
-    },
-    {
-      "name": "刷取灵魂",
-      "entry": "刷取点击世界",
-      "description": "自动刷取灵魂，直到刷满「循环次数」轮或灵魂数读满。\n\n- **循环次数**：刷几轮后停止\n- **卡死重启**：开=卡死/失败时自动 ESC 重启并重登（最多3次）\n\n**使用前**：确认已进游戏，并在上方设置「循环次数」「账号名称」「存档序号」。\n\n- **目前只支持剑阵+法宝秒杀大盗**",
-      "option": [
-        "循环次数",
-        "账号名称",
-        "存档序号",
-        "卡死重启"
-      ]
-    },
-    {
-      "name": "领取奖励",
-      "entry": "领取奖励入口",
-      "description": "自动导航到南瞻部洲 / 须弥山，按两组处理 7 项奖励/活动面板，每一项可单独开关。\n\n- 识别到对应按钮 → 点击领取 → 点右上角「叉」关闭\n- 识别不到按钮 → 跳过该项继续下一项（当天已领过也能正常跳过）\n- 界面不在（识别不到「世界」）→ 直接结束，不报错",
-      "option": [
-        "领取vip每日奖励",
-        "领取暑假来就送奖励",
-        "进行联盟贡献",
-        "冒险领取骰子",
-        "领取十五天登录奖励",
-        "领取宠物养成并重新采集",
-        "领取坐骑养成并重新采集"
-      ]
-    },
-    {
-      "name": "清日常",
-      "entry": "清日常入口",
-      "description": "每一项可单独开关。\n\n- 识别到对应按钮 → 点击进入 → 扫荡 → 点右上角「叉」关闭\n- 识别不到按钮 → 跳过该项继续下一项（当天已扫过也能正常跳过）\n- 界面不在（识别不到「世界」）→ 直接结束，不报错",
-      "option": [
-        "扫荡竞技场",
-        "打斗宠大会",
-        "扫荡守护须弥山",
-        "扫荡噩梦诛仙四剑",
-        "噩梦四剑扫荡次数",
-        "扫荡噩梦冥河老祖",
-        "噩梦冥河老祖扫荡次数"
-      ]
-    },
-    {
-      "name": "刷桃止山·2阶扇子棍猴",
-      "entry": "点击桃止山",
-      "description": "自动刷桃止山（2阶扇子棍猴），循环刷取。\n\n- **循环次数**：刷几轮后停止\n- **卡死重启**：开=卡死/失败时自动 ESC 重启并重登（最多3次）\n\n**使用前**：确认已进游戏，并设置「循环次数」「账号名称」「存档序号」。\n\n**流程**：点击桃止山 → 进场景 → u,u,h,L,p,A + 4次L → 设置 → 返回地图（OCR）循环。",
-      "option": [
-        "循环次数",
-        "账号名称",
-        "存档序号",
-        "卡死重启",
-        "桃止山循环入口"
-      ]
-    },
-    {
-      "name": "生存大冒险·自动答题",
-      "entry": "生存大冒险_初始化"
-    }
-  ],
-  "option": {
-    "账号名称": {
-      "type": "input",
-      "inputs": [
+    "interface_version": 2,
+    "name": "MAA造梦西游4",
+    "label": "MAAZMXY4",
+    "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
+    "version": "2.0",
+    "license": "本项目基于 MaaFramework 开发，作者 InkyuZero（GitHub: Inkyu-Zero/MAAZMXY4）。采用 PolyForm Noncommercial 1.0.0 许可：完全免费，允许个人使用与免费分享，禁止任何形式的售卖与商业用途。",
+    "resource": [
         {
-          "name": "账号名称",
-          "pipeline_type": "string"
+            "name": "默认",
+            "path": [
+                "./resource/base"
+            ]
         }
-      ],
-      "pipeline_override": {
-        "选择账号": {
-          "expected": "{账号名称}"
+    ],
+    "task": [
+        {
+            "name": "伽岚（万世冥阁）",
+            "entry": "伽岚（万世冥阁）-点击万世冥阁",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到幽冥血海并将地图拉到最右，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
         },
-        "重进选择账号": {
-          "expected": "{账号名称}"
-        }
-      }
-    },
-    "存档序号": {
-      "type": "input",
-      "inputs": [
         {
-          "name": "存档序号",
-          "pipeline_type": "int",
-          "default": "1",
-          "verify": "^[1-8]$"
-        }
-      ],
-      "pipeline_override": {
-        "选择存档": {
-          "recognition": {
-            "param": {
-              "template": [
-                "存档{存档序号}.png"
-              ]
-            }
-          }
+            "name": "生存大冒险·自动答题",
+            "entry": "生存大冒险_初始化",
+            "option": [],
+            "description": "在开始任务前，请先把游戏停在「生存大冒险」的题目界面，脚本会自己识别角色与题目。\n\n**期望表现**（离线模拟：每角色 1500 局，7 个角色等权）\n\n- 单局平均分：**77.0** / 100\n- 单局满分（100 分）概率：**6.4%**\n- 一周 7 天总分 ≥ 480 的概率：**96.7%**\n- 一周 7 天总分 ≥ 620 的概率：**0.7%**\n\n一周期望总分 539 / 700。"
         },
-        "重进选择存档": {
-          "recognition": {
-            "param": {
-              "template": [
-                "存档{存档序号}.png"
-              ]
-            }
-          }
-        }
-      }
-    },
-    "循环次数": {
-      "type": "input",
-      "inputs": [
         {
-          "name": "循环次数",
-          "pipeline_type": "int",
-          "default": "1",
-          "verify": "^[1-9][0-9]*$"
+            "name": "录制战斗过程",
+            "entry": "录制战斗过程_开始",
+            "option": [],
+            "description": "在开始任务后：\n- 按 **F9** 开始录制\n- 按 **F10** 保存录制\n- 按 **F12** 停止\n\n需要且仅需要录制你 **进入关卡后到退出关卡前** 的操作，请勿录入进入关卡和退出关卡的操作。"
+        },
+        {
+            "name": "打开录制文件夹",
+            "label": "打开录制文件夹",
+            "entry": "打开录制文件夹_开始",
+            "description": "用资源管理器打开 recordings 目录，方便查看 / 改名 / 删除录制文件。",
+            "option": []
+        },
+        {
+            "name": "贪妄（金蟾宝宫）",
+            "entry": "贪妄（金蟾宝宫）-点击金蟾宝宫",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到六欲魔天，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "无冥（孤魂岭）",
+            "entry": "无冥（孤魂岭）-点击孤魂岭",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前切换到幽冥血海并把地图拉到最左，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "摩多（七叶树窟）",
+            "entry": "摩多（七叶树窟）-点击七叶树窟",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到西牛贺洲，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "摩多（幕山）",
+            "entry": "摩多（幕山）-点击幕山",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到西牛贺洲，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "烛时（钟晷极地）",
+            "entry": "烛时（钟晷极地）-点击钟晷极地",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到北俱芦洲，并确认你处在普通地图而非噩梦地图，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "朱电（琉璃宫）",
+            "entry": "朱电（琉璃宫）-点击琉璃宫",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请在开始任务之前将地图切换到东胜神洲，并在选项中选择你录制的局内战斗脚本"
+        },
+        {
+            "name": "悬赏（遁地大盗）",
+            "entry": "悬赏（遁地大盗）-刷取次数",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请先接取该悬赏，回到主线地图后开始任务，记得在进入副本场景时就开始录制。"
+        },
+        {
+            "name": "悬赏（守卫宝烛）",
+            "entry": "悬赏（守卫宝烛）-刷取次数",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请先接取该悬赏，回到主线地图后开始任务，记得在进入副本场景时就开始录制。"
+        },
+        {
+            "name": "悬赏（守卫太宗）",
+            "entry": "悬赏（守卫太宗）-刷取次数",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请先接取该悬赏，回到主线地图后开始任务，记得在进入副本场景时就开始录制。"
+        },
+        {
+            "name": "悬赏（追捕飞贼）",
+            "entry": "悬赏（追捕飞贼）-刷取次数",
+            "option": [
+                "刷取次数",
+                "回放文件"
+            ],
+            "description": "请先接取该悬赏，回到主线地图后开始任务，记得在进入副本场景时就开始录制。"
         }
-      ],
-      "pipeline_override": {
+    ],
+    "option": {
+        "回放文件": {
+            "type": "select",
+            "label": "回放文件",
+            "default_case": "（最新录制）",
+            "cases": [
+                {
+                    "name": "（最新录制）",
+                    "pipeline_override": {
+                        "伽岚（万世冥阁）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫太宗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫宝烛）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（追捕飞贼）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（遁地大盗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（七叶树窟）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（幕山）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "无冥（孤魂岭）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "朱电（琉璃宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "烛时（钟晷极地）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "贪妄（金蟾宝宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@latest",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "（手动选择文件…）",
+                    "pipeline_override": {
+                        "伽岚（万世冥阁）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫太宗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫宝烛）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（追捕飞贼）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（遁地大盗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（七叶树窟）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（幕山）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "无冥（孤魂岭）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "朱电（琉璃宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "烛时（钟晷极地）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "贪妄（金蟾宝宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "?",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
         "刷取次数": {
-          "max_hit": "{循环次数}"
+            "type": "input",
+            "label": "刷取次数",
+            "description": "每个副本刷几轮，刷完自动停止任务",
+            "inputs": [
+                {
+                    "name": "刷取次数",
+                    "pipeline_type": "int",
+                    "default": "1",
+                    "label": "刷取次数"
+                }
+            ],
+            "pipeline_override": {
+                "伽岚（万世冥阁）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "贪妄（金蟾宝宫）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "无冥（孤魂岭）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "摩多（七叶树窟）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "摩多（幕山）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "烛时（钟晷极地）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "朱电（琉璃宫）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "悬赏（遁地大盗）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "悬赏（守卫宝烛）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "悬赏（守卫太宗）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                },
+                "悬赏（追捕飞贼）-刷取次数": {
+                    "max_hit": "{刷取次数}"
+                }
+            }
         }
-      }
     },
-    "卡死重启": {
-      "type": "switch",
-      "label": "卡死/失败自动重启",
-      "description": "刷取过程中游戏卡死或任务失败时，自动按 ESC → 确定 → 重新登录继续刷取；重启满 3 次仍失败则停止。",
-      "default_case": "No",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "刷取次数": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击任务": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击悬赏任务": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击前往副本": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "成功进入遁地大盗关卡": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击C关闭背包": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "使用法宝": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "使用剑阵": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "遁地大盗死亡": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击设置": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "返回地图": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "重进确定": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "重进点击账号": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "重进选择账号": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "重进进入造梦西游4": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "重进点击开始游戏": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击桃止山": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "检测桃止山场景": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "点击返回地图": {
-              "on_error": [
-                "重启判断"
-              ]
-            },
-            "桃止山点击设置": {
-              "on_error": [
-                "重启判断"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {}
-        }
-      ]
+    "agent": {
+        "child_exec": "./runtimes/python/python.exe",
+        "child_args": [
+            "-E",
+            "-s",
+            "./agent/main.py"
+        ]
     },
-    "桃止山循环入口": {
-      "type": "switch",
-      "label": "桃止山刷取循环",
-      "description": "刷桃止山时，把公共循环节点「刷取次数」的 next 指回「点击桃止山」，实现循环。",
-      "default_case": "Yes",
-      "cases": [
+    "controller": [
         {
-          "name": "Yes",
-          "pipeline_override": {
-            "刷取次数": {
-              "next": [
-                "点击桃止山"
-              ]
+            "name": "Win32-造梦盒子",
+            "type": "Win32",
+            "win32": {
+                "class_regex": "ApolloRuntimeContentWindow",
+                "window_regex": "造梦盒子",
+                "screencap": "FramePool",
+                "mouse": "SendMessage",
+                "keyboard": "SendMessage"
             }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {}
         }
-      ]
-    },
-    "领取vip每日奖励": {
-      "type": "switch",
-      "label": "领取vip每日奖励",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "vip每日入口": {
-              "next": [
-                "点击vip"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "vip每日入口": {
-              "next": [
-                "暑假入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "领取暑假来就送奖励": {
-      "type": "switch",
-      "label": "领取暑假来就送奖励",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "暑假入口": {
-              "next": [
-                "点击暑假来就送"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "暑假入口": {
-              "next": [
-                "登录入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "进行联盟贡献": {
-      "type": "switch",
-      "label": "进行联盟贡献",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "联盟入口": {
-              "next": [
-                "点击联盟"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "联盟入口": {
-              "next": [
-                "骰子入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "冒险领取骰子": {
-      "type": "switch",
-      "label": "冒险领取骰子",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "骰子入口": {
-              "next": [
-                "点击日常活动"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "骰子入口": {
-              "next": [
-                "宠物入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "领取十五天登录奖励": {
-      "type": "switch",
-      "label": "领取十五天登录奖励",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "登录入口": {
-              "next": [
-                "点击十五天登录"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "登录入口": {
-              "next": [
-                "点击须弥山"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "领取宠物养成并重新采集": {
-      "type": "switch",
-      "label": "领取宠物养成并重新采集",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "宠物入口": {
-              "next": [
-                "点击宠物养成"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "宠物入口": {
-              "next": [
-                "坐骑入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "领取坐骑养成并重新采集": {
-      "type": "switch",
-      "label": "领取坐骑养成并重新采集",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "坐骑入口": {
-              "next": [
-                "点击坐骑养成"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "坐骑入口": {
-              "next": [
-                "领取完毕"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "扫荡竞技场": {
-      "type": "switch",
-      "label": "扫荡竞技场",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "竞技场入口": {
-              "next": [
-                "竞技场点击日常活动"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "竞技场入口": {
-              "next": [
-                "斗宠大会入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "打斗宠大会": {
-      "type": "switch",
-      "label": "打斗宠大会",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "斗宠大会入口": {
-              "next": [
-                "斗宠大会点击日常活动"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "斗宠大会入口": {
-              "next": [
-                "扫荡守护须弥山入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "扫荡守护须弥山": {
-      "type": "switch",
-      "label": "扫荡守护须弥山",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "扫荡守护须弥山入口": {
-              "next": [
-                "守护须弥山点击日常活动"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "扫荡守护须弥山入口": {
-              "next": [
-                "扫荡噩梦诛仙四剑入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "扫荡噩梦诛仙四剑": {
-      "type": "switch",
-      "label": "扫荡噩梦诛仙四剑",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "扫荡噩梦诛仙四剑入口": {
-              "next": [
-                "扫荡噩梦主线四剑点击地图"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "扫荡噩梦诛仙四剑入口": {
-              "next": [
-                "扫荡噩梦冥河老祖入口"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "噩梦四剑扫荡次数": {
-      "type": "input",
-      "inputs": [
-        {
-          "name": "噩梦四剑扫荡次数",
-          "pipeline_type": "int",
-          "default": "1",
-          "verify": "^[1-9][0-9]*$"
-        }
-      ],
-      "pipeline_override": {
-        "开始噩梦诛仙四剑扫荡": {
-          "repeat": "{噩梦四剑扫荡次数}"
-        }
-      }
-    },
-    "扫荡噩梦冥河老祖": {
-      "type": "switch",
-      "label": "扫荡噩梦冥河老祖",
-      "default_case": "Yes",
-      "cases": [
-        {
-          "name": "Yes",
-          "pipeline_override": {
-            "扫荡噩梦冥河老祖入口": {
-              "next": [
-                "扫荡噩梦冥河老祖点击世界"
-              ]
-            }
-          }
-        },
-        {
-          "name": "No",
-          "pipeline_override": {
-            "扫荡噩梦冥河老祖入口": {
-              "next": [
-                "清日常完成"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "噩梦冥河老祖扫荡次数": {
-      "type": "input",
-      "inputs": [
-        {
-          "name": "噩梦冥河老祖扫荡次数",
-          "pipeline_type": "int",
-          "default": "1",
-          "verify": "^[1-9][0-9]*$"
-        }
-      ],
-      "pipeline_override": {
-        "开始噩梦冥河老祖扫荡": {
-          "repeat": "{噩梦冥河老祖扫荡次数}"
-        }
-      }
-    }
-  },
-  "controller": [
-    {
-      "name": "Win32-造梦盒子",
-      "type": "Win32",
-      "win32": {
-        "class_regex": "ApolloRuntimeContentWindow",
-        "window_regex": "造梦盒子",
-        "screencap": "FramePool",
-        "mouse": "SendMessage",
-        "keyboard": "SendMessage"
-      }
-    }
-  ]
+    ]
 }

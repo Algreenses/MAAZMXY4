@@ -1,0 +1,160 @@
+{
+  "摩多（七叶树窟）-回放战斗": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "file": "示例-最小",
+          "speed": 1
+        }
+      }
+    },
+    "post_delay": 0,
+    "next": [
+      "摩多（七叶树窟）-点击设置"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 320,
+        "y": 103
+      }
+    }
+  },
+  "摩多（七叶树窟）-点击七叶树窟": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "七叶树窟.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 0,
+    "timeout": 2000,
+    "next": [
+      "摩多（七叶树窟）-识别七叶树窟场景"
+    ],
+    "on_error": [
+      "摩多（七叶树窟）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "摩多（七叶树窟）-点击场外": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          194,
+          571,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 150,
+    "next": [
+      "摩多（七叶树窟）-点击七叶树窟"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1600,
+        "y": 119
+      }
+    }
+  },
+  "摩多（七叶树窟）-点击设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ]
+      }
+    },
+    "pre_delay": 2000,
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "摩多（七叶树窟）-返回地图"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 93
+      }
+    }
+  },
+  "摩多（七叶树窟）-识别七叶树窟场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "七叶树窟场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 0,
+    "timeout": 600,
+    "next": [
+      "摩多（七叶树窟）-回放战斗"
+    ],
+    "on_error": [
+      "摩多（七叶树窟）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    }
+  },
+  "摩多（七叶树窟）-返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "摩多（七叶树窟）-刷取次数",
+      "停止运行"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    }
+  },
+  "摩多（七叶树窟）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "next": [
+      "摩多（七叶树窟）-点击七叶树窟"
+    ],
+    "max_hit": 1,
+    "post_delay": 0
+  }
+}

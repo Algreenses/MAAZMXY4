@@ -6,6 +6,8 @@ from maa.toolkit import Toolkit
 import my_action
 import my_reco
 import adventure
+import battle_player
+import battle_record
 
 
 def main():

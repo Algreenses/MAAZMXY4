@@ -28,7 +28,9 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template": "继续冒险.png",
+                "template": [
+                    "继续冒险.png"
+                ],
                 "threshold": 0.7,
                 "roi": [
                     840,
@@ -101,7 +103,7 @@
         "on_error": [
             "生存大冒险_结束"
         ],
-        "timeout": 90000,
+        "timeout": 240000,
         "post_wait_freezes": {
             "time": 300,
             "timeout": 5000,

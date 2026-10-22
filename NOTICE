@@ -1,0 +1,50 @@
+第三方许可声明 / Third-Party Notices
+====================================
+
+一、MaaFramework
+----------------
+本项目基于 MaaFramework 开发，并在其官方项目模板（MaaXYZ/MaaFramework
+的 ProjectInterface V2 模板）基础上搭建：
+
+    https://github.com/MaaXYZ/MaaFramework
+
+MaaFramework 及其模板代码以 MIT 许可发布，其原始声明如下：
+
+    MIT License
+
+    Copyright (c) 2024 MaaXYZ
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+说明：MIT 许可不可撤销。由 MaaXYZ 模板继承而来的那部分代码，仍按 MIT 授权；
+本仓库新增的 Pipeline、Agent 代码与文档，按仓库根目录 LICENSE
+（PolyForm Noncommercial 1.0.0）授权。
+
+二、MFAAvalonia
+---------------
+分发的可执行客户端基于 MFAAvalonia：
+
+    https://github.com/SweetSmellFox/MFAAvalonia
+
+其许可与版权归原作者所有，详见客户端目录内的许可文件。
+
+三、其他
+--------
+本项目使用的 Python 运行时（CPython）、numpy、RapidOCR、pywin32、pynput、
+Pillow 等第三方组件，各自遵循其原始许可，版权归各自作者所有。

@@ -47,6 +47,8 @@ COLLECTED_PATH = os.path.join(LOG_DIR, "collected.jsonl")
 LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
+# 改动 agent 代码后改这个值，日志里就能确认「agent 到底加载了哪一版」
+AGENT_VERSION = "2026-10-19-seq"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
@@ -92,6 +94,20 @@ class _State:
     char_checked: bool = False
     # 本局建精确归纳表用了多久（用于把「拉表工作量」量化到日志里）
     table_cost: float = 0.0
+    # 本局 10 题的完整题序（事件名列表）。从游戏进程内存里读到
+    # （服务器下发的 survivalInfo.question）就填进来，读不到就是空列表。
+    # 有了题序，决策就能沿着确定顺序做前向规划，比按阶段均匀抽的期望高
+    # 4~5 分/局（见 logic.seq_plan）。
+    # 本局按顺序确认过的题干（只追加，不重复）。用来校验题序：
+    # 已答过的前 N 个必须与候选题序逐一对得上，否则那份候选是别的局的残留。
+    # 本局每题得分 {题号(0 基): 分数}。用字典而不是累加一个整数，是为了
+    # 「同一题被重复点击」时不会重复计分（实测重复决策很常见，最多一次多 5 次）。
+    score_by_q: Dict[int, int] = {}
+    # 本局是否已经打过「结算」日志（结算画面每帧都会被读到，只该打一次）
+    finished: bool = False
+
+    def total_score(self) -> int:
+        return sum(self.score_by_q.values())
 
 
 STATE = _State()
@@ -110,6 +126,14 @@ def _log(msg: str) -> None:
             f.write(line + "\n")
     except Exception:
         pass
+
+
+def _plan_label(decision) -> str:
+    """把 Decision.plan 翻成人话，日志里一眼看出走的是哪条策略。"""
+    return {
+        "seq": "精确·已知题序（前向规划）",
+        "stage": "精确·按阶段（后向归纳）",
+    }.get(getattr(decision, "plan", ""), "启发式")
 
 
 _LOGGED_ONCE: set = set()
@@ -670,6 +694,15 @@ class AdventureInit(CustomAction):
         STATE.character = ""
         STATE.char_checked = False
         STATE.table_cost = 0.0
+        STATE.score_by_q = {}
+        STATE.finished = False
+        # 版本标记：用来确认 agent 加载的是改过的代码（改完文件不重启 agent
+        # 会一直跑旧模块，日志里看不出区别，全靠这一行区分）
+        _log(f"agent 代码版本：{AGENT_VERSION}")
+        # 本局题序不在这里读：开局这一刻内存里的 survivalInfo 还是上一局的残留
+        # （游戏要等 beginSurvival 返回才刷新），读到的是脏数据，而且没有校验依据。
+        # 改到第 1 题题干识别出来之后再读 —— 那时题序一定已经下发，还能用
+        # 「题序第 1 个 == 当前题干」当场验真。
         # 归纳表现在整表常驻（不再按局清空）：每个角色只付一次建表钱，
         # 之后无论随机到谁都直接命中缓存 —— 这里把常驻规模打进日志，方便看「拉表工作量」。
         resident, _nodes = logic.exact_stats()
@@ -693,6 +726,11 @@ class AdventureRead(CustomRecognition):
             return self._analyze(context, argv)
         except Exception as exc:  # noqa: BLE001
             _log(f"识别异常，按未命中处理：{type(exc).__name__}: {exc}")
+            # 打出完整栈：只有异常消息时根本看不出是哪一行崩的
+            import traceback
+
+            for line in traceback.format_exc().rstrip().splitlines():
+                _log("  " + line)
             return None
 
     def _analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
@@ -730,6 +768,18 @@ class AdventureRead(CustomRecognition):
                 "不像答题界面（题干或选项不符），不做任何点击"
                 f"｜题干：{question[:40]}｜选项：{option_texts}"
             )
+            # 结算画面也走这条分支（「获得 N 积分」/「直降为0，冒险失败」）。
+            # 每帧都会读到，所以只在第一次把本局总分打进日志。
+            if STATE.score_by_q and not STATE.finished:
+                STATE.finished = True
+                mine = STATE.total_score()
+                hit = re.search(r"获得\s*(\d+)\s*积分", question or "")
+                if hit:
+                    real = int(hit.group(1))
+                    tail = "一致" if real == mine else f"差 {real - mine:+d}"
+                    _log(f"本局结束：实测 {real} 分｜预计 {mine} 分（{tail}）")
+                else:
+                    _log(f"本局结束：预计 {mine} 分（{len(STATE.score_by_q)} 题）")
             return None
 
         event = _match_event(question) or _match_event_by_options(option_texts)
@@ -745,11 +795,18 @@ class AdventureRead(CustomRecognition):
             # 初值对了，归纳表才只展开这一局真正会走到的状态，不做无用功。
             attrs = _opening_attrs(context, image, attrs, derived)
             STATE.attrs = dict(attrs)
-            # 传入题号，走精确后向归纳（每个角色第一次拉表 10~20 秒；
-            # 之后整表常驻，同一角色乃至其他角色都直接命中缓存）
+            # 传入题号，走精确后向归纳（按阶段 + 阶段内不放回）。
+            # 归纳表按角色常驻：接入不放回后单角色就要 85~149 万状态，
+            # 7 个角色装不下，所以换角色时才清表（同一角色连续多局复用）。
+            if logic.maybe_reset_exact_memo(STATE.character):
+                _log(f"换角色（{STATE.character}），归纳表已重置")
             _t0 = time.time()
             decision = logic.choose(
-                _events(), event, attrs, question=derived
+                _events(),
+                event,
+                attrs,
+                question=derived,
+                answered=STATE.stage_seen,
             )
             _cost = time.time() - _t0
             STATE.table_cost = _cost
@@ -762,16 +819,34 @@ class AdventureRead(CustomRecognition):
                     f"｜第 1 题={event}｜初值={' '.join(f'{k}{v}' for k, v in attrs.items())}"
                 )
                 _log(
-                    f"本局策略：{'精确后向归纳' if decision.exact else '启发式'}"
+                    f"本局策略：{_plan_label(decision)}"
                     f"（拉表耗时 {_cost:.1f}s，归纳表 {states:,} 状态，"
                     f"EXACT_ENABLED={logic.EXACT_ENABLED}）"
                 )
             _log(f"{decision.describe()}｜题干：{question}")
+            # 本题得分：题库 `_meta.stages` 的固定值（成功 6/6/9/12/19，
+            # 失败 3/3/4/6/9）。用题号索引的字典存，重复点击同一题不会重复计分。
+            gained = logic.question_score(derived, decision.will_succeed)
+            STATE.score_by_q[derived] = gained
+            total = STATE.total_score()
+            # brief 是给「MaaFramework 日志面板」看的一行中文摘要：
+            # detail 的结构化字段在 GUI 里是一坨 JSON，加一行才好读。
+            # 这条 detail 会随 Node.Recognition.Succeeded 进 maafw.log，
+            # 只要 stdout_level >= Info(4)，MFA 的日志面板就能看到。
             detail = {
+                "brief": (
+                    f"第{derived + 1}题 {event} → 第{decision.index + 1}项「{decision.text}」"
+                    f"（{'必定成功' if decision.will_succeed else '必然失败'}，"
+                    f"+{gained} 分，累计 {total} 分）"
+                    f"｜{decision.reason}"
+                ),
                 "event": event,
+                "question": derived + 1,
                 "option": decision.index + 1,
                 "text": decision.text,
                 "will_succeed": decision.will_succeed,
+                "gained": gained,
+                "total": total,
                 "gains": decision.gains,
                 "reason": decision.reason,
                 "options_ocr": option_texts,

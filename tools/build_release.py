@@ -7,8 +7,9 @@
 产物：
     dist/SurvivalAdventure-v{version}-slim.zip    纯脚本包（约 40 KB）
 
-为什么这里只做 slim：完整版要额外塞进 MAA 本体（libs/runtimes，约 200 MB）和
-Python 运行时，需要下载外部依赖、体积也大，不适合放在 CI 里构建。完整版请本地打包。
+为什么这里只做 slim：完整版要额外塞进 MAA 本体（libs/runtimes，约 200 MB）和仓库自带的
+Python 运行时（`runtimes/python/`，约 156 MB），体积大、也不适合放在 CI 里构建。
+完整版请本地打包（把 `runtimes/` 一并塞进去即可）。
 
 注意：`resource/` 与 `agent/` 在 .gitignore 里，其中 `agent/` 已用 `git add -f` 纳入版本控制
 （否则 Agent 代码进不了仓库），而公告文件不在仓库中，所以这里**内联生成**公告内容。
@@ -33,17 +34,17 @@ FILES = [
     ("assets/resource/base/image/继续冒险.png", "resource/base/image/继续冒险.png"),
 ]
 
-ANNOUNCEMENT = """# 关于本脚本
+ANNOUNCEMENT = """# 关于本项目
 
-本脚本基于 **MaaFramework** 开发，作者 **InkyuZero**（GitHub：[Inkyu-Zero](https://github.com/Inkyu-Zero/MAAZMXY4)）。
+本项目基于 **MaaFramework** 开发，作者 **InkyuZero**（GitHub：[Inkyu-Zero](https://github.com/Inkyu-Zero/MAAZMXY4)）。
 
-**本脚本完全免费**，仅供学习交流使用。
+**本项目完全免费**，仅供学习交流使用。
 
 ---
 
 ## ⚠️ 如果你是付费购买的
 
-**请立刻申请退款！** 本脚本从未收费，任何向你收费的人都与作者无关。
+**请立刻申请退款！** 本项目从未收费，任何向你收费的人都与作者无关。
 
 发现倒卖也欢迎向作者举报。
 
@@ -56,7 +57,7 @@ INSTALL_DOC = """# 造梦西游4 · 生存大冒险 自动答题（纯脚本包�
 
 **作者：InkyuZero** ｜ 项目地址：https://github.com/Inkyu-Zero/MAAZMXY4
 
-本脚本基于 **MaaFramework** 开发，**完全免费**。如果你是付费购买的，请及时申请退款。
+本项目基于 **MaaFramework** 开发，**完全免费**。如果你是付费购买的，请及时申请退款。
 
 ---
 
@@ -82,7 +83,7 @@ INSTALL_DOC = """# 造梦西游4 · 生存大冒险 自动答题（纯脚本包�
    agent/adventure_logic.py
    resource/base/pipeline/生存大冒险.json
    resource/base/image/继续冒险.png
-   resource/announcement/关于本脚本.md
+   resource/announcement/关于本项目.md
    assets/data/adventure.json
    assets/data/adventure_ui.json
    ```
@@ -124,7 +125,7 @@ INSTALL_DOC = """# 造梦西游4 · 生存大冒险 自动答题（纯脚本包�
 
 ## 声明
 
-本脚本完全免费，禁止任何形式的倒卖与付费分发。
+本项目完全免费，禁止任何形式的倒卖与付费分发。
 """
 
 
@@ -140,12 +141,24 @@ def build_interface_patch() -> dict:
         "_说明": [
             "把下面的 task 追加到你自己的 interface.json 的 task 数组里；",
             "如果你的 interface.json 还没有 agent 字段，把 agent 也加上。",
-            "agent.child_exec 默认用 py（系统 Python）；",
-            "若使用内置 Python 的便携包，请改为 ./python/python.exe。",
+            "注意 agent.child_exec：官方包里是 runtimes\\python\\python.exe（包内自带运行时，"
+            "解压即用）；",
+            "这种「补丁包」不带运行时，请把 child_exec 改成 py，并先 pip install maa（见上文第 4 步）。",
         ],
         "task": [task],
-        "agent": iface.get("agent"),
+        "agent": _agent_for_patch(iface.get("agent")),
     }
+
+
+def _agent_for_patch(agent):
+    """补丁包里的 agent 配置要把 child_exec 从包内运行时改回系统 Python。"""
+    if not isinstance(agent, dict):
+        return agent
+    out = dict(agent)
+    if str(out.get("child_exec", "")).replace("\\", "/").startswith("runtimes/"):
+        out["child_exec"] = "py"
+    return out
+
 
 
 def main() -> int:
@@ -184,7 +197,7 @@ def main() -> int:
         for name, text in (
             ("interface_patch.json", json.dumps(build_interface_patch(), ensure_ascii=False, indent=2) + "\n"),
             ("安装说明.md", INSTALL_DOC),
-            ("resource/announcement/关于本脚本.md", ANNOUNCEMENT),
+            ("resource/announcement/关于本项目.md", ANNOUNCEMENT),
         ):
             zf.writestr(f"{base}/{name}", text)
             print(f"  + {name}  (生成, {len(text.encode('utf-8'))} 字节)")

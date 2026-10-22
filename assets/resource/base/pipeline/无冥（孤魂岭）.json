@@ -1,0 +1,160 @@
+{
+  "无冥（孤魂岭）-回放战斗": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "file": "示例-最小",
+          "speed": 1
+        }
+      }
+    },
+    "post_delay": 0,
+    "next": [
+      "无冥（孤魂岭）-点击设置"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 320,
+        "y": 103
+      }
+    }
+  },
+  "无冥（孤魂岭）-点击场外": {
+    "pre_delay": 0,
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          605,
+          140,
+          36,
+          30
+        ]
+      }
+    },
+    "post_delay": 150,
+    "next": [
+      "无冥（孤魂岭）-点击孤魂岭"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1600,
+        "y": 119
+      }
+    }
+  },
+  "无冥（孤魂岭）-点击孤魂岭": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 0,
+    "timeout": 2000,
+    "next": [
+      "无冥（孤魂岭）-识别孤魂岭场景"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "无冥（孤魂岭）-点击设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ]
+      }
+    },
+    "pre_delay": 2000,
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "无冥（孤魂岭）-返回地图"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 93
+      }
+    }
+  },
+  "无冥（孤魂岭）-识别孤魂岭场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 0,
+    "timeout": 600,
+    "next": [
+      "无冥（孤魂岭）-回放战斗"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-点击场外"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    }
+  },
+  "无冥（孤魂岭）-返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 3000,
+    "next": [
+      "无冥（孤魂岭）-刷取次数",
+      "停止运行"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    }
+  },
+  "无冥（孤魂岭）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "next": [
+      "无冥（孤魂岭）-点击孤魂岭"
+    ],
+    "max_hit": 1,
+    "post_delay": 0
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "伽岚（万世冥阁）-点击万世冥阁": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "万世冥阁.png",
+          "万世冥阁（高亮）.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "post_delay": 0,
+    "timeout": 2000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-识别万世冥阁场景"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-点击场外"
+    ]
+  },
+  "伽岚（万世冥阁）-点击场外": {
+    "pre_delay": 0,
+    "post_delay": 150,
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          194,
+          571,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-点击万世冥阁"
+    ]
+  },
+  "伽岚（万世冥阁）-识别万世冥阁场景": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "万世冥阁场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 0,
+    "timeout": 600,
+    "next": [
+      "伽岚（万世冥阁）-回放战斗"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-点击场外"
+    ]
+  },
+  "伽岚（万世冥阁）-回放战斗": {
+    "pre_delay": 0,
+    "post_delay": 0,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "battle_play",
+        "custom_action_param": {
+          "file": "示例-最小",
+          "speed": 1.0
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-点击设置"
+    ]
+  },
+  "伽岚（万世冥阁）-点击设置": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "设置.png"
+        ]
+      }
+    },
+    "pre_delay": 2000,
+    "timeout": 3000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-返回地图"
+    ]
+  },
+  "伽岚（万世冥阁）-返回地图": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "返回地图"
+        ]
+      }
+    },
+    "timeout": 3000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-刷取次数",
+      "停止运行"
+    ]
+  },
+  "伽岚（万世冥阁）-刷取次数": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "next": [
+      "伽岚（万世冥阁）-点击万世冥阁"
+    ],
+    "max_hit": 1,
+    "post_delay": 0
+  }
+}
