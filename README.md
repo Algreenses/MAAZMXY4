@@ -76,8 +76,11 @@
 
 ### 第 1 步：下载并解压
 
-到 [Releases](https://github.com/Inkyu-Zero/MAAZMXY4/releases) 下载最新的 7z 压缩包
-（约 101 MB，解压后约 328 MB），用 7-Zip 解压到任意目录。
+到 [Releases](https://github.com/Inkyu-Zero/MAAZMXY4/releases) 下载
+`MAAZMXY4 v2.0 自解压.exe`（约 103 MB）。
+
+双击它，在弹出的「解压到」里点**解压**（默认就是它自己所在的目录），
+会自动生成 `MAA造梦西游4` 文件夹（解压后约 328 MB）。
 
 解压后目录长这样：
 
