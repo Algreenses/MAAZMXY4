@@ -461,7 +461,8 @@ MFAAvalonia.dll
 libloader.dll
 MFAAvalonia.deps.json
 MFAAvalonia.runtimeconfig.json
-DependencySetup_依赖库安装_win.bat
+# 依赖库安装脚本要分发（新电脑靠它装 .NET 10 与 VC++ 运行库）
+# 注意：客户端本体（MFAAvalonia.* 与 libloader.dll）仍不入库
 debug/
 logs/
 temp/
