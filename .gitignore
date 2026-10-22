@@ -452,7 +452,7 @@ tools/ImageCropper/**/*.png
 
 config
 debug
-# ===== 本地运行副本（脚本以 assets/ 为规范目录，不入库）=====
+# ===== 本地运行副本（以 assets/ 为规范目录，不入库）=====
 /interface.json
 /resource/
 /config/

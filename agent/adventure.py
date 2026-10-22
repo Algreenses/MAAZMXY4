@@ -3,8 +3,8 @@
 # 造梦西游4 · 生存大冒险 自动答题
 # 作者：InkyuZero   (https://github.com/Inkyu-Zero/MAAZMXY4)
 #
-# 本脚本基于 MaaFramework 开发，完全免费。
-# 如果你是付费获得的，请及时申请退款 —— 本脚本从未收费。
+# 本项目基于 MaaFramework 开发，完全免费。
+# 如果你是付费获得的，请及时申请退款 —— 本项目从未收费。
 #
 """生存大冒险 —— Agent 侧实现。
 
