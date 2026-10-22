@@ -81,6 +81,7 @@
 ```
 MAA造梦西游4/
 ├─ MAA造梦西游4.exe      ← 双击这个
+├─ DependencySetup_依赖库安装_win.bat   ← 第一次用先跑它装 .NET
 ├─ interface.json
 ├─ agent/                 ← Python Agent（答题/录制/回放）
 ├─ resource/base/         ← Pipeline、图片、OCR 模型
@@ -127,6 +128,17 @@ python tools/check_adventure.py     # 生存大冒险题库与事件自检
 
 ## 常见问题
 
+**Q：双击 `MAA造梦西游4.exe` 没反应，或者提示缺少 .NET？**
+
+客户端是 .NET 10 应用，第一次在新电脑上用需要先装运行库：
+
+1. 双击同目录的 **`DependencySetup_依赖库安装_win.bat`**
+2. 它会自动装 **.NET 10 桌面运行时** 和 **VC++ 2015-2022 运行库**（优先用 `winget`，没有就自己下载安装包）
+3. 装完再双击 `MAA造梦西游4.exe`
+
+如果脚本提示没有 `winget`，它会走下载安装；下载失败就手动装：
+<https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe>
+
 **Q：提示「抓不到游戏画面」？**
 
 1. 确认游戏窗口标题含「造梦盒子」，且没有最小化。
@@ -153,6 +165,7 @@ python tools/check_adventure.py     # 生存大冒险题库与事件自检
 | 路径 | 用途 |
 | --- | --- |
 | `interface.json` | Project Interface V2 定义：任务、controller、option |
+| `DependencySetup_依赖库安装_win.bat` | 一键安装 .NET 10 桌面运行时与 VC++ 运行库 |
 | `agent/` | Python Agent：`adventure*`（答题）、`battle_record`（录制）、`battle_player`（回放）、`toast`（通知） |
 | `resource/base/pipeline/` | 所有 Pipeline 节点 |
 | `resource/base/image/` | 模板匹配用的图片 |
