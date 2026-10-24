@@ -14,6 +14,7 @@ from maa.toolkit import Toolkit
 
 import adventure
 import battle_player
+import loop_counter
 import battle_record
 
 

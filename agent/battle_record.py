@@ -140,6 +140,7 @@ class Recorder:
         self.recording = False
         self.actions: List[Dict[str, Any]] = []
         self._last_t = 0.0
+        self._start_t = 0.0
         self._last_move = (-999, -999)
         self._last_move_t = 0.0
         self._held: set = set()  # 当前按下的键，用来过滤键盘自动重复
@@ -175,7 +176,10 @@ class Recorder:
             return
         with self._lock:
             now = time.monotonic()
-            gap = int(round((now - self._last_t) * 1000)) if self._last_t else 0
+            # 第一个动作：相对「开始录制」那一刻算，而不是强制 0。
+            # 这样录制时若先等战斗开始再动手，回放会先把同样的等待重现。
+            prev = self._last_t or self._start_t
+            gap = int(round((now - prev) * 1000)) if prev else 0
             self._last_t = now
             act: Dict[str, Any] = {"t": max(0, gap), "op": op}
             act.update(kwargs)
@@ -236,6 +240,10 @@ class Recorder:
 
     # -- 控制 --------------------------------------------------------------
     def start(self) -> None:
+        # 计时起点 = 按下 F9 的这一刻（含找窗口的耗时）。
+        # 第一个动作的 t 就相对它算，所以「录制时等多久，回放就等多久」，
+        # 不设默认值、也不设上限。
+        self._start_t = time.monotonic()
         if not self.ensure_window():
             return
         self.mapper.refresh()

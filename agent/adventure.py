@@ -94,17 +94,23 @@ class _State:
     char_checked: bool = False
     # 本局建精确归纳表用了多久（用于把「拉表工作量」量化到日志里）
     table_cost: float = 0.0
-    # 本局 10 题的完整题序（事件名列表）。从游戏进程内存里读到
-    # （服务器下发的 survivalInfo.question）就填进来，读不到就是空列表。
-    # 有了题序，决策就能沿着确定顺序做前向规划，比按阶段均匀抽的期望高
-    # 4~5 分/局（见 logic.seq_plan）。
-    # 本局按顺序确认过的题干（只追加，不重复）。用来校验题序：
-    # 已答过的前 N 个必须与候选题序逐一对得上，否则那份候选是别的局的残留。
+    # 本局 10 题的完整题序（事件名列表）。本版不预知题序，恒为空列表；
+    # 字段保留是为了让决策函数有统一入口（有题序时走 logic.seq_plan 前向规划）。
+    # 本局按顺序确认过的题干（只追加，不重复），供结算时复盘。
     # 本局每题得分 {题号(0 基): 分数}。用字典而不是累加一个整数，是为了
     # 「同一题被重复点击」时不会重复计分（实测重复决策很常见，最多一次多 5 次）。
     score_by_q: Dict[int, int] = {}
     # 本局是否已经打过「结算」日志（结算画面每帧都会被读到，只该打一次）
     finished: bool = False
+    # 本局是否已经因为「识别到冒险成功/失败」请求过停止任务（只请求一次）
+    stopped: bool = False
+    # 本局按顺序答过的事件名（每题只记一次）。本局结束时用它反推
+    # 「上帝模式得分」——把 10 道题提前全告诉你，最好能拿多少分。
+    answered: List[str] = []
+    # 开局锁下来的初始六维，上帝模式从这个起点开始推。
+    initial_attrs: Dict[str, int] = {}
+    # 上帝模式那行日志只打一次
+    god_logged: bool = False
 
     def total_score(self) -> int:
         return sum(self.score_by_q.values())
@@ -118,8 +124,13 @@ def _ensure_dirs() -> None:
 
 
 def _log(msg: str) -> None:
+    """写日志文件，同时打到 stdout。
+
+    面板展示交给 pipeline 节点的 `focus`（指向 debug/adventure/panel.md），
+    这里只负责落盘 + stdout（进 debug/maafw.log，排查时翻）。
+    """
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
-    print(f"[adventure] {msg}", flush=True)
+    print(msg, flush=True)
     try:
         _ensure_dirs()
         with open(LOG_PATH, "a", encoding="utf-8") as f:
@@ -131,7 +142,7 @@ def _log(msg: str) -> None:
 def _plan_label(decision) -> str:
     """把 Decision.plan 翻成人话，日志里一眼看出走的是哪条策略。"""
     return {
-        "seq": "精确·已知题序（前向规划）",
+        "seq": "精确·前向规划",
         "stage": "精确·按阶段（后向归纳）",
     }.get(getattr(decision, "plan", ""), "启发式")
 
@@ -665,6 +676,89 @@ def _collect(
         _log(f"写入采集记录失败：{exc}")
 
 
+_RESULT_MARKS = ("冒险成功", "冒险失败", "直降为0")
+
+
+PANEL_FILE = os.path.join(LOG_DIR, "panel.md")
+
+
+_PANEL_LAST: list = []
+
+
+def _panel(text: str) -> None:
+    """把当前进度写到 panel.md。
+
+    pipeline 里「读题」与「结算」节点的 `focus` 指向这个文件，
+    MFA 收到节点事件时会读取文件内容贴进日志面板 —— 这是 agent 的
+    stdout 之外，唯一的「动态文本进面板」通路。
+
+    同一局面被重复决策（答题动画没结束时常见）时内容一模一样，
+    这里直接跳过，免得面板刷出两条一样的。
+    """
+    body = text.rstrip()
+    if _PANEL_LAST and _PANEL_LAST[0] == body:
+        return
+    _PANEL_LAST[:] = [body]
+    try:
+        os.makedirs(os.path.dirname(PANEL_FILE), exist_ok=True)
+        with open(PANEL_FILE, "w", encoding="utf-8", newline="\n") as fp:
+            fp.write(body + "\n")
+    except Exception:
+        pass
+
+
+def _result_mark(text: str) -> str:
+    """结算面板的特征文案。认到就说明这一局已经结束，任务该收工了。"""
+    body = text or ""
+    for one in _RESULT_MARKS:
+        if one in body:
+            return one
+    hit = re.search(r"获得\s*\d+\s*积分", body)
+    return hit.group(0) if hit else ""
+
+
+def _log_result(context: Context, question: str, mark: str) -> None:
+    """结算面板的统一收尾日志：对账、上帝模式对比，只打一次。"""
+    if STATE.score_by_q and not STATE.finished:
+        STATE.finished = True
+        mine = STATE.total_score()
+        hit = re.search(r"获得\s*(\d+)\s*积分", question or "")
+        if hit:
+            real = int(hit.group(1))
+            tail = "一致" if real == mine else f"差 {real - mine:+d}"
+            _log(f"本局结束：实测 {real} 分｜预计 {mine} 分（{tail}）")
+        else:
+            _log(f"本局结束：预计 {mine} 分（{len(STATE.score_by_q)} 题）")
+    answered = getattr(STATE, "answered", None) or []
+    god_line = ""
+    if answered and not getattr(STATE, "god_logged", False):
+        STATE.god_logged = True
+        try:
+            if len(answered) < 10:
+                god_line = f"上帝视角　本局只答了 {len(answered)} 题，无法对比"
+            else:
+                got = logic.seq_plan(_events(), answered,
+                                     STATE.initial_attrs or STATE.attrs,
+                                     0, answered[0])
+                if got and got[1] is not None:
+                    god = float(got[1])
+                    mine2 = STATE.total_score()
+                    god_line = (f"上帝视角　最优 {god:.0f} 分｜本局 {mine2} 分"
+                                f"｜差距 {mine2 - god:+.0f} 分")
+                else:
+                    god_line = "上帝视角　本局记录不完整，无法对比"
+        except Exception as exc:                   # noqa: BLE001
+            god_line = f"上帝视角　计算失败（{type(exc).__name__}: {exc}）"
+        if god_line:
+            _log(god_line)
+    panel = (f"**本局结束**：识别到「{mark}」｜预计 {STATE.total_score()} 分\n\n"
+             f"六维　{'　'.join(f'{k} {v}' for k, v in STATE.attrs.items())}")
+    if god_line:
+        panel += "\n\n" + god_line
+    _panel(panel)
+    _log(f"识别到「{mark}」，本局结束，任务收工")
+
+
 def _apply(attrs: Dict[str, int], gains: Dict[str, int]) -> Dict[str, int]:
     out = dict(attrs)
     for key, delta in (gains or {}).items():
@@ -696,14 +790,17 @@ class AdventureInit(CustomAction):
         STATE.table_cost = 0.0
         STATE.score_by_q = {}
         STATE.finished = False
+        STATE.stopped = False
+        STATE.answered = []
+        STATE.initial_attrs = {}
+        STATE.god_logged = False
         # 版本标记：用来确认 agent 加载的是改过的代码（改完文件不重启 agent
         # 会一直跑旧模块，日志里看不出区别，全靠这一行区分）
         _log(f"agent 代码版本：{AGENT_VERSION}")
-        # 本局题序不在这里读：开局这一刻内存里的 survivalInfo 还是上一局的残留
-        # （游戏要等 beginSurvival 返回才刷新），读到的是脏数据，而且没有校验依据。
-        # 改到第 1 题题干识别出来之后再读 —— 那时题序一定已经下发，还能用
-        # 「题序第 1 个 == 当前题干」当场验真。
+        # 本版不预知题序：开局不做任何猜测，全部决策按阶段期望推进。
         # 归纳表现在整表常驻（不再按局清空）：每个角色只付一次建表钱，
+        # 整表还会落盘到 debug/exact_cache 供跨进程复用（第二次起 0.8 秒载入）；
+        # 默认开启「阶段内不放回」，所以单角色 75~163 万状态、首次建表 74~80 秒。
         # 之后无论随机到谁都直接命中缓存 —— 这里把常驻规模打进日志，方便看「拉表工作量」。
         resident, _nodes = logic.exact_stats()
         if resident:
@@ -718,6 +815,31 @@ class AdventureInit(CustomAction):
 # --------------------------------------------------------------------------- #
 # 读题 + 决策
 # --------------------------------------------------------------------------- #
+@AgentServer.custom_recognition("adventure_result")
+class AdventureResult(CustomRecognition):
+    """结算面板识别：认「冒险成功 / 冒险失败」，命中就让 pipeline 走「结束」。
+
+    它挂在答题循环的第一个 next 上，命中后进入 `生存大冒险_结束`（无 next），
+    任务是以**成功**结束的 —— 不用 post_stop，那样 MAA 会记成任务失败。
+    """
+
+    def analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
+        try:
+            image = getattr(argv, "image", None)
+            text = _ocr(context, image, QUESTION_NODE) or ""
+            mark = _result_mark(text)
+            if not mark:
+                return None
+            _log_result(context, text, mark)
+            return CustomRecognition.AnalyzeResult(
+                box=(0, 0, 1, 1),
+                detail={"mark": mark, "text": text[:60]},
+            )
+        except Exception as exc:  # noqa: BLE001
+            _log(f"结算识别异常，按未命中处理：{type(exc).__name__}: {exc}")
+            return None
+
+
 @AgentServer.custom_recognition("adventure_read")
 class AdventureRead(CustomRecognition):
     def analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
@@ -769,17 +891,11 @@ class AdventureRead(CustomRecognition):
                 f"｜题干：{question[:40]}｜选项：{option_texts}"
             )
             # 结算画面也走这条分支（「获得 N 积分」/「直降为0，冒险失败」）。
-            # 每帧都会读到，所以只在第一次把本局总分打进日志。
-            if STATE.score_by_q and not STATE.finished:
-                STATE.finished = True
-                mine = STATE.total_score()
-                hit = re.search(r"获得\s*(\d+)\s*积分", question or "")
-                if hit:
-                    real = int(hit.group(1))
-                    tail = "一致" if real == mine else f"差 {real - mine:+d}"
-                    _log(f"本局结束：实测 {real} 分｜预计 {mine} 分（{tail}）")
-                else:
-                    _log(f"本局结束：预计 {mine} 分（{len(STATE.score_by_q)} 题）")
+            # 这里只记日志、不点任何东西：真正收工由答题循环的第一个 next
+            # 节点（生存大冒险_结算）负责，那样任务是以成功结束的。
+            mark = _result_mark(question)
+            if mark:
+                _log_result(context, question, mark)
             return None
 
         event = _match_event(question) or _match_event_by_options(option_texts)
@@ -795,6 +911,12 @@ class AdventureRead(CustomRecognition):
             # 初值对了，归纳表才只展开这一局真正会走到的状态，不做无用功。
             attrs = _opening_attrs(context, image, attrs, derived)
             STATE.attrs = dict(attrs)
+            # 第 1 题的六维就是本局初始值，上帝模式要拿它当起点
+            if derived == 0 and not STATE.initial_attrs:
+                STATE.initial_attrs = dict(attrs)
+            # 记下这局按顺序答过的题（重复点击同一题只记一次）
+            if not STATE.answered or STATE.answered[-1] != event:
+                STATE.answered.append(event)
             # 传入题号，走精确后向归纳（按阶段 + 阶段内不放回）。
             # 归纳表按角色常驻：接入不放回后单角色就要 85~149 万状态，
             # 7 个角色装不下，所以换角色时才清表（同一角色连续多局复用）。
@@ -829,10 +951,8 @@ class AdventureRead(CustomRecognition):
             gained = logic.question_score(derived, decision.will_succeed)
             STATE.score_by_q[derived] = gained
             total = STATE.total_score()
-            # brief 是给「MaaFramework 日志面板」看的一行中文摘要：
-            # detail 的结构化字段在 GUI 里是一坨 JSON，加一行才好读。
-            # 这条 detail 会随 Node.Recognition.Succeeded 进 maafw.log，
-            # 只要 stdout_level >= Info(4)，MFA 的日志面板就能看到。
+            # brief 是一行中文摘要：detail 的结构化字段在 maafw.log 里
+            # 是一坨 JSON，加一行才好读（面板展示走 focus，不走这里）。
             detail = {
                 "brief": (
                     f"第{derived + 1}题 {event} → 第{decision.index + 1}项「{decision.text}」"
@@ -851,6 +971,18 @@ class AdventureRead(CustomRecognition):
                 "reason": decision.reason,
                 "options_ocr": option_texts,
             }
+            _delta = "、".join(
+                f"{k}{v:+d}" for k, v in (decision.gains or {}).items()
+                if isinstance(v, int) and v
+            )
+            _panel(
+                f"**第 {derived + 1} 题** {event} → 第 {decision.index + 1} 项"
+                f"「{decision.text}」\n\n"
+                f"{'必定成功' if decision.will_succeed else '必然失败'}"
+                f"　+{gained} 分　累计 {total} 分\n\n"
+                f"六维　{'　'.join(f'{k} {v}' for k, v in STATE.attrs.items())}"
+                + (f"　（本题 {_delta}）" if _delta else "")
+            )
             index = decision.index
         else:
             _collect(question, attrs, option_texts, image)

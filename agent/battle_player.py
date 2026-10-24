@@ -324,6 +324,13 @@ class BattlePlay(CustomAction):
             "[battle_play] 回放「%s」：%d 个动作，倍率 %.2f"
             % (rec.get("name") or name, len(actions), speed)
         )
+        # 第一个动作的 t 现在可能是非 0（录制开始后先等了一会儿），
+        # 回放会照等，所以先把它报出来，免得用户以为卡住。
+        _lead = max(0.0, float(actions[0].get("t", 0) or 0)) / 1000.0 / speed
+        _total = sum(max(0.0, float(a.get("t", 0) or 0)) for a in actions) / 1000.0 / speed
+        if _lead >= 0.5:
+            self._log("[battle_play] 起手等待 %.1f 秒（按录制时的空档重现）" % _lead)
+        self._log("[battle_play] 回放总时长 %.1f 秒" % _total)
 
         started = time.monotonic()
         # 绝对时刻调度：每个动作的目标时刻 = 起点 + 累计时间偏移。

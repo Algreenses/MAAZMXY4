@@ -20,9 +20,13 @@
 from __future__ import annotations
 
 import difflib
+import gzip
+import hashlib
 import json
 import math
 import os
+import pickle
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
@@ -436,8 +440,11 @@ _EXACT_MSHIFT = 16
 # 而它只值 +0.26 分，且这张表只在「读不到题序」时才会用到。
 #   ADV_NOREP_STAGES=4        只对 stage4
 #   ADV_NOREP_STAGES=         全部关闭（等价于旧的有放回行为）
+#   默认 1,2,3,4,5 —— 全阶段不放回（游戏内同阶段不重复出题）。
+#   代价是一次性建表（单角色 75~163 万状态、34~80 秒），
+#   已由 debug/exact_cache 的磁盘缓存吸收，第二次起 0.2 秒。
 EXACT_NOREP_STAGES = frozenset(
-    int(x) for x in os.environ.get("ADV_NOREP_STAGES", "").split(",") if x.strip()
+    int(x) for x in os.environ.get("ADV_NOREP_STAGES", "1,2,3,4,5").split(",") if x.strip()
 )
 
 _exact_memo: Dict[int, float] = {}
@@ -456,6 +463,14 @@ _exact_hidx = ATTRS.index("健康")
 _exact_states = 0
 _exact_trims = 0
 _exact_off_reason: Optional[str] = None
+_exact_fp: str = ""  # 题库内容指纹（缓存键的一部分）
+
+# 归纳表磁盘缓存：建表是纯计算，同一份题库 + 同一角色结果永远一样，
+# 进程一退就丢太浪费（再开又要重算 74~80 秒），所以落盘复用。
+# 只缓存记忆化表本身，阶段/选项结构每次照常重建（很便宜），
+# 题库一改指纹就变、旧缓存自动失效。
+_EXACT_CACHE_VER = 3
+_exact_cache_state: Dict[str, Any] = {"tried": False, "loaded": False, "saved": False}
 
 
 class _ExactOverflow(Exception):
@@ -469,12 +484,93 @@ def _exact_disable(reason: str) -> None:
     _exact_memo.clear()
 
 
+def _fingerprint(events: Mapping[str, Mapping[str, Any]]) -> str:
+    """题库内容指纹：事件名 + 选项 + 阶段元信息，变化即让缓存失效。"""
+    try:
+        blob = json.dumps({"stages": _stage_meta, "events": events},
+                          ensure_ascii=False, sort_keys=True)
+        return hashlib.sha1(blob.encode("utf-8")).hexdigest()[:16]
+    except Exception:
+        return ""
+
+
+def _exact_cache_key() -> str:
+    return "|".join([str(_EXACT_CACHE_VER), _exact_fp, _exact_character or "default",
+                     ",".join(str(s) for s in sorted(EXACT_NOREP_STAGES))])
+
+
+def _exact_cache_file() -> Optional[str]:
+    try:
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        d = os.path.join(root, "debug", "exact_cache")
+        os.makedirs(d, exist_ok=True)
+        tag = "".join(str(s) for s in sorted(EXACT_NOREP_STAGES)) or "off"
+        return os.path.join(d, "%s_%s_n%s.pk.gz"
+                            % (_exact_character or "default", _exact_fp, tag))
+    except Exception:
+        return None
+
+
+def _exact_cache_load() -> bool:
+    """尝试从磁盘恢复记忆化表，命中返回 True（同时把状态数补回来）。"""
+    global _exact_states
+    st = _exact_cache_state
+    if st["tried"]:
+        return st["loaded"]
+    st["tried"] = True
+    if not EXACT_ENABLED or not _exact_fp:
+        return False
+    path = _exact_cache_file()
+    if not path or not os.path.exists(path):
+        return False
+    try:
+        t0 = time.time()
+        with gzip.open(path, "rb") as fp:
+            head, memo, states = pickle.load(fp)
+        if head != _exact_cache_key():
+            return False
+        _exact_memo.clear()
+        _exact_memo.update(memo)
+        _exact_states = int(states)
+        st["loaded"] = True
+        print("归纳表缓存命中：%s（%s 状态，载入 %.1fs）"
+              % (os.path.basename(path), format(len(memo), ","), time.time() - t0),
+              flush=True)
+        return True
+    except Exception:
+        return False
+
+
+def _exact_cache_maybe_save() -> None:
+    """首次铺完表后落盘一次（半成品不写）。"""
+    st = _exact_cache_state
+    if st["saved"] or st["loaded"] or len(_exact_memo) < 20000:
+        return
+    st["saved"] = True
+    path = _exact_cache_file()
+    if not path:
+        return
+    try:
+        t0 = time.time()
+        tmp = path + ".tmp"
+        with gzip.open(tmp, "wb", compresslevel=1) as fp:
+            pickle.dump((_exact_cache_key(), dict(_exact_memo), _exact_states), fp,
+                        protocol=pickle.HIGHEST_PROTOCOL)
+        os.replace(tmp, path)
+        print("归纳表已缓存：%s（%s 状态，写入 %.1fs）"
+              % (os.path.basename(path), format(len(_exact_memo), ","), time.time() - t0),
+              flush=True)
+    except Exception:
+        pass
+
+
 def reset_exact_memo() -> None:
     """强制清空记忆化表（测试与调试用）。"""
     global _exact_states, _exact_trims
     _exact_memo.clear()
     _exact_states = 0
     _exact_trims = 0
+    _exact_cache_state.update(tried=False, loaded=False, saved=False)
 
 
 def _trim_exact_memo() -> None:
@@ -498,7 +594,7 @@ def maybe_reset_exact_memo(character: Optional[str] = None) -> bool:
     """换角色时清表；同一角色连续多局**复用**，返回是否真的清了。
 
     为什么要按角色清：接入「阶段内不放回」后，单个角色的状态数从 30~59 万涨到
-    85~149 万（used 掩码把同阶段的每个排列都拆开），7 个角色的并集会到 600~1000
+    75~163 万（实测小玉 1,312,272 / 73.8 秒）（used 掩码把同阶段的每个排列都拆开），7 个角色的并集会到 600~1000
     万，远超 EXACT_MAX_STATES。按角色清表后单角色 ≤149 万，正好装得下上限。
 
     角色是「开局 OCR 识别 + 六维校验」得到的（见 agent/adventure.py 的
@@ -595,7 +691,7 @@ def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
     """按题库建「题号→阶段、阶段→编译后的选项」索引（只建一次）。"""
     global _exact_src, _exact_qstage, _exact_stages, _exact_compiled, _exact_cap, _exact_ai
     global _exact_event_opts
-    global _exact_event_stage, _exact_stage_qs, _exact_event_slot
+    global _exact_event_stage, _exact_stage_qs, _exact_event_slot, _exact_fp
     if not EXACT_ENABLED:
         return False
     key = id(events)
@@ -603,6 +699,7 @@ def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
         return True
     _ensure_value_index(events)
     _ensure_stage_meta()
+    _exact_fp = _fingerprint(events)
     _exact_ai = {a: i for i, a in enumerate(ATTRS)}
 
     # 题号 → 阶段：题库 `_meta.stages[].questions` 直接给出了题号列表（1 基）
@@ -817,6 +914,8 @@ def exact_choice(
     opts = _exact_event_opts.get(event_name)
     if not opts:
         return None
+    if _exact_cache_load():
+        pass  # 命中：下面的 _eval_options 直接查表，不再枚举
     st = _exact_qstage[question]
     win, lose = _stage_scores.get(st, (0, 0))
     t = tuple(int(attrs.get(a, 0)) for a in ATTRS)
@@ -831,10 +930,12 @@ def exact_choice(
     slot_self = _exact_event_slot.get(event_name, -1)
     _exact_trims = 0  # 单次决策内的裁剪次数预算（见 _trim_exact_memo）
     try:
-        return _eval_options(opts, t, question, win, lose, used, slot_self)
+        res = _eval_options(opts, t, question, win, lose, used, slot_self)
     except _ExactOverflow:
         _exact_disable("状态数超过上限")
         return None
+    _exact_cache_maybe_save()
+    return res
 
 
 # --------------------------------------------------------------------------
