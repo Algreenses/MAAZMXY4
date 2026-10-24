@@ -489,3 +489,4 @@ interface.json.bak*
 # 读题序相关：只保留在本地自用版，绝不入库
 /agent/adventure_order.py
 /assets/data/adventure_order_ids.json
+/agent/adventure_local_hook.py

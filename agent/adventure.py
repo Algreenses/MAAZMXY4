@@ -36,6 +36,13 @@ if _HERE not in sys.path:
 
 import adventure_logic as logic  # noqa: E402
 
+# 通用本地扩展点：仓库版与自用版内容完全一致，靠「有没有这个模块」决定行为。
+# 发布包里没有 adventure_local_hook.py，此处自动为 None，行为与发布版相同。
+try:
+    import adventure_local_hook as _hook  # type: ignore
+except Exception:                             # noqa: BLE001
+    _hook = None
+
 from maa.agent.agent_server import AgentServer  # noqa: E402
 from maa.context import Context  # noqa: E402
 from maa.custom_action import CustomAction  # noqa: E402
@@ -48,7 +55,7 @@ LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
 # 改动 agent 代码后改这个值，日志里就能确认「agent 到底加载了哪一版」
-AGENT_VERSION = "2026-10-19-seq"
+AGENT_VERSION = "2026-10-25-hook"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
@@ -94,9 +101,6 @@ class _State:
     char_checked: bool = False
     # 本局建精确归纳表用了多久（用于把「拉表工作量」量化到日志里）
     table_cost: float = 0.0
-    # 本局 10 题的完整题序（事件名列表）。本版不预知题序，恒为空列表；
-    # 字段保留是为了让决策函数有统一入口（有题序时走 logic.seq_plan 前向规划）。
-    # 本局按顺序确认过的题干（只追加，不重复），供结算时复盘。
     # 本局每题得分 {题号(0 基): 分数}。用字典而不是累加一个整数，是为了
     # 「同一题被重复点击」时不会重复计分（实测重复决策很常见，最多一次多 5 次）。
     score_by_q: Dict[int, int] = {}
@@ -104,13 +108,6 @@ class _State:
     finished: bool = False
     # 本局是否已经因为「识别到冒险成功/失败」请求过停止任务（只请求一次）
     stopped: bool = False
-    # 本局按顺序答过的事件名（每题只记一次）。本局结束时用它反推
-    # 「上帝模式得分」——把 10 道题提前全告诉你，最好能拿多少分。
-    answered: List[str] = []
-    # 开局锁下来的初始六维，上帝模式从这个起点开始推。
-    initial_attrs: Dict[str, int] = {}
-    # 上帝模式那行日志只打一次
-    god_logged: bool = False
 
     def total_score(self) -> int:
         return sum(self.score_by_q.values())
@@ -137,6 +134,13 @@ def _log(msg: str) -> None:
             f.write(line + "\n")
     except Exception:
         pass
+
+
+if _hook is not None:
+    try:
+        _hook.configure(_log)
+    except Exception:                         # noqa: BLE001
+        _hook = None
 
 
 def _plan_label(decision) -> str:
@@ -746,7 +750,7 @@ def _log_result(context: Context, question: str, mark: str) -> None:
                     god_line = (f"上帝视角　最优 {god:.0f} 分｜本局 {mine2} 分"
                                 f"｜差距 {mine2 - god:+.0f} 分")
                 else:
-                    god_line = "上帝视角　本局记录不完整，无法对比"
+                    god_line = "上帝视角　本局题序不完整，无法对比"
         except Exception as exc:                   # noqa: BLE001
             god_line = f"上帝视角　计算失败（{type(exc).__name__}: {exc}）"
         if god_line:
@@ -784,6 +788,11 @@ class AdventureInit(CustomAction):
         # 新的一局：题号归零、局内状态清空（归纳表**不动**，见下）
         STATE.question = 0
         STATE.stage_seen = {}
+        if _hook is not None:
+            try:
+                _hook.reset()
+            except Exception:                 # noqa: BLE001
+                pass
         STATE.strategy_logged = False
         STATE.character = ""
         STATE.char_checked = False
@@ -791,13 +800,9 @@ class AdventureInit(CustomAction):
         STATE.score_by_q = {}
         STATE.finished = False
         STATE.stopped = False
-        STATE.answered = []
-        STATE.initial_attrs = {}
-        STATE.god_logged = False
         # 版本标记：用来确认 agent 加载的是改过的代码（改完文件不重启 agent
         # 会一直跑旧模块，日志里看不出区别，全靠这一行区分）
         _log(f"agent 代码版本：{AGENT_VERSION}")
-        # 本版不预知题序：开局不做任何猜测，全部决策按阶段期望推进。
         # 归纳表现在整表常驻（不再按局清空）：每个角色只付一次建表钱，
         # 整表还会落盘到 debug/exact_cache 供跨进程复用（第二次起 0.8 秒载入）；
         # 默认开启「阶段内不放回」，所以单角色 75~163 万状态、首次建表 74~80 秒。
@@ -911,12 +916,15 @@ class AdventureRead(CustomRecognition):
             # 初值对了，归纳表才只展开这一局真正会走到的状态，不做无用功。
             attrs = _opening_attrs(context, image, attrs, derived)
             STATE.attrs = dict(attrs)
-            # 第 1 题的六维就是本局初始值，上帝模式要拿它当起点
-            if derived == 0 and not STATE.initial_attrs:
-                STATE.initial_attrs = dict(attrs)
-            # 记下这局按顺序答过的题（重复点击同一题只记一次）
-            if not STATE.answered or STATE.answered[-1] != event:
-                STATE.answered.append(event)
+            # 交给本地扩展钩子（如有）：由它决定是否提供一份「后续题目预知」，
+            # 并自行承担校验责任。没有钩子就是空列表，走按阶段策略。
+            seq: List[str] = []
+            if event and _hook is not None:
+                try:
+                    seq = _hook.observe(event, derived) or []
+                except Exception as exc:          # noqa: BLE001
+                    _log(f"本地扩展模块出错（{exc}），按阶段策略走")
+                    seq = []
             # 传入题号，走精确后向归纳（按阶段 + 阶段内不放回）。
             # 归纳表按角色常驻：接入不放回后单角色就要 85~149 万状态，
             # 7 个角色装不下，所以换角色时才清表（同一角色连续多局复用）。
@@ -929,6 +937,7 @@ class AdventureRead(CustomRecognition):
                 attrs,
                 question=derived,
                 answered=STATE.stage_seen,
+                seq=seq or None,
             )
             _cost = time.time() - _t0
             STATE.table_cost = _cost
@@ -975,6 +984,13 @@ class AdventureRead(CustomRecognition):
                 f"{k}{v:+d}" for k, v in (decision.gains or {}).items()
                 if isinstance(v, int) and v
             )
+            # 本地扩展钩子（如有）提供的额外一行，贴到面板上
+            _order = ""
+            if _hook is not None:
+                try:
+                    _order = _hook.panel_text(derived)
+                except Exception:             # noqa: BLE001
+                    _order = ""
             _panel(
                 f"**第 {derived + 1} 题** {event} → 第 {decision.index + 1} 项"
                 f"「{decision.text}」\n\n"
@@ -982,6 +998,7 @@ class AdventureRead(CustomRecognition):
                 f"　+{gained} 分　累计 {total} 分\n\n"
                 f"六维　{'　'.join(f'{k} {v}' for k, v in STATE.attrs.items())}"
                 + (f"　（本题 {_delta}）" if _delta else "")
+                + _order
             )
             index = decision.index
         else:
