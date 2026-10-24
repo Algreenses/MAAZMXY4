@@ -486,7 +486,7 @@ interface.json.bak*
 # 用户录制的战斗脚本（体积大、跟具体机器相关，不入库）
 /recordings/
 
-# 读题序相关：只保留在本地自用版，绝不入库
+# 本地私有扩展（只存在于自用目录，不入库）
 /agent/adventure_order.py
 /assets/data/adventure_order_ids.json
 /agent/adventure_local_hook.py

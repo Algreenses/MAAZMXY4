@@ -941,9 +941,8 @@ def exact_choice(
 # --------------------------------------------------------------------------
 # 已知题序的精确规划
 #
-# 服务器会把本局 10 题的顺序一起下发，客户端内存里的 survivalInfo.question 就是
-# 它。知道后面每道题是什么之后，就不用再按「池子里
-# 按阶段均匀抽」算期望，而是沿着这份确定的题序做后向归纳：
+# 如果能提前拿到本局 10 题的确切顺序（例如调用方自行提供，或离线仿真里已知），
+# 就不用再按「池子里按阶段均匀抽」算期望，而是沿着这份确定的题序做后向归纳：
 #
 #     V(q, attrs) = max_o [ 本题得分(o) + V(q+1, attrs + Δo) ]
 #
@@ -1043,8 +1042,8 @@ def seq_plan(
         return None
     if not (0 <= cur_q < min(len(names), len(_exact_qstage))):
         return None
-    # 题序必须与当前正在答的事件对得上：读到上一局残留的 survivalInfo 时
-    # （内存不会立刻刷新）第 cur_q 题就是别的题目，照着它规划会给错价值。
+    # 题序必须与当前正在答的事件对得上：如果这份题序其实是上一轮遗留的
+    # （提供方未及时刷新），第 cur_q 题就会是别的题目，照着它规划会给错价值。
     if event_name and names[cur_q] != event_name:
         return None
     if not _exact_event_opts.get(names[cur_q]):
