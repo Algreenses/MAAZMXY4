@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "platform": "win-x64",
+  "python": {
+    "version": "3.12.13",
+    "build": "20260510",
+    "filename": "cpython-3.12.13-windows-x64.tar.gz",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.12.13%2B20260510-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+    "sha256": "24168aff2e7d93784c6a436124c4ebb79b076a4e289bde4902c08333507b71d0"
+  },
+  "client": {
+    "version": "2.16.2",
+    "framework_version": "5.12.3",
+    "executable": "MFAAvalonia.exe",
+    "filename": "MFAAvalonia-v2.16.2-win-x64.zip",
+    "url": "https://github.com/MaaXYZ/MFAAvalonia/releases/download/v2.16.2/MFAAvalonia-v2.16.2-win-x64.zip",
+    "sha256": "5f048914d4e85dc0f7c0c76582dc123b7eeec688149260e107747a0c04003934"
+  },
+  "requirements": "requirements-runtime.lock",
+  "packages": {
+    "MaaFw": "5.12.3",
+    "MaaAgentBinary": "1.0.1",
+    "numpy": "2.2.6",
+    "StrEnum": "0.4.15",
+    "pynput": "1.8.1",
+    "six": "1.17.0"
+  },
+  "system": {
+    "dotnet_desktop_major": 10
+  }
+}

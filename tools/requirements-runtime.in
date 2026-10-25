@@ -1,0 +1,15 @@
+# Runtime dependency inputs for Windows x64, CPython 3.12.
+# Updated 2026-10-25 using the official PyPI release metadata.
+# MaaFw must match the 5.12.3 native libraries shipped with MFAAvalonia v2.16.2.
+# Explicit transitive pins keep the MaaFw/pynput dependency closure reproducible.
+# Update this file and requirements-runtime.lock together. For every version,
+# check https://pypi.org/pypi/<name>/<version>/json, its Requires-Dist markers,
+# and the compatible wheel's SHA-256; do not add source-distribution hashes.
+--index-url https://pypi.org/simple
+
+MaaFw==5.12.3
+MaaAgentBinary==1.0.1
+numpy==2.2.6
+StrEnum==0.4.15
+pynput==1.8.1
+six==1.17.0

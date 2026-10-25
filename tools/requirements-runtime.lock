@@ -1,0 +1,37 @@
+# Runtime lock for Windows x64, CPython 3.12 only.
+# Updated 2026-10-25 from requirements-runtime.in and official PyPI metadata:
+# https://pypi.org/pypi/<name>/<version>/json
+# Each SHA-256 selects exactly one compatible published wheel.
+# This is the complete Windows dependency closure of MaaFw and pynput.
+# MaaFw 5.12.3 matches MFAAvalonia v2.16.2's native MaaFramework libraries.
+# Update versions in requirements-runtime.in, review Requires-Dist for Windows
+# CPython 3.12, then replace each wheel filename and SHA-256 here together.
+# Install from the repository root with the target environment's interpreter:
+# python -m pip install --require-hashes --only-binary=:all: --no-deps -r tools/requirements-runtime.lock
+--index-url https://pypi.org/simple
+--require-hashes
+--only-binary=:all:
+
+# maafw-5.12.3-py3-none-win_amd64.whl
+MaaFw==5.12.3 \
+    --hash=sha256:91d24bcac59fe39392fc8c56ffa50e5d8c88130da8f10c9b8d003521f592854c
+
+# MaaAgentBinary-1.0.1-py3-none-any.whl
+MaaAgentBinary==1.0.1 \
+    --hash=sha256:d97bcc9f35b52add199b287932511ecfcddcb83930c6b532d1c7010b432ec8bf
+
+# numpy-2.2.6-cp312-cp312-win_amd64.whl
+numpy==2.2.6 \
+    --hash=sha256:c1f9540be57940698ed329904db803cf7a402f3fc200bfe599334c9bd84a40b2
+
+# StrEnum-0.4.15-py3-none-any.whl
+StrEnum==0.4.15 \
+    --hash=sha256:a30cda4af7cc6b5bf52c8055bc4bf4b2b6b14a93b574626da33df53cf7740659
+
+# pynput-1.8.1-py2.py3-none-any.whl
+pynput==1.8.1 \
+    --hash=sha256:42dfcf27404459ca16ca889c8fb8ffe42a9fe54f722fd1a3e130728e59e768d2
+
+# six-1.17.0-py2.py3-none-any.whl
+six==1.17.0 \
+    --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274

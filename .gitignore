@@ -490,3 +490,8 @@ interface.json.bak*
 /agent/adventure_order.py
 /assets/data/adventure_order_ids.json
 /agent/adventure_local_hook.py
+
+# Reproducible local runtime downloads, staging, backups and installed state
+/.runtime-cache/
+/.runtime-state.json
+/MaaAgentBinary/

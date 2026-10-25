@@ -112,18 +112,54 @@ MAA造梦西游4/
 
 ## 使用（源码版）
 
-需要自己准备运行环境：
+在 Windows x64 上安装 Python 3.12 或更新版本用于引导，然后在仓库根目录执行：
 
-1. 安装 [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) 客户端。
-2. 把本仓库的 `interface.json`、`agent/`、`resource/base/` 放进客户端目录。
-3. Python Agent 需要 3.12 与 `maa`、`numpy`、`pywin32`、`pynput`、`Pillow`
-   （发布包里已自带 `runtimes/python`，可直接复用）。
-4. 用客户端的「加载项目」指向本仓库根目录。
+```powershell
+py -3.12 tools/setup_runtime.py
+```
+
+脚本下载固定版本的官方客户端、独立 Python 和完整依赖，校验 SHA256，
+先在暂存目录验证 Agent 与资源，再生成根目录的运行布局。
+不会向系统 Python 安装包，也不要求安装 uv 或 7-Zip。
+
+| 组件 | 固定版本 |
+| --- | --- |
+| MFAAvalonia | 2.16.2（官方 Windows x64 ZIP） |
+| 独立 CPython | 3.12.13，python-build-standalone 20260510，包含 Tk/Tcl |
+| MaaFw / 原生 MaaFramework | 5.12.3 / 5.12.3 |
+| MaaAgentBinary / numpy | 1.0.1 / 2.2.6 |
+| StrEnum / pynput / six | 0.4.15 / 1.8.1 / 1.17.0 |
+
+来源、版本和归档散列见 `tools/runtime.lock.json`；全部 Python wheel 的版本与散列
+见 `tools/requirements-runtime.lock`。桌面客户端另需 .NET 10 Desktop Runtime 和
+VC++ x64 运行库，安装脚本会检查现有组件；缺少时按下方运行库说明安装后重试。
+
+完成后双击根目录 `MFAAvalonia.exe`，或执行 `./Start-MAA.ps1`。
+客户端会读取根目录 `interface.json` 与 `resource/base/`；
+规范源码是 `assets/interface.json` 与 `assets/resource/base/`，题库保留在 `assets/data/`。
+
+```powershell
+# 完整自检：依赖、Tcl、原生库、OCR/模板/Pipeline、Agent IPC 启停；不操作游戏
+py -3.12 tools/setup_runtime.py --check
+
+# 关闭客户端后重建，之前的运行时移到 .runtime-cache/backups/，不删除录制和配置
+py -3.12 tools/setup_runtime.py --rebuild
+
+# 首次联网安装后，可用缓存中的归档和 wheel 离线重建
+py -3.12 tools/setup_runtime.py --rebuild --offline
+
+# 修改 assets 后同步运行资源；覆盖前备份 interface/resources
+py -3.12 tools/setup_runtime.py --sync-resources
+```
+
+普通重复执行会保留已有运行版 interface（包括录制文件下拉）和资源。
+`--sync-resources` 会用规范配置覆盖它们，录制文件本身仍保留在 `recordings/`。
+运行时、下载缓存和备份不入 Git；请使用外部 Python 执行重建，避免替换正在运行的解释器。
 
 改完 Pipeline 后记得校验：
 
 ```bash
-python tools/check_adventure.py     # 生存大冒险题库与事件自检
+runtimes\python\python.exe tools/check_adventure.py     # 生存大冒险题库与事件自检
 ```
 
 ## 常见问题
