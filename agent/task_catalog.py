@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
+import re
 
 from script_library import read_binding_records, resolve_recording_reference
 from script_studio.model import RecordingDocument, MAX_FILE_BYTES
@@ -79,6 +80,27 @@ def _configuration(root):
     return interface, nodes
 
 
+def node_links(nodes, node):
+    """Resolve declared link targets for both discovery and resource installation."""
+    for field in ('next', 'on_error'):
+        links = node.get(field, [])
+        if isinstance(links, (str, dict)): links = [links]
+        for link in links:
+            target = link.get('name') if isinstance(link, dict) else link
+            if not isinstance(target, str): raise ValueError('Pipeline后续节点格式无效。')
+            anchor = isinstance(link, dict) and link.get('anchor', False) or '[Anchor]' in target
+            target = re.sub(r'^(?:\[[^\]]+\])+', '', target)
+            if anchor:
+                for node_name, definition in nodes.items():
+                    anchors = definition.get('anchor', {})
+                    if isinstance(anchors, str): anchors = [anchors]
+                    if target in anchors:
+                        resolved = anchors[target] if isinstance(anchors, dict) else node_name
+                        if resolved: yield resolved
+            else:
+                yield target
+
+
 def _playback_nodes(nodes, entry):
     pending, visited, matches = [entry], set(), []
     while pending:
@@ -88,10 +110,7 @@ def _playback_nodes(nodes, entry):
         node = nodes[name]
         if _action_parameters(node).get('custom_action') == 'battle_play':
             matches.append(name)
-        for field in ('next', 'on_error'):
-            links = node.get(field, [])
-            if isinstance(links, str): links = [links]
-            pending.extend(link for link in links if isinstance(link, str))
+        pending.extend(node_links(nodes, node))
     return sorted(matches)
 
 
@@ -100,26 +119,37 @@ def _action_parameters(node):
     return action.get('param', {}) if isinstance(action, dict) else node
 
 
-def task_catalog(root, bindings=None):
+def custom_parameters(node):
+    """Normalize the object and legacy string forms accepted by battle_play."""
+    value = _action_parameters(node).get('custom_action_param', {})
+    if isinstance(value, str):
+        try: parsed = json.loads(value)
+        except ValueError: parsed = None
+        return parsed if isinstance(parsed, dict) else {'file': value}
+    return value if isinstance(value, dict) else {}
+
+
+def task_catalog(root, bindings=None, *, overrides=None):
     root = Path(root).resolve()
     interface, nodes = _configuration(root)
     definitions = list(interface.get('task', []))
     for source in sorted((root / 'config/instances').glob('*.json')):
         definitions += read_document(source).get('TaskItems', [])
     if bindings is None: bindings = read_binding_records(root / 'recordings')
-    tasks, seen = [], set()
+    tasks, seen = [], {}
     for definition in definitions:
         if not isinstance(definition, dict): continue
         name, entry = definition.get('name'), definition.get('entry')
-        if not isinstance(name, str) or not isinstance(entry, str) or (name, entry) in seen: continue
-        seen.add((name, entry))
+        if not isinstance(name, str) or not isinstance(entry, str): continue
+        if (name, entry) in seen and overrides is not None: continue
         graph = merge(nodes, definition.get('pipeline_override', {}) or {})
-        parameters = _action_parameters(graph.get(entry, {})).get('custom_action_param', {})
+        if overrides is not None: graph = merge(graph, overrides)
+        parameters = custom_parameters(graph.get(entry, {}))
         profile = None
         if isinstance(parameters, dict) and isinstance(parameters.get('execution'), dict):
             spec = parameters['execution']
             resume = spec.get('resume_entry')
-            resume_parameters = _action_parameters(graph.get(resume, {})).get('custom_action_param', {})
+            resume_parameters = custom_parameters(graph.get(resume, {}))
             profile = dict(entry=entry, resume_entry=resume, parameters=deepcopy(parameters),
                            resume_parameters=deepcopy(resume_parameters))
         ident = parameters.get('execution', {}).get('binding_id') if profile else None
@@ -127,11 +157,20 @@ def task_catalog(root, bindings=None):
         playback = _playback_nodes(graph, entry)
         modes = ['pipeline', 'replace'] if playback else ['replace']
         binding = bindings.get(ident)
-        tasks.append(dict(id=ident, name=name, label=definition.get('label') or name,
+        item = dict(id=ident, name=name, label=definition.get('label') or name,
                           entry=entry, playback_nodes=playback, modes=modes,
-                          playback_parameters={node: deepcopy(_action_parameters(graph[node]).get('custom_action_param', {})) for node in playback},
-                          playback_routes={node: deepcopy(_action_parameters(graph[node]).get('custom_action_param', {}).get('script_binding', {})) for node in playback},
-                          binding=deepcopy(binding), profile=profile))
+                          playback_parameters={node: deepcopy(custom_parameters(graph[node])) for node in playback},
+                          playback_routes={node: deepcopy(custom_parameters(graph[node]).get('script_binding', {})) for node in playback},
+                          binding=deepcopy(binding), profile=profile)
+        if (name, entry) in seen:
+            # Library capabilities cover saved variants. Execution below always
+            # uses the overrides supplied by the running instance, never another one.
+            previous = seen[name, entry]
+            previous['playback_nodes'] = sorted(set(previous['playback_nodes']) | set(playback))
+            if playback: previous['modes'] = ['pipeline', 'replace']
+        else:
+            tasks.append(item)
+            seen[name, entry] = item
     return tasks
 
 
@@ -148,11 +187,14 @@ def inspect_saved_recording(root, reference):
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 
-def execution_plan(root, name, entry):
-    task = next((item for item in task_catalog(root) if item['name'] == name and item['entry'] == entry), None)
+def execution_plan(root, name, entry, overrides=None):
+    if overrides is not None and not isinstance(overrides, dict): raise ValueError('任务覆盖参数必须是对象。')
+    task = next((item for item in task_catalog(root, overrides=overrides or {}) if item['name'] == name and item['entry'] == entry), None)
     if task is None: return dict(handled=False)
     binding = task['binding']
-    if not binding and (task['playback_nodes'] or task['profile']):
+    requires_binding = any(str(parameters.get('file', '')).startswith('@task:')
+                           for parameters in task['playback_parameters'].values())
+    if not binding and (requires_binding or task['profile']):
         raise ValueError('请先在脚本库中为“' + str(task['label']) + '”绑定脚本。')
     if binding:
         if binding['mode'] not in task['modes']: raise ValueError('任务已没有脚本回放节点，请重新选择绑定方式。')

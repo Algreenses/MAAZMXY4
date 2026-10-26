@@ -151,7 +151,8 @@ public sealed partial class ScriptStudioView
         var result = await _vm.Client.CallAsync("list");
         _files = result["items"]!.AsArray(); _availableTasks = result["tasks"]?.AsArray() ?? new JsonArray();
         _bindingRevision = result["binding_revision"]?.GetValue<string>();
-        if (result["binding_errors"]?["catalog"] is JsonNode error) _status.Text = error.GetValue<string>();
+        if (result["binding_errors"] is JsonObject errors && errors.Count > 0)
+            _status.Text = string.Join("；", errors.Select(error => error.Value?.GetValue<string>()).Where(error => !string.IsNullOrEmpty(error)).Distinct());
         else if (MaaProcessor.Processors.Any(p => p.IsTaskRunActive)) _status.Text = RunningHint;
         FilterLibrary();
     }

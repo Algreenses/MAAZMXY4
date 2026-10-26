@@ -18,7 +18,7 @@ class TaskCatalogTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.write('interface.json', dict(task=[dict(name='挑战甲',entry='A'),dict(name='挑战乙',entry='B')],resource=[dict(path=['resource/base'])]))
         self.write('resource/base/pipeline/task.json', {
-            'A':dict(next=['Fight']), 'Fight':dict(action=dict(type='Custom',param=dict(custom_action='battle_play'))),
+            'A':dict(next=['Fight']), 'Fight':dict(action=dict(type='Custom',param=dict(custom_action='battle_play', custom_action_param=dict(file='@task:'+task_key('挑战甲','A'))))),
             'B':dict(action='Click')})
         self.write('recordings/test.json',dict(version=1,name='测试',base=[1148,720],duration_ms=200,
                     actions=[dict(t=0,op='keydown',key=65),dict(t=200,op='keyup',key=65)]))

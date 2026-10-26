@@ -26,6 +26,9 @@
     "frontend/patches/11-script-studio-icons.json",
     "frontend/patches/12-option-default-array.json",
     "frontend/patches/13-option-default-string.json",
-    "frontend/patches/14-shared-recording-windows.json"
+    "frontend/patches/14-shared-recording-windows.json",
+    "frontend/patches/15-manual-frontend-version-check.json",
+    "frontend/patches/16-manual-frontend-download.json",
+    "frontend/patches/17-manual-frontend-help.json"
   ]
 }

@@ -3,12 +3,13 @@ from copy import deepcopy
 import importlib.util
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location('task_asset_sync', ROOT / 'tools/sync_task_assets.py')
+spec = importlib.util.spec_from_file_location('task_asset_sync', ROOT / 'agent/task_asset_sync.py')
 sync = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sync)
 
@@ -19,6 +20,67 @@ OLD_ENTRY = 'OldEntry'
 PIPELINE_FILE = 'test.json'
 
 class TaskAssetSyncTests(unittest.TestCase):
+    def test_installed_client_layout_can_migrate_an_old_install_without_assets(self):
+        self.prepare_legacy_recording()
+        shutil.copytree(self.source/'assets/resource',self.source/'resource')
+        self.write(self.source/'interface.json',self.read(self.source/'assets/interface.json'))
+        (self.source/'assets/interface.json').unlink()
+        result=sync.sync_task_assets(self.source,self.target,dry_run=False)
+        self.assertEqual(len(result['migrated_bindings']),1)
+        self.assertEqual(self.read(self.target/'config/instances/default.json')['TaskItems'][-1]['repeat_count'],999)
+
+    def test_complete_manual_upgrade_updates_version_without_replacing_controller_settings(self):
+        source=self.read(self.source/'assets/interface.json')
+        source['version']='2.2.1'
+        self.write(self.source/'assets/interface.json',source)
+        sync.sync_task_assets(self.source,self.target,dry_run=False,update_version=True)
+        installed=self.read(self.target/'interface.json')
+        self.assertEqual(installed['version'],'2.2.1')
+        self.assertEqual(installed['controller'],self.before_interface['controller'])
+
+    def test_attributed_cross_file_links_install_their_dependencies(self):
+        for link in ['[JumpBack]External',dict(name='External',jump_back=True)]:
+            with self.subTest(link=link):
+                self.write(self.source/('assets/resource/base/pipeline/'+PIPELINE_FILE), {ENTRY:dict(next=[link])})
+                self.write(self.source/'assets/resource/base/pipeline/external.json', {'External':dict(action=dict(type='DoNothing'))})
+                sync.sync_task_assets(self.source,self.target,dry_run=False)
+                self.assertTrue((self.target/'resource/base/pipeline/external.json').is_file())
+
+    def prepare_legacy_recording(self):
+        self.before_interface['option']['回放文件'] = dict(cases=[dict(name='manual'),
+            dict(name='mine', pipeline_override={'OldFight': {'action': {'param': {'custom_action_param': {'file': '战斗.json'}}}}})])
+        self.write(self.target/'interface.json',self.before_interface)
+        self.write(self.target/'resource/base/pipeline/old.json', {
+            OLD_ENTRY: dict(next=['OldFight']), 'OldFight': dict(action=dict(type='Custom',param=dict(custom_action='battle_play')))})
+        self.write(self.source/('assets/resource/base/pipeline/'+PIPELINE_FILE), {
+            ENTRY:dict(next=['Fight']), 'Fight':dict(action=dict(type='Custom',param=dict(custom_action='battle_play')))})
+        self.write(self.target/'recordings/战斗.json',dict(version=1,name='战斗',base=[1148,720],duration_ms=100,
+            actions=[dict(t=0,op='keydown',key=65),dict(t=100,op='keyup',key=65)]))
+
+    def test_legacy_script_selection_is_included_in_same_backup_transaction(self):
+        self.prepare_legacy_recording()
+        original = (self.target/'recordings/战斗.json').read_bytes()
+        result = sync.sync_task_assets(self.source,self.target,dry_run=False)
+        self.assertEqual(len(result['migrated_bindings']),1)
+        bindings=self.read(self.target/'recordings/.bindings.json')['tasks']
+        self.assertEqual(next(iter(bindings.values())),dict(file='战斗.json',mode='pipeline'))
+        self.assertEqual((self.target/'recordings/战斗.json').read_bytes(),original)
+        instance=self.read(self.target/'config/instances/default.json')['TaskItems'][-1]
+        self.assertEqual(instance['repeat_count'],999)
+        self.assertTrue(instance['default_check'])
+
+    def test_failed_binding_migration_rolls_back_task_and_instance_changes(self):
+        self.prepare_legacy_recording()
+        before=self.snapshot()
+        original=sync._publish
+        def fail_binding(path,raw,expected):
+            if path.name=='.bindings.json': raise OSError('simulated binding write failure')
+            return original(path,raw,expected)
+        with patch.object(sync,'_publish',side_effect=fail_binding), self.assertRaises(OSError):
+            sync.sync_task_assets(self.source,self.target,dry_run=False)
+        after={key:value for key,value in self.snapshot().items() if not key.startswith('backup/')}
+        self.assertEqual(after,before)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
@@ -81,7 +143,7 @@ class TaskAssetSyncTests(unittest.TestCase):
     def test_full_upgrade_retires_only_exact_owned_entries_and_unreferenced_options(self):
         retired = dict(name='录制入口', entry='RetiredEntry')
         custom = dict(name='录制入口', entry='CustomEntry', option=['保留来源'])
-        self.write(self.source/'assets/task-migrations.json', dict(version=1, retired_tasks=[retired],
+        self.write(self.source/'agent/task-migrations.json', dict(version=1, retired_tasks=[retired],
                    retired_options=['旧来源', '保留来源']))
         before = self.read(self.target/'interface.json')
         before['task'] += [retired, custom]
@@ -105,7 +167,7 @@ class TaskAssetSyncTests(unittest.TestCase):
 
     def test_selected_task_upgrade_does_not_retire_other_tasks(self):
         retired = dict(name='录制入口', entry='RetiredEntry')
-        self.write(self.source/'assets/task-migrations.json', dict(version=1, retired_tasks=[retired]))
+        self.write(self.source/'agent/task-migrations.json', dict(version=1, retired_tasks=[retired]))
         before = self.read(self.target/'interface.json')
         before['task'].append(retired)
         self.write(self.target/'interface.json', before)
@@ -114,13 +176,13 @@ class TaskAssetSyncTests(unittest.TestCase):
 
     def test_default_bundle_installs_without_overwriting_user_library(self):
         raw = b'{"version":1,"name":"default"}'
-        self.bytes(self.source/'assets/recordings/default.json', raw)
-        self.write(self.source/'assets/recordings/manifest.json', dict(version=1, items=[
+        self.bytes(self.source/'agent/recordings/default.json', raw)
+        self.write(self.source/'agent/recordings/manifest.json', dict(version=1, items=[
             dict(file='default.json', sha256=sync._sha(raw))]))
         self.bytes(self.target/'recordings/default.json', b'user edits')
         sync.sync_task_assets(self.source, self.target, dry_run=False)
         self.assertEqual((self.target/'recordings/default.json').read_bytes(), b'user edits')
-        self.assertEqual((self.target/'assets/recordings/default.json').read_bytes(), raw)
+        self.assertEqual((self.target/'agent/recordings/default.json').read_bytes(), raw)
         self.assertFalse(sync.sync_task_assets(self.source, self.target)['changes'])
 
     def test_select_second_task_and_install_its_cross_file_dependencies(self):

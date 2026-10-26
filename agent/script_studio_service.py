@@ -68,7 +68,8 @@ class StudioService:
     def __init__(self, root, capture_factory=None):
         self.root = Path(root).resolve()
         self.directory = self.root / "recordings"
-        ensure_default_recordings(self.root)
+        self.initialization_error = None
+        self.initialize_library()
         self.document = None
         self.file = None
         self.revision = None
@@ -83,6 +84,15 @@ class StudioService:
         self.capture_factory = capture_factory
         self.capture_finished = False
         self._closed = False
+
+    def initialize_library(self):
+        try:
+            ensure_default_recordings(self.root)
+            self.initialization_error = None
+        except (OSError, ValueError) as error:
+            # A damaged default registry or a busy library must not kill the
+            # JSONL worker and prevent unrelated native tasks from executing.
+            self.initialization_error = str(error)
 
     def path(self, name):
         return library_recording_path(self.directory, name)
@@ -181,7 +191,12 @@ class StudioService:
 
     def list(self):
         items = []
-        defaults = default_recordings(self.directory)
+        if self.initialization_error: self.initialize_library()
+        library_errors = {'defaults': self.initialization_error} if self.initialization_error else {}
+        try: defaults = default_recordings(self.directory)
+        except (OSError, ValueError) as error:
+            defaults = {}
+            library_errors['defaults'] = str(error)
         if self.directory.exists():
             for path in sorted(self.directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
                 if path.name.startswith("."):
@@ -223,6 +238,7 @@ class StudioService:
                                     for task in tasks if (task.get('binding') or {}).get('file') == item['file']]
         except (OSError, ValueError) as error:
             binding_errors = {'catalog': str(error)}
+        binding_errors.update(library_errors)
         return dict(items=items, selected_file=selected, root=str(self.directory),
                     task_bindings=bindings, binding_errors=binding_errors, tasks=tasks, binding_revision=binding_revision)
 
@@ -233,7 +249,7 @@ class StudioService:
         if method == "list":
             return self.list()
         if method == 'execution_plan':
-            return execution_plan(self.root, params.get('name'), params.get('entry'))
+            return execution_plan(self.root, params.get('name'), params.get('entry'), params.get('overrides'))
         if method == 'unbind_task':
             self.require_idle()
             return unbind_task_recording(self.directory, params.get('task_id'), expected_file=params.get('expected_file'))

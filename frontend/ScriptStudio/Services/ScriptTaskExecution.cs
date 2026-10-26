@@ -18,7 +18,11 @@ public static class ScriptTaskExecution
         try
         {
             using var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
-            var plan = (await library.CallAsync("execution_plan", new JsonObject { ["name"] = name, ["entry"] = entry }, token)).AsObject();
+            var plan = (await library.CallAsync("execution_plan", new JsonObject
+            {
+                ["name"] = name, ["entry"] = entry,
+                ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides)
+            }, token)).AsObject();
             token.ThrowIfCancellationRequested();
             if (plan["handled"]?.GetValue<bool>() != true) return await execute(entry, overrides, token);
             stopOnFailure();

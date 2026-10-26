@@ -21,7 +21,7 @@ class RecordingStoreTests(unittest.TestCase):
         self.value = dict(version=1, name='默认战斗', builtin_id='default-1', base=[1148,720], duration_ms=200,
                           actions=[dict(t=0,op='keydown',key=65),dict(t=200,op='keyup',key=65)])
         self.raw = json.dumps(self.value,ensure_ascii=False).encode('utf8')
-        bundle = self.root / 'assets/recordings'
+        bundle = self.root / 'agent/recordings'
         bundle.mkdir(parents=True)
         (bundle / '默认战斗.json').write_bytes(self.raw)
         (bundle / 'manifest.json').write_text(json.dumps(dict(version=1, items=[dict(id='default-1',file='默认战斗.json',
@@ -113,17 +113,17 @@ class RecordingStoreTests(unittest.TestCase):
 
     def test_real_bundled_recordings_all_load_without_old_project(self):
         actual=Path(__file__).resolve().parents[1]
-        manifest=json.loads((actual/'assets/recordings/manifest.json').read_text(encoding='utf8'))
+        manifest=json.loads((actual/'agent/recordings/manifest.json').read_text(encoding='utf8'))
         self.assertEqual(len(manifest['items']),8)
         for item in manifest['items']:
-            path=actual/'assets/recordings'/item['file']
+            path=actual/'agent/recordings'/item['file']
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),item['sha256'])
             value=json.loads(path.read_text(encoding='utf8'))
             self.assertNotIn('source_macro',value.get('editor',{}))
             store.RecordingDocument.from_dict(value).to_dict(strict=True)
 
     def test_default_task_binding_is_seeded_once_and_never_replaces_user_binding(self):
-        manifest=self.root/'assets/recordings/manifest.json'
+        manifest=self.root/'agent/recordings/manifest.json'
         value=json.loads(manifest.read_text(encoding='utf8'))
         value['initial_bindings']=[dict(task_id='task-one',default_id='default-1',mode='pipeline')]
         manifest.write_text(json.dumps(value),encoding='utf8')

@@ -1,0 +1,6 @@
+{
+  "description": "Keep the customized frontend on the project manual-download channel instead of offering an incompatible generic UI release.",
+  "path": "MFAAvalonia/Helper/VersionChecker.cs",
+  "find": "    public static async Task CheckForMFAUpdatesAsync(bool isGithub = true)\n    {\n        try",
+  "replace": "    public static async Task CheckForMFAUpdatesAsync(bool isGithub = true)\n    {\n        if (!MFAAvalonia.Services.FrontendUpdatePolicy.OnlineFrontendUpdateEnabled)\n        {\n            ToastHelper.Info(\"项目客户端升级\", MFAAvalonia.Services.FrontendUpdatePolicy.ManualUpdateMessage);\n            return;\n        }\n        try"
+}

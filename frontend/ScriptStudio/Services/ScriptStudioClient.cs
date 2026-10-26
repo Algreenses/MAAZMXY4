@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ public sealed class ScriptStudioClient : IDisposable
     private Process? _process;
     private string _lastError = "";
     private long _sequence;
-    private bool _disconnected;
+    private volatile bool _disconnected;
     private readonly bool _releaseCaptureOnDisconnect;
     public string ProjectRoot { get; }
     public bool IsDisconnected => _disconnected;
@@ -61,7 +62,7 @@ public sealed class ScriptStudioClient : IDisposable
     {
         if (_disconnected) throw new IOException("脚本工具连接已中断。请重新打开前端，未保存内容会作为恢复草稿出现在脚本库。");
         if (_process is { HasExited: false }) return;
-        _process?.Dispose();
+        if (_process != null) throw new IOException("脚本工具进程已退出，请重新打开前端并检查恢复草稿。");
         var python = Path.Combine(ProjectRoot, "runtimes", "python", "python.exe");
         var service = Path.Combine(ProjectRoot, "agent", "script_studio_service.py");
         if (!File.Exists(python) || !File.Exists(service))
@@ -77,7 +78,7 @@ public sealed class ScriptStudioClient : IDisposable
             info.ArgumentList.Add(argument);
         _process = new Process { StartInfo = info, EnableRaisingEvents = true };
         _process.ErrorDataReceived += (_, e) => { if (e.Data != null) _lastError = e.Data; };
-        _process.Exited += (_, _) => { if (_releaseCaptureOnDisconnect) ScriptStudioGuard.EndCapture(); };
+        _process.Exited += (_, _) => { _disconnected = true; if (_releaseCaptureOnDisconnect) ScriptStudioGuard.EndCapture(); };
         _process.Start();
         _process.BeginErrorReadLine();
     }
@@ -103,21 +104,38 @@ public sealed class ScriptStudioClient : IDisposable
                 throw new IOException("脚本工具响应超时，连接已关闭。请重新打开前端，在脚本库查找恢复草稿。");
             }
             if (line == null) throw new IOException("脚本工具连接已结束。" + _lastError);
-            var response = JsonNode.Parse(line) ?? throw new IOException("脚本工具返回了空响应。");
-            if (response["id"]?.GetValue<long>() != id)
+            JsonObject response;
+            long responseId;
+            bool ok;
+            try
+            {
+                response = JsonNode.Parse(line) as JsonObject ?? throw new IOException("脚本工具返回了无效响应。");
+                responseId = response["id"]!.GetValue<long>();
+                ok = response["ok"]!.GetValue<bool>();
+            }
+            catch (Exception error) when (error is JsonException or InvalidOperationException or FormatException or NullReferenceException)
+            { throw new IOException("脚本工具响应损坏，连接已关闭，请重新打开前端检查恢复草稿。", error); }
+            if (responseId != id)
             {
                 _disconnected = true; Dispose();
                 throw new IOException("脚本工具响应顺序错误，连接已关闭，请重新打开客户端。");
             }
-            if (response["ok"]?.GetValue<bool>() != true)
+            if (!ok)
                 throw new InvalidOperationException(response["error"]?.GetValue<string>() ?? "操作未完成。");
             return response["result"]?.DeepClone() ?? new JsonObject();
+        }
+        catch (IOException)
+        {
+            _disconnected = true;
+            Dispose();
+            throw;
         }
         finally { _gate.Release(); }
     }
 
     public void Dispose()
     {
+        _disconnected = true;
         var process = _process;
         _process = null;
         if (process == null) return;

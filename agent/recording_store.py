@@ -66,8 +66,11 @@ def default_recordings(directory):
 
 
 def _same_origin(existing, packaged, ident):
+    if not isinstance(existing, dict): return False
     if existing.get('builtin_id') == ident: return True
-    source = existing.get('editor', {}).get('source_macro', {})
+    editor = existing.get('editor')
+    source = editor.get('source_macro') if isinstance(editor, dict) else None
+    source = source if isinstance(source, dict) else {}
     if source.get('id') == ident: return True
     return existing.get('actions') == packaged.get('actions') and existing.get('base') == packaged.get('base')
 
@@ -75,7 +78,7 @@ def _same_origin(existing, packaged, ident):
 def ensure_default_recordings(root):
     """Seed real, writable files once; never restore deleted or replace edited files."""
     root = Path(root).resolve()
-    bundle = root / 'assets/recordings'
+    bundle = root / 'agent/recordings'
     manifest = bundle / 'manifest.json'
     if not manifest.is_file(): return []
     spec = _json(_read(manifest))
@@ -97,7 +100,11 @@ def ensure_default_recordings(root):
             RecordingDocument.from_dict(packaged).to_dict(strict=True)
             name = item['file']
             path = library_recording_path(directory, name)
-            if path.exists() and not _same_origin(_json(_read(path)), packaged, ident):
+            existing = None
+            if path.exists():
+                try: existing = _json(_read(path))
+                except (ValueError, UnicodeError): pass  # Keep damaged user files untouched and visible in the library.
+            if path.exists() and not _same_origin(existing, packaged, ident):
                 stem, suffix = Path(name).stem, 1
                 while path.exists():
                     name = f'{stem}-默认{suffix if suffix > 1 else ""}.json'
@@ -112,11 +119,13 @@ def ensure_default_recordings(root):
             seeded.append(name)
         if not registry.get('bindings_initialized') and spec.get('initial_bindings'):
             bindings, binding_raw = _bindings_state(directory)
+            added_binding = False
             for initial in spec['initial_bindings']:
                 entry = registry['items'].get(initial['default_id'])
                 if entry and entry['state'] == 'present' and initial['task_id'] not in bindings:
                     bindings[initial['task_id']] = dict(file=entry['file'], mode=initial['mode'])
-            if bindings:
+                    added_binding = True
+            if added_binding:
                 _publish(_index_path(directory), _encoded(dict(version=2, tasks=bindings)), binding_raw)
             registry['bindings_initialized'] = True
             _publish(_index_path(directory, DEFAULT_INDEX), _encoded(registry), previous)
