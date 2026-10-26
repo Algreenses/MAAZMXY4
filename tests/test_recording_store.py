@@ -152,3 +152,15 @@ class RecordingStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'其他窗口'):
             store.set_file_bindings(self.library,'默认战斗.json',{'new-task':'pipeline'},self.revision(),token)
         self.assertEqual(read_task_bindings(self.library),{'external-task':'默认战斗.json'})
+
+    def test_invalid_recording_can_still_be_unbound_from_library_row(self):
+        service = StudioService(self.root)
+        try:
+            bind_task_recording(self.library, 'external-task', '默认战斗.json', expected_revision=self.revision())
+            (self.library/'默认战斗.json').write_bytes(b'{broken')
+            _, token = store.binding_snapshot(self.library)
+            service.dispatch('set_file_bindings', dict(file='默认战斗.json', revision=self.revision(),
+                                                     binding_revision=token, tasks={}))
+            self.assertEqual(read_task_bindings(self.library), {})
+        finally:
+            service.close()

@@ -22,6 +22,9 @@
     "frontend/patches/07-win32-recovery-rebind.json",
     "frontend/patches/08-task-stop-race.json",
     "frontend/patches/09-agent-callbacks-only.json",
-    "frontend/patches/10-agent-connection-health.json"
+    "frontend/patches/10-agent-connection-health.json",
+    "frontend/patches/11-script-studio-icons.json",
+    "frontend/patches/12-option-default-array.json",
+    "frontend/patches/13-option-default-string.json"
   ]
 }

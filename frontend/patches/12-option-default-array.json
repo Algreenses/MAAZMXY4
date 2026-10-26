@@ -1,0 +1,6 @@
+{
+  "description": "Leave a string-array task option unselected until TaskLoader applies its declared default_case.",
+  "path": "MFAAvalonia/Helper/Converters/MaaInterfaceSelectOptionConverter.cs",
+  "find": "Name = item.ToString(),\n                            Index = 0",
+  "replace": "Name = item.ToString(),\n                            Index = null"
+}

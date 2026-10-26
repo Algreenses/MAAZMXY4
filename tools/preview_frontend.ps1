@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$OutputDirectory,
+    [string]$PythonRuntimeDirectory,
     [switch]$Demo,
     [switch]$Launch
 )
@@ -107,12 +108,19 @@ foreach ($relative in $publicAgentFiles | Sort-Object -Unique) {
 }
 
 Write-Host 'Copying the embedded Python runtime...'
-Copy-PreviewTree (Join-Path $projectRoot 'runtimes/python') 'runtimes/python'
+if (-not $PythonRuntimeDirectory) { $PythonRuntimeDirectory = Join-Path $projectRoot 'runtimes/python' }
+Copy-PreviewTree $PythonRuntimeDirectory 'runtimes/python'
 foreach ($relative in @('docs/images/icon.png', 'LICENSE', 'NOTICE')) {
     $source = Join-Path $projectRoot $relative
     if (Test-Path -LiteralPath $source) { Copy-PreviewFile $source $relative }
 }
 New-Item -ItemType Directory -Path (Get-PreviewPath 'recordings') -Force | Out-Null
+$previewConfig = Get-PreviewPath 'config/instances/default.json'
+if (-not (Test-Path -LiteralPath $previewConfig)) {
+    New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($previewConfig)) -Force | Out-Null
+    $initialConfig = [ordered]@{ InstanceName = 'Script Studio Preview'; TaskItems = @(); CurrentTasks = @(); 'UI.LiveView.EnableLiveView' = $false }
+    [IO.File]::WriteAllText($previewConfig, (($initialConfig | ConvertTo-Json -Depth 5) + "`n"), (New-Object Text.UTF8Encoding($false)))
+}
 
 if ($Demo) {
     $sample = Join-Path $projectRoot 'frontend/samples/editor-demo.json'

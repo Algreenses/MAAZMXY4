@@ -260,6 +260,10 @@ class StudioService:
             for ident, mode in targets.items():
                 if ident not in tasks: raise ValueError('请选择当前工程中的任务。')
                 if mode not in tasks[ident]['modes']: raise ValueError('该任务没有战斗回放节点；如需替代整个任务，请明确选择此方式。')
+            if not targets:
+                revision = hashlib.sha256(self.path(filename).read_bytes()).hexdigest()
+                if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
+                return set_file_bindings(self.directory, filename, {}, revision, params.get('binding_revision'))
             saved, revision = read_json(self.path(filename))
             if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
             document = RecordingDocument.from_dict(saved)

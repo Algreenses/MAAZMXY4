@@ -22,19 +22,14 @@ using MFAAvalonia.ViewModels.Pages;
 namespace MFAAvalonia.Views.Pages;
 
 /// <summary>Native MFA page, retaining the existing app navigation and themes.</summary>
-public sealed class ScriptStudioView : UserControl
+public sealed partial class ScriptStudioView : UserControl
 {
     private readonly ScriptStudioViewModel _vm;
     private readonly TabControl _tabs = new();
     private readonly ListBox _library = new(), _events = new();
     private readonly TextBox _search = new() { Watermark = "搜索脚本名称" };
-    private readonly TextBox _name = new() { Watermark = "为脚本起个名字" };
-    private readonly TextBlock _summary = new(), _status = new(), _captureState = new(), _selection = new();
-    private readonly TextBlock _taskBinding = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
-    private readonly TextBlock _bindingHint = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = .7 };
+    private readonly TextBlock _summary = new(), _status = new(), _captureState = new();
     private readonly TextBlock _captureHint = new() { TextWrapping = TextWrapping.Wrap, Opacity = .7 };
-    private readonly ComboBox _tasks = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly ComboBox _bindingMode = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly TextBlock _diagnostics = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _windows = new() { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 200 };
     private readonly NumericUpDown _countdown = Number(3, 0, 30, "0");
@@ -49,7 +44,7 @@ public sealed class ScriptStudioView : UserControl
     private readonly TextBox _keyCapture = new() { Watermark = "点此后按一个键", IsReadOnly = true };
     private readonly StackPanel _inspector = new() { Spacing = 8 };
     private Control? _keyFields, _mouseFields, _scrollFields;
-    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo, _use, _editPage, _bindTask, _unbindTask;
+    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo;
     private Button? _refreshWindows, _mark;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private JsonArray _files = new();
@@ -73,33 +68,25 @@ public sealed class ScriptStudioView : UserControl
     public ScriptStudioView(ScriptStudioViewModel viewModel)
     {
         _vm = viewModel; DataContext = viewModel;
-        _save = Button("保存脚本", SaveAsync, true);
+        _save = Button("保存", SaveAsync, true);
         _record = Button("开始录制", StartRecordingAsync, true);
         _pause = Button("暂停", async () => RenderCapture(await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause")));
         _stop = Button("停止并编辑", FinishRecordingAsync);
-        _apply = Button("应用操作", ApplyInspectorAsync, true);
-        _undo = Button("撤销", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("undo"); });
-        _redo = Button("重做", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("redo"); });
-        _use = Button("设为通用回放", SelectForTasksAsync);
-        _bindTask = Button("绑定脚本", BindTaskAsync, true);
-        _unbindTask = Button("解除绑定", UnbindTaskAsync);
-        _editPage = Button("打开时间轴编辑 →", async () => { if (_vm.Document != null) _tabs.SelectedIndex = 1; await Task.CompletedTask; });
+        _apply = Button("应用更改", ApplyInspectorAsync, true);
+        _undo = IconButton(1, "撤销（Ctrl+Z）", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("undo"); }, false);
+        _redo = IconButton(2, "重做（Ctrl+Shift+Z）", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("redo"); }, false);
         BuildPage();
-        _tasks.SelectionChanged += (_, _) => RefreshBinding();
-        _bindingMode.SelectionChanged += (_, _) => UpdateBindingHint();
+        WireLibrarySelection(_library);
+        WireLibrarySelection(_editorLibrary);
+        _editorSearch.TextChanged += (_, _) => FilterLibrary();
+        _editorPicker.SelectionChanged += async (_, _) =>
+        {
+            if (!_sync && _editorPicker.SelectedItem is JsonNode item)
+                await Run(async () => await OpenLibraryFileAsync(item, true));
+        };
         _vm.Changed += RenderDocument;
         _poll.Tick += async (_, _) => await PollCaptureAsync();
         _search.TextChanged += (_, _) => FilterLibrary();
-        _library.SelectionChanged += async (_, _) =>
-        {
-            if (_sync || _library.SelectedItem is not JsonNode item) return;
-            await Run(async () =>
-            {
-                if (!await EnsureSavedAsync()) { FilterLibrary(); return; }
-                await _vm.ChangeAsync("load", new JsonObject { ["file"] = item["file"]!.GetValue<string>() });
-                _status.Text = "已打开脚本，可切换到「时间轴与编辑」修改操作。";
-            });
-        };
         _events.SelectionChanged += async (_, _) =>
         {
             if (!_sync && _events.SelectedItem is StudioOperation operation)
@@ -154,172 +141,25 @@ public sealed class ScriptStudioView : UserControl
 
     private void BuildPage()
     {
-        var page = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto"), Margin = new Thickness(22, 16), RowSpacing = 14 };
-        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        var title = new StackPanel { Spacing = 4 };
-        title.Children.Add(new TextBlock { Text = "录制与脚本", FontSize = 25, FontWeight = FontWeight.SemiBold });
-        title.Children.Add(new TextBlock { Text = "记录战斗操作，整理脚本，在时间轴上精确调整。", Opacity = .65 });
-        header.Children.Add(title); Grid.SetColumn(_save, 1); header.Children.Add(_save); page.Children.Add(header);
-        var nameRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 14 };
-        nameRow.Children.Add(_name); _summary.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(_summary, 1); nameRow.Children.Add(_summary);
-        Grid.SetRow(nameRow, 1); page.Children.Add(nameRow);
+        var page = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(16, 10), RowSpacing = 8 };
+        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 12 };
+        var title = new StackPanel { Spacing = 2 };
+        title.Children.Add(new TextBlock { Text = "录制与脚本", FontSize = 23, FontWeight = FontWeight.SemiBold });
+        _documentTitle.Text = "选择脚本，或开始录制";
+        _documentTitle.FontSize = 12; _documentTitle.Opacity = .7;
+        _documentTitle.TextTrimming = TextTrimming.CharacterEllipsis;
+        title.Children.Add(_documentTitle); header.Children.Add(title);
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+        _summary.FontSize = 12; _summary.VerticalAlignment = VerticalAlignment.Center; actions.Children.Add(_summary);
+        actions.Children.Add(_save);
+        var saveAs = Button("另存为…", SaveAsAsync); _documentActions.Add(saveAs); actions.Children.Add(saveAs);
+        Grid.SetColumn(actions, 1); header.Children.Add(actions); page.Children.Add(header);
         _tabs.Items.Add(new TabItem { Header = "脚本库与录制", Content = BuildLibraryTab() });
-        _tabs.Items.Add(new TabItem { Header = "时间轴与编辑", Content = BuildEditorTab() });
-        Grid.SetRow(_tabs, 2); page.Children.Add(_tabs);
-        _status.Text = "先选择已有脚本，或启动游戏后开始录制。"; _status.TextWrapping = TextWrapping.Wrap; _status.Opacity = .8;
-        Grid.SetRow(_status, 3); page.Children.Add(_status); Content = page;
-    }
-    private Control BuildLibraryTab()
-    {
-        var layout = new Grid { ColumnDefinitions = new ColumnDefinitions("*,14,*"), Margin = new Thickness(0, 14, 0, 0) };
-        var library = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto,Auto"), RowSpacing = 10 };
-        library.Children.Add(new TextBlock { Text = "脚本库", FontSize = 18, FontWeight = FontWeight.SemiBold });
-        Grid.SetRow(_search, 1); library.Children.Add(_search);
-        _library.MinHeight = 0; _library.ClipToBounds = true;
-        _library.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) =>
-        {
-            if (item == null) return new TextBlock();
-            var stack = new StackPanel { Spacing = 5, Margin = new Thickness(6, 7) };
-            stack.Children.Add(new TextBlock { Text = item["name"]?.GetValue<string>(), FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
-            stack.Children.Add(new TextBlock { Text = $"{(item["duration_ms"]?.GetValue<double>() ?? 0) / 1000:0.0} 秒   ·   {item["event_count"]} 个事件", FontSize = 12, Opacity = .6 });
-            if (!string.IsNullOrEmpty(item["error"]?.GetValue<string>())) stack.Children.Add(new TextBlock { Text = "需要检查录制完整性", FontSize = 12, Foreground = Brushes.DarkOrange });
-            return stack;
-        });
-        Grid.SetRow(_library, 2); library.Children.Add(_library);
-        var actions = Wrap(Button("导入", ImportAsync), Button("导出", ExportAsync), Button("刷新", RefreshLibraryAsync));
-        Grid.SetRow(actions, 3); library.Children.Add(actions);
-        _tasks.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) => new TextBlock { Text = item?["label"]?.GetValue<string>(), TextTrimming = TextTrimming.CharacterEllipsis });
-        var bindings = new StackPanel { Spacing = 8 };
-        var bindingChoices = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), ColumnSpacing = 8 };
-        bindingChoices.Children.Add(_tasks); Grid.SetColumn(_bindingMode, 1); bindingChoices.Children.Add(_bindingMode);
-        bindings.Children.Add(bindingChoices);
-        bindings.Children.Add(_taskBinding); bindings.Children.Add(_bindingHint);
-        bindings.Children.Add(Wrap(_bindTask, _unbindTask));
-        var bindingSection = new Expander { Header = "绑定到任务", Content = bindings, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch };
-        var bindingNarrow = false;
-        bindingChoices.SizeChanged += (_, _) =>
-        {
-            var narrow = bindingChoices.Bounds.Width < 400;
-            if (narrow == bindingNarrow) return;
-            bindingNarrow = narrow;
-            bindingChoices.ColumnDefinitions = new ColumnDefinitions(narrow ? "*" : "*,*");
-            bindingChoices.RowDefinitions = new RowDefinitions(narrow ? "Auto,Auto" : "Auto");
-            bindingChoices.RowSpacing = narrow ? 8 : 0;
-            Grid.SetColumn(_bindingMode, narrow ? 0 : 1); Grid.SetRow(_bindingMode, narrow ? 1 : 0);
-        };
-        Grid.SetRow(bindingSection, 4); library.Children.Add(bindingSection); layout.Children.Add(Card(library));
-        var recording = new StackPanel { Spacing = 10 };
-        recording.Children.Add(new TextBlock { Text = "录制战斗", FontSize = 18, FontWeight = FontWeight.SemiBold });
-        recording.Children.Add(new TextBlock { Text = "选择游戏窗口，在倒计时结束前切回游戏。", TextWrapping = TextWrapping.Wrap, Opacity = .7 });
-        var targetRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
-        targetRow.Children.Add(_windows);
-        _refreshWindows = Button("刷新", async () => { RefreshWindows(); await Task.CompletedTask; }); Grid.SetColumn(_refreshWindows, 1); targetRow.Children.Add(_refreshWindows);
-        recording.Children.Add(Field("目标游戏窗口", targetRow));
-        var ready = new Grid { ColumnDefinitions = new ColumnDefinitions("140,*"), ColumnSpacing = 20 };
-        ready.Children.Add(Field("倒计时（秒）", _countdown));
-        _captureState.FontSize = 22; _captureState.FontWeight = FontWeight.SemiBold; _captureState.Text = "准备就绪";
-        _captureState.VerticalAlignment = VerticalAlignment.Center; _captureState.TextWrapping = TextWrapping.Wrap;
-        Grid.SetColumn(_captureState, 1); ready.Children.Add(_captureState); recording.Children.Add(ready);
-        _mark = Button("添加标记", async () => await _vm.Client.CallAsync("capture_mark", new JsonObject { ["label"] = "阶段标记" }));
-        recording.Children.Add(Wrap(_record, _pause, _stop, _mark));
-        recording.Children.Add(_captureHint);
-        recording.Children.Add(new TextBlock { Text = "F8 暂停 / 继续    F9 停录    F10 停录并保存\n切出游戏会自动暂停。单击继续后有3秒切回游戏，也可在游戏中按 F8 立即继续。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
-        recording.Children.Add(new Separator()); recording.Children.Add(_editPage);
-        recording.Children.Add(new TextBlock { Text = "绑定读取脚本库中的同一文件，编辑保存后下轮生效；另存为新文件后请重新绑定。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
-        _selection.TextWrapping = TextWrapping.Wrap;
-        recording.Children.Add(_selection);
-        recording.Children.Add(Wrap(_use, Button("新建空白脚本", async () => { if (await EnsureSavedAsync()) { await _vm.ChangeAsync("new"); _tabs.SelectedIndex = 1; BeginInsert(); } })));
-        var right = Card(new ScrollViewer { Content = recording }); Grid.SetColumn(right, 2); layout.Children.Add(right); return layout;
-    }
-    private Control BuildEditorTab()
-    {
-        var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*"), RowSpacing = 8, Margin = new Thickness(0, 10, 0, 0) };
-        _focusTimelineButton = Button("专注时间轴", async () => { ToggleTimelineFocus(); await Task.CompletedTask; });
-        _cursor.Width = 110; _cursor.MinWidth = 100; _cursor.MaxWidth = 110; _cursor.MinHeight = 32; _cursor.Height = 32;
-        var toolbar = Wrap(_undo, _redo, Button("新增操作", async () => { if (await EnsureInspectorAsync()) BeginInsert(); }),
-            Button("删除操作", DeleteAsync), Button("添加标记", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("marker", new JsonObject { ["at_ms"] = Milliseconds(_cursor), ["label"] = "阶段标记" }); }),
-            Button("离线检查", ValidateAsync), Button("补齐释放", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("repair"); }),
-            new TextBlock { Text = "定位（秒）", VerticalAlignment = VerticalAlignment.Center, FontSize = 12 }, _cursor,
-            Button("在此拆分", SplitAsync), Button("缩小", async () => { _timeline.Zoom(.8); await Task.CompletedTask; }),
-            Button("放大", async () => { _timeline.Zoom(1.25); await Task.CompletedTask; }),
-            Button("全览", async () => { _timeline.Fit(_timelineScroll.Viewport.Width); await Task.CompletedTask; }),
-            Button("轨道−", async () => { _timeline.AdjustTrackHeight(-8); await Task.CompletedTask; }),
-            Button("轨道＋", async () => { _timeline.AdjustTrackHeight(8); await Task.CompletedTask; }), _focusTimelineButton);
-        foreach (var control in toolbar.Children)
-        {
-            control.Margin = new Thickness(0, 0, 5, 4);
-            if (control is Button button) { button.Padding = new Thickness(9, 5); button.MinHeight = 32; button.FontSize = 12; }
-        }
-        layout.Children.Add(toolbar);
-
-        _editorMain = new Grid { ColumnDefinitions = new ColumnDefinitions("*,8,320") };
-        _editorMain.ColumnDefinitions[0].MinWidth = 240;
-        _editorMain.ColumnDefinitions[2].MinWidth = 280;
-        var timelineArea = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
-        _timelineScroll.Content = _timeline; _timelineScroll.MinHeight = 180;
-        _timelineScroll.VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
-        _timelineScroll.PropertyChanged += (_, change) =>
-        {
-            if (change.Property == ScrollViewer.OffsetProperty) { _timeline.InvalidateVisual(); return; }
-            if (change.Property != ScrollViewer.ViewportProperty) return;
-            _timeline.SetViewport(_timelineScroll.Viewport.Width, _timelineScroll.Viewport.Height);
-            FitPendingTimeline();
-        };
-        var timelineCard = Card(_timelineScroll); timelineCard.Padding = new Thickness(0); timelineArea.Children.Add(timelineCard);
-
-        var list = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), RowSpacing = 6, Height = 160 };
-        _events.ItemsSource = _vm.Operations;
-        _events.ItemTemplate = new FuncDataTemplate<StudioOperation>((operation, _) =>
-        {
-            var row = new Grid { ColumnDefinitions = new ColumnDefinitions("85,*,90"), Margin = new Thickness(4, 6) };
-            if (operation == null) return row;
-            row.Children.Add(new TextBlock { Text = operation.TimeText, FontFamily = FontFamily.Parse("Consolas"), Opacity = .7 });
-            var label = new TextBlock { Text = operation.Label, TextTrimming = TextTrimming.CharacterEllipsis }; Grid.SetColumn(label, 1); row.Children.Add(label);
-            var duration = new TextBlock { Text = operation.DurationText, Opacity = .6, HorizontalAlignment = HorizontalAlignment.Right }; Grid.SetColumn(duration, 2); row.Children.Add(duration); return row;
-        });
-        list.Children.Add(_events); Grid.SetRow(_diagnostics, 1); list.Children.Add(_diagnostics);
-        _operationList = new Expander { Header = "操作列表（按需展开）", Content = list, IsExpanded = false,
-            HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(0, 8, 0, 0) };
-        Grid.SetRow(_operationList, 1); timelineArea.Children.Add(_operationList); _editorMain.Children.Add(timelineArea);
-
-        _inspector.Children.Add(new TextBlock { Text = "操作参数", FontSize = 17, FontWeight = FontWeight.SemiBold });
-        _inspector.Children.Add(Field("操作类型", _kind));
-        var timing = new Grid { ColumnDefinitions = new ColumnDefinitions("*,10,*") }; timing.Children.Add(Field("开始（秒）", _start)); var holdField = Field("持续（秒）", _duration); Grid.SetColumn(holdField, 2); timing.Children.Add(holdField); _inspector.Children.Add(timing);
-        var keys = new Grid { ColumnDefinitions = new ColumnDefinitions("*,10,*") }; keys.Children.Add(Field("按键", _keyCapture)); var keyCode = Field("按键码", _key); Grid.SetColumn(keyCode, 2); keys.Children.Add(keyCode); _keyFields = keys; _inspector.Children.Add(keys);
-        var xy = new Grid { ColumnDefinitions = new ColumnDefinitions("*,8,*,8,*") }; xy.Children.Add(Field("鼠标按钮", _button)); var xf = Field("X 坐标", _x); Grid.SetColumn(xf, 2); xy.Children.Add(xf); var yf = Field("Y 坐标", _y); Grid.SetColumn(yf, 4); xy.Children.Add(yf); _mouseFields = xy; _inspector.Children.Add(xy);
-        _scrollFields = Field("横向 / 纵向滚轮", Wrap(_dx, _dy)); _inspector.Children.Add(_scrollFields); _inspector.Children.Add(Field("文本 / 标记", _text));
-        var inspectorBody = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), RowSpacing = 8 };
-        inspectorBody.Children.Add(new ScrollViewer { Content = _inspector });
-        var applyRow = Wrap(_apply, Button("还原填写", async () => { if (_selected != null) SelectOperation(_selected); else BeginInsert(); await Task.CompletedTask; })); Grid.SetRow(applyRow, 1); inspectorBody.Children.Add(applyRow);
-        _inspectorPane = Card(inspectorBody); Grid.SetColumn(_inspectorPane, 2); _editorMain.Children.Add(_inspectorPane);
-        _editorSplitter = new GridSplitter { ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
-            HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch,
-            Background = new SolidColorBrush(Color.Parse("#188497B0")), KeyboardIncrement = 16 };
-        ToolTip.SetTip(_editorSplitter, "拖动调整时间轴与参数区的宽度"); Grid.SetColumn(_editorSplitter, 1); _editorMain.Children.Add(_editorSplitter);
-        Grid.SetRow(_editorMain, 1); layout.Children.Add(_editorMain); return layout;
-    }
-
-    private void ToggleTimelineFocus()
-    {
-        if (_editorMain == null || _inspectorPane == null || _editorSplitter == null || _operationList == null) return;
-        _timelineFocused = !_timelineFocused;
-        if (_timelineFocused)
-        {
-            _inspectorWidth = _editorMain.ColumnDefinitions[2].Width;
-            _editorMain.ColumnDefinitions[2].MinWidth = 0;
-            _editorMain.ColumnDefinitions[2].Width = new GridLength(0);
-            _editorMain.ColumnDefinitions[1].Width = new GridLength(0);
-        }
-        else
-        {
-            _editorMain.ColumnDefinitions[2].MinWidth = 280;
-            _editorMain.ColumnDefinitions[2].Width = _inspectorWidth;
-            _editorMain.ColumnDefinitions[1].Width = new GridLength(8);
-        }
-        _inspectorPane.IsVisible = _editorSplitter.IsVisible = _operationList.IsVisible = !_timelineFocused;
-        if (_focusTimelineButton != null) _focusTimelineButton.Content = _timelineFocused ? "返回参数区" : "专注时间轴";
-        Dispatcher.UIThread.Post(() => _timeline.SetViewport(_timelineScroll.Viewport.Width, _timelineScroll.Viewport.Height), DispatcherPriority.Background);
+        _tabs.Items.Add(new TabItem { Header = "时间轴编辑", Content = BuildEditorTab() });
+        Grid.SetRow(_tabs, 1); page.Children.Add(_tabs);
+        _status.Text = "双击脚本进入编辑；在脚本行中设置任务绑定。";
+        _status.FontSize = 12; _status.TextWrapping = TextWrapping.Wrap; _status.Opacity = .75;
+        Grid.SetRow(_status, 2); page.Children.Add(_status); Content = page;
     }
 
     private static NumericUpDown Number(double value, double minimum = 0, double maximum = 604800, string format = "0.000") => new()
@@ -366,44 +206,18 @@ public sealed class ScriptStudioView : UserControl
         _windows.SelectedItem = windows.FirstOrDefault(w => w.Handle == old) ?? windows.FirstOrDefault();
         if (windows.Count == 0) _status.Text = "没有找到游戏窗口，请先启动造梦盒子，再刷新窗口。";
     }
-    private async Task RefreshLibraryAsync()
-    {
-        var result = await _vm.Client.CallAsync("list"); _files = result["items"]!.AsArray();
-        var selected = result["selected_file"]?.GetValue<string>();
-        _selection.Text = selected == null ? "通用回放：尚未指定，普通任务默认使用最新录制。" : "通用回放：" + selected;
-        var selectedTask = (_tasks.SelectedItem as JsonNode)?["id"]?.GetValue<string>();
-        var tasks = (result["tasks"]?.AsArray() ?? new JsonArray()).Where(n => n != null).ToList();
-        _tasks.ItemsSource = tasks;
-        _tasks.SelectedItem = tasks.FirstOrDefault(t => t?["id"]?.GetValue<string>() == selectedTask) ?? tasks.FirstOrDefault();
-        RefreshBinding();
-        if (result["binding_errors"]?["catalog"] is JsonNode error) _status.Text = error.GetValue<string>();
-        FilterLibrary();
-    }
-    private void FilterLibrary()
-    {
-        _sync = true;
-        try
-        {
-            var query = _search.Text?.Trim() ?? "";
-            var files = _files.Where(item => item != null && (query.Length == 0 || (item["name"]?.GetValue<string>() ?? "").Contains(query, StringComparison.CurrentCultureIgnoreCase))).ToList();
-            _library.ItemsSource = files;
-            _library.SelectedItem = files.FirstOrDefault(item => item?["file"]?.GetValue<string>() == _vm.File);
-        }
-        finally { _sync = false; }
-    }
     private void RenderDocument()
     {
         var selectedId = _selected?.Id; _sync = true;
         if (_vm.File != _renderedFile || _vm.Name != _renderedName) { _fitNextTimeline = true; _adding = false; }
-        var pendingName = (_name.Text ?? "") != _renderedName;
-        if (!pendingName || _vm.File != _renderedFile || _vm.Name != _renderedName) _name.Text = _vm.Name;
         _renderedName = _vm.Name; _renderedFile = _vm.File;
+        _documentTitle.Text = _vm.Document == null ? "选择脚本，或开始录制" : _vm.Name + (_vm.Dirty ? " · 未保存" : "");
         _summary.Text = _vm.Document == null ? "" : $"{_vm.Duration / 1000:0.000} 秒 · {_vm.Operations.Count} 个操作" + (_vm.Dirty ? " · 未保存" : " · 已保存");
         _diagnostics.Text = string.Join("\n", _vm.Diagnostics.Take(3));
         _timeline.Update(_vm.Operations.ToList(), _vm.Duration);
         _sync = false;
         _inspectorDirty = false;
-        SelectById(selectedId); UpdateControls();
+        SelectById(selectedId); FilterLibrary(); UpdateControls();
         if (_tabs.SelectedIndex == 1) Dispatcher.UIThread.Post(FitPendingTimeline, DispatcherPriority.Background);
     }
     private void FitPendingTimeline()
@@ -518,13 +332,13 @@ public sealed class ScriptStudioView : UserControl
         else BeginInsert();
         return true;
     }
-    private bool HasChanges => _vm.Dirty || RefreshInspectorDirty() || _vm.Document != null && (_name.Text ?? "") != _vm.Name;
+    private bool HasChanges => _vm.Dirty || RefreshInspectorDirty();
     private async Task<bool> EnsureSavedAsync()
     {
         if (!HasChanges) return true;
-        var choice = await AskAsync("保留当前脚本修改", "当前修改尚未保存。", "保存", "放弃修改");
+        var choice = await AskAsync("保留当前脚本修改", "当前修改尚未保存。", "保存", "不保存");
         if (choice == 0) return false;
-        if (choice == 1) await SaveAsync();
+        if (choice == 1) return await SaveDocumentAsync(false);
         else
         {
             if (_vm.Client.IsDisconnected) _vm.Apply(new JsonObject { ["empty"] = true });
@@ -532,14 +346,6 @@ public sealed class ScriptStudioView : UserControl
             _inspectorDirty = false;
         }
         return true;
-    }
-    private async Task SaveAsync()
-    {
-        if (RefreshInspectorDirty()) await ApplyInspectorAsync();
-        if (_vm.Document == null) throw new InvalidOperationException("请先选择或录制脚本。");
-        if ((_name.Text ?? "").Trim() != _vm.Name)
-            await _vm.ChangeAsync("rename", new JsonObject { ["name"] = (_name.Text ?? "").Trim() });
-        await _vm.ChangeAsync("save"); await RefreshLibraryAsync(); _status.Text = "脚本已保存。";
     }
     private async Task ImportAsync()
     {
@@ -556,44 +362,6 @@ public sealed class ScriptStudioView : UserControl
         var storage = TopLevel.GetTopLevel(this)?.StorageProvider; if (storage == null || _vm.Document == null) return;
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "导出录制脚本", SuggestedFileName = _vm.Name + ".json", DefaultExtension = "json", FileTypeChoices = new[] { JsonFiles }, ShowOverwritePrompt = true });
         var path = file?.TryGetLocalPath(); if (path != null) { await _vm.Client.CallAsync("export", new JsonObject { ["path"] = path }); _status.Text = "脚本已导出。"; }
-    }
-    private async Task SelectForTasksAsync()
-    {
-        if (!await EnsureSavedAsync() || _vm.File == null) return;
-        await _vm.Client.CallAsync("select"); await RefreshLibraryAsync();
-        _status.Text = "已设为通用回放。任务选择「脚本工具所选」时读取这份脚本；任务独立绑定优先生效。";
-    }
-    private void RefreshBinding()
-    {
-        var task = _tasks.SelectedItem as JsonNode;
-        var modes = task?["modes"]?.AsArray().Select(n => n!.GetValue<string>()).ToArray() ?? Array.Empty<string>();
-        _bindingMode.ItemsSource = modes.Select(m => m == "pipeline" ? "替换任务内的回放脚本" : "用脚本执行整个任务").ToArray();
-        var boundMode = task?["binding"]?["mode"]?.GetValue<string>();
-        _bindingMode.SelectedIndex = Math.Max(0, Array.IndexOf(modes, boundMode));
-        var file = task?["binding"]?["file"]?.GetValue<string>();
-        var error = task?["binding_error"]?.GetValue<string>();
-        _taskBinding.Text = error != null ? error : task == null ? "没有可绑定的任务，请先在任务页添加任务。" : file == null ? "尚未绑定，选择脚本后可绑定到此任务。" : "当前绑定：" + file;
-        ToolTip.SetTip(_tasks, task?["entry"]?.GetValue<string>());
-        UpdateBindingHint(); UpdateControls();
-    }
-    private string SelectedBindingMode => (_tasks.SelectedItem as JsonNode)?["modes"]?.AsArray().ElementAtOrDefault(_bindingMode.SelectedIndex)?.GetValue<string>() ?? "replace";
-    private void UpdateBindingHint() => _bindingHint.Text = SelectedBindingMode == "pipeline"
-        ? "保留任务流程，替换其中的回放脚本。保存修改后下轮生效。"
-        : "仅执行绑定脚本，跳过原任务流程。请在开始任务前进入脚本所需的游戏场景。";
-    private async Task BindTaskAsync()
-    {
-        if (_tasks.SelectedItem is not JsonNode task) return;
-        var id = task["id"]!.GetValue<string>(); var mode = SelectedBindingMode;
-        if (!await EnsureSavedAsync() || _vm.File == null) return;
-        await _vm.Client.CallAsync("bind_task", new JsonObject { ["task_id"] = id, ["mode"] = mode });
-        await RefreshLibraryAsync();
-        _status.Text = "已将「" + _vm.File + "」绑定到「" + task["label"] + "」。保存修改后下轮生效。";
-    }
-    private async Task UnbindTaskAsync()
-    {
-        if (_tasks.SelectedItem is not JsonNode task || task["binding"]?["file"] is not JsonNode file) return;
-        await _vm.Client.CallAsync("unbind_task", new JsonObject { ["task_id"] = task["id"]!.GetValue<string>(), ["expected_file"] = file.GetValue<string>() });
-        await RefreshLibraryAsync(); _status.Text = "已解除绑定，任务恢复使用自身配置。";
     }
     private async Task StartRecordingAsync()
     {
@@ -649,6 +417,7 @@ public sealed class ScriptStudioView : UserControl
         }
         await _vm.ChangeAsync("capture_stop"); _vm.Capturing = false; ScriptStudioGuard.EndCapture();
         _state = "stopped"; _captureState.Text = "录制完成"; _captureHint.Text = "草稿已送到时间轴，可检查后保存。";
+        if (_libraryNarrow && _recordingExpander != null) _recordingExpander.IsExpanded = false;
         await _vm.ChangeAsync("rename", new JsonObject { ["name"] = _recordingName });
         _tabs.SelectedIndex = 1; _timeline.Fit(_timelineScroll.Bounds.Width);
         _status.Text = "录制已停止，内容保留为草稿。可以编辑、检查后保存。";
@@ -683,22 +452,27 @@ public sealed class ScriptStudioView : UserControl
         if (_refreshWindows != null) _refreshWindows.IsEnabled = editable;
         if (_mark != null) _mark.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused";
         _library.IsEnabled = !_busy && !_vm.Capturing;
-        _name.IsEnabled = editable && _vm.Document != null;
+        _editorLibrary.IsEnabled = _editorPicker.IsEnabled = !_busy && !_vm.Capturing;
         _timeline.Editable = editable; _events.IsEnabled = editable;
         _inspector.IsEnabled = editable && (_selected != null || _adding);
         _apply.IsEnabled = editable && (_selected != null || _adding);
         _undo.IsEnabled = editable && _vm.Document?["can_undo"]?.GetValue<bool>() == true;
         _redo.IsEnabled = editable && _vm.Document?["can_redo"]?.GetValue<bool>() == true;
-        _use.IsEnabled = editable && _vm.Document != null;
-        _bindTask.IsEnabled = editable && _vm.Document != null && _tasks.SelectedItem != null;
-        _unbindTask.IsEnabled = editable && (_tasks.SelectedItem as JsonNode)?["binding"] != null;
-        _tasks.IsEnabled = _bindingMode.IsEnabled = editable;
-        _editPage.IsEnabled = _vm.Document != null;
+        foreach (var action in _documentActions) action.IsEnabled = editable && _vm.Document != null;
+        foreach (var action in _operationActions) action.IsEnabled = editable && _selected != null;
+        _inspector.IsVisible = _selected != null || _adding;
+        _emptyInspector.IsVisible = !_inspector.IsVisible;
+        _deleteFile.IsEnabled = editable && CurrentLibraryItem != null;
     }
     private async void OnShortcut(object? sender, KeyEventArgs e)
     {
-        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control) || _vm.Capturing) return;
-        if (e.Key == Key.S) { e.Handled = true; await Run(SaveAsync); }
+        if (_vm.Capturing) return;
+        var typing = e.Source is TextBox || e.Source is Control field && field.GetVisualAncestors().OfType<TextBox>().Any();
+        if (!typing && e.Key == Key.Delete) { e.Handled = true; await Run(DeleteAsync); return; }
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control)) return;
+        if (e.Key == Key.N) { e.Handled = true; await Run(NewScriptAsync); return; }
+        if (!typing && e.Key == Key.D) { e.Handled = true; await Run(DuplicateOperationAsync); return; }
+        if (e.Key == Key.S) { e.Handled = true; await Run(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? SaveAsAsync : SaveAsync); }
         else if (e.Key is Key.Z or Key.Y && e.Source is not TextBox && !(e.Source is Control input && input.GetVisualAncestors().OfType<TextBox>().Any()))
         { e.Handled = true; await Run(async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync(e.Key == Key.Y || e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "redo" : "undo"); }); }
     }
