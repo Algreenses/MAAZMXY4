@@ -249,7 +249,8 @@ class StudioService:
         if method == "list":
             return self.list()
         if method == 'execution_plan':
-            return execution_plan(self.root, params.get('name'), params.get('entry'), params.get('overrides'))
+            return execution_plan(self.root, params.get('name'), params.get('entry'), params.get('overrides'),
+                                  report_unbound=params.get('report_unbound', False))
         if method == 'unbind_task':
             self.require_idle()
             return unbind_task_recording(self.directory, params.get('task_id'), expected_file=params.get('expected_file'))

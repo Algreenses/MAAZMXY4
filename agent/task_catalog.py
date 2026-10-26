@@ -187,14 +187,18 @@ def inspect_saved_recording(root, reference):
     return dict(file=path.name, path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base))
 
 
-def execution_plan(root, name, entry, overrides=None):
+def execution_plan(root, name, entry, overrides=None, *, report_unbound=False):
     if overrides is not None and not isinstance(overrides, dict): raise ValueError('任务覆盖参数必须是对象。')
+    if type(report_unbound) is not bool: raise ValueError('未绑定处理标志必须是布尔值。')
     task = next((item for item in task_catalog(root, overrides=overrides or {}) if item['name'] == name and item['entry'] == entry), None)
     if task is None: return dict(handled=False)
     binding = task['binding']
     requires_binding = any(str(parameters.get('file', '')).startswith('@task:')
                            for parameters in task['playback_parameters'].values())
     if not binding and (requires_binding or task['profile']):
+        if report_unbound:
+            return dict(task, handled=True, stop_reason='unbound_script',
+                        message='任务“' + str(task['label']) + '”尚未绑定脚本，本次任务已结束。请在“录制与脚本”中绑定后再开始。')
         raise ValueError('请先在脚本库中为“' + str(task['label']) + '”绑定脚本。')
     if binding:
         if binding['mode'] not in task['modes']: raise ValueError('任务已没有脚本回放节点，请重新选择绑定方式。')

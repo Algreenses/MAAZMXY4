@@ -313,6 +313,16 @@ Sync("countdown displays remaining seconds instead of elapsed recording time", (
     Require(StudioCapturePresentation.Title(JsonNode.Parse("{\"state\":\"paused\",\"elapsed_ms\":1500}")!.AsObject()).Contains("1.5"));
 });
 JsonObject Recording() => new() { ["file"] = "test.json", ["path"] = "C:/project/recordings/test.json", ["sha256"] = new string('a', 64) };
+Test("unbound task logs once and uses the host stopped path", async () =>
+{
+    var logs = new List<string>();
+    var plan = new JsonObject { ["handled"] = true, ["stop_reason"] = "unbound_script", ["message"] = "请先绑定脚本，本次任务已结束。" };
+    await Throws<OperationCanceledException>(() => { TaskScriptPlan.StopIfUnbound(plan, logs.Add, default); return Task.CompletedTask; });
+    Require(logs.Count == 1 && logs[0].Contains("绑定脚本"));
+    TaskScriptPlan.StopIfUnbound(new JsonObject { ["handled"] = false }, logs.Add, default);
+    Require(logs.Count == 1);
+});
+
 Sync("ordinary tasks retain flow and receive the selected script on playback nodes", () =>
 {
     var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" }, ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight", "FightAgain") };

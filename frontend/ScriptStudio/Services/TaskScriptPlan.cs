@@ -1,12 +1,23 @@
 using System;
 using System.IO;
 using System.Text.Json.Nodes;
+using System.Threading;
 
 namespace MFAAvalonia.Services;
 
 /// <summary>Turn catalog capabilities and saved bindings into native Pipeline overrides.</summary>
 public static class TaskScriptPlan
 {
+    public static void StopIfUnbound(JsonObject plan, Action<string> log, CancellationToken token)
+    {
+        if (plan["stop_reason"]?.GetValue<string>() != "unbound_script") return;
+        token.ThrowIfCancellationRequested();
+        log(plan["message"]?.GetValue<string>() ?? "任务尚未绑定脚本，本次任务已结束，请绑定后再开始。");
+        // MFATask already treats cancellation as STOPPED: no failed-task toast,
+        // no completed iteration, and no execution of later queued tasks.
+        throw new OperationCanceledException(token);
+    }
+
     public static JsonObject Parameters(JsonObject pipeline, string nodeName)
     {
         if (pipeline[nodeName] is not JsonObject node) pipeline[nodeName] = node = new();

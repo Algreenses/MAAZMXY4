@@ -12,6 +12,7 @@ on:
       - 'tools/build_update.py'
       - 'tools/install.py'
       - 'updater.py'
+      - '新图标.ico'
       - '.github/workflows/script-studio.yml'
   workflow_dispatch:
 jobs:

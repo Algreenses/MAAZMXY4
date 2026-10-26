@@ -82,6 +82,20 @@ class TaskCatalogTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.bind('不存在','X','replace')
         self.assertEqual(execution_plan(self.root,'不存在','X'),dict(handled=False))
 
+    def test_unbound_task_can_report_a_normal_stop_to_the_frontend(self):
+        plan=self.service.dispatch('execution_plan',dict(name='挑战甲',entry='A',report_unbound=True))
+        self.assertEqual(plan['stop_reason'],'unbound_script')
+        self.assertTrue(plan['handled'])
+        self.assertIn('尚未绑定脚本',plan['message'])
+        self.assertNotIn('recording',plan)
+        self.assertFalse((self.root/'recordings/.bindings.json').exists())
+
+    def test_missing_bound_file_is_not_reported_as_an_unbound_stop(self):
+        self.bind('挑战甲','A','pipeline')
+        (self.root/'recordings/test.json').unlink()
+        with self.assertRaises(FileNotFoundError):
+            self.service.dispatch('execution_plan',dict(name='挑战甲',entry='A',report_unbound=True))
+
     def test_deleted_or_invalid_bound_file_stops_execution(self):
         self.bind('挑战乙','B','replace')
         (self.root/'recordings/test.json').unlink()

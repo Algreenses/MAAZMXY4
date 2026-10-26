@@ -133,6 +133,16 @@ if (Test-Path -LiteralPath $overlayRoot) {
     throw "Script studio source overlay is missing: $overlayRoot"
 }
 
+$applicationIcon = Get-ContainedPath $projectRoot $manifest.application_icon
+if (-not (Test-Path -LiteralPath $applicationIcon -PathType Leaf)) {
+    throw "Application icon is missing: $applicationIcon"
+}
+# Both the Windows executable and Avalonia's embedded window/tray icon use this asset.
+Copy-Item -LiteralPath $applicationIcon -Destination (Join-Path $coreRoot 'Assets/logo.ico') -Force
+# Copy-Item preserves the source timestamp. Refresh the cached copy so Avalonia's
+# incremental resource build cannot keep the old icon when the supplied ICO is older.
+[IO.File]::SetLastWriteTimeUtc((Join-Path $coreRoot 'Assets/logo.ico'), [DateTime]::UtcNow)
+
 Write-Host "Prepared source: $sourceRoot"
 if ($PrepareOnly) { return }
 
@@ -185,6 +195,8 @@ $buildInfo = [ordered]@{
     core_version = $manifest.core_version
     sdk_version = [string]$sdkVersion
     runtime_identifier = $manifest.runtime_identifier
+    application_icon = $manifest.application_icon
+    application_icon_sha256 = (Get-FileHash -LiteralPath $applicationIcon -Algorithm SHA256).Hash.ToLowerInvariant()
     source_url = "https://github.com/$($manifest.repository)/tree/$($manifest.commit)"
     overlay_directory = $manifest.overlay_directory
     patches = $manifest.patches

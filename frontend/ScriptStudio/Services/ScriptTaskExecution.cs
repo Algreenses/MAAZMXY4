@@ -21,9 +21,11 @@ public static class ScriptTaskExecution
             var plan = (await library.CallAsync("execution_plan", new JsonObject
             {
                 ["name"] = name, ["entry"] = entry,
-                ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides)
+                ["overrides"] = TaskRecoveryPolicy.MergePipelineOverrides(overrides),
+                ["report_unbound"] = true
             }, token)).AsObject();
             token.ThrowIfCancellationRequested();
+            TaskScriptPlan.StopIfUnbound(plan, message => processor.AddLog(message), token);
             if (plan["handled"]?.GetValue<bool>() != true) return await execute(entry, overrides, token);
             stopOnFailure();
             var prepared = TaskScriptPlan.Prepare(plan, entry, overrides);
