@@ -27,6 +27,9 @@ jobs:
       - name: Native task recovery policy checks without processes or input
         shell: pwsh
         run: dotnet run --project frontend/tests/NativeRecovery/NativeRecovery.csproj -c Release
+      - name: Script page lifecycle and controller reuse checks
+        shell: pwsh
+        run: dotnet run --project frontend/tests/StudioPage/StudioPage.csproj -c Release
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1

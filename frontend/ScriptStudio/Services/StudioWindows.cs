@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+using System.Linq;
 using Avalonia.Input;
+using MFAAvalonia.Extensions.MaaFW;
 
 namespace MFAAvalonia.Services;
 
@@ -48,24 +48,13 @@ public static class StudioWindows
         };
     }
 
-    private delegate bool EnumWindow(nint hwnd, nint parameter);
-    [DllImport("user32.dll")] private static extern bool EnumWindows(EnumWindow callback, nint parameter);
-    [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(nint hwnd, StringBuilder text, int length);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(nint hwnd, StringBuilder text, int length);
     public static IReadOnlyList<StudioWindow> List()
     {
-        var windows = new List<StudioWindow>();
-        if (!OperatingSystem.IsWindows()) return windows;
-        EnumWindows((hwnd, _) =>
-        {
-            if (!IsWindowVisible(hwnd)) return true;
-            var title = new StringBuilder(512); var className = new StringBuilder(256);
-            GetWindowText(hwnd, title, title.Capacity); GetClassName(hwnd, className, className.Capacity);
-            if (title.ToString().Contains("造梦") || className.ToString().Contains("ApolloRuntimeContentWindow"))
-                windows.Add(new StudioWindow(hwnd, title.ToString(), className.ToString()));
-            return true;
-        }, 0);
-        return windows;
+        if (!OperatingSystem.IsWindows() || !MaaProcessorManager.IsInstanceCreated) return Array.Empty<StudioWindow>();
+        var manager = MaaProcessorManager.Instance;
+        var taskPage = manager.GetViewModel(manager.Current.InstanceId);
+        return taskPage?.GetScriptRecordingWindows()
+            .Select(window => new StudioWindow(window.Handle, window.Name, window.ClassName)).ToList()
+            ?? new List<StudioWindow>();
     }
 }

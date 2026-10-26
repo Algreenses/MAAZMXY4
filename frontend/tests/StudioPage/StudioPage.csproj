@@ -13,6 +13,7 @@
     <Compile Include="../../ScriptStudio/ViewModels/Pages/ScriptStudioViewModel.cs" Link="ScriptStudioViewModel.cs" />
     <Compile Include="../../ScriptStudio/Controls/*.cs" Link="Controls/%(Filename)%(Extension)" />
     <Compile Include="../../ScriptStudio/Services/StudioCapturePresentation.cs" Link="StudioCapturePresentation.cs" />
+    <Compile Include="../../ScriptStudio/Services/StudioWindows.cs" Link="StudioWindows.cs" />
     <AvaloniaResource Include="../../ScriptStudio/Assets/studio-toolbar-solid.png" Link="Assets/studio-toolbar-solid.png" />
   </ItemGroup>
 </Project>

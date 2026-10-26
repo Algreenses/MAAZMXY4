@@ -1,0 +1,6 @@
+{
+  "description": "Reuse task-page discovery, selected-controller filters and selected-window ordering for recording without connecting devices.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    private (ObservableCollection<object> devices, int index) DetectDesktopWindows(MaaControllerTypes controllerType)",
+  "replace": "    public IReadOnlyList<DesktopWindowInfo> GetScriptRecordingWindows()\n    {\n        if (CurrentController != MaaControllerTypes.Win32) return Array.Empty<DesktopWindowInfo>();\n        var windows = MaaProcessor.Toolkit.Desktop.Window.Find().Where(window => !string.IsNullOrWhiteSpace(window.Name)).ToList();\n        var (index, filtered) = CalculateWindowIndex(windows, CurrentController);\n        if (index > 0 && index < filtered.Count)\n        {\n            var selected = filtered[index];\n            filtered.RemoveAt(index);\n            filtered.Insert(0, selected);\n        }\n        return filtered;\n    }\n\n    private (ObservableCollection<object> devices, int index) DetectDesktopWindows(MaaControllerTypes controllerType)"
+}

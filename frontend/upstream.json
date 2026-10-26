@@ -25,6 +25,7 @@
     "frontend/patches/10-agent-connection-health.json",
     "frontend/patches/11-script-studio-icons.json",
     "frontend/patches/12-option-default-array.json",
-    "frontend/patches/13-option-default-string.json"
+    "frontend/patches/13-option-default-string.json",
+    "frontend/patches/14-shared-recording-windows.json"
   ]
 }

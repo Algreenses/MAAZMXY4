@@ -20,12 +20,13 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
         var failed = 0;
-        foreach (var test in new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization })
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController };
+        foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
             catch (Exception error) { failed++; Console.WriteLine("FAIL " + test.Method.Name + ": " + error.Message); }
         }
-        Console.WriteLine($"{3-failed}/3 page regression checks passed; no real processes, hooks, or game input were used.");
+        Console.WriteLine($"{tests.Length-failed}/{tests.Length} page regression checks passed; no real processes, hooks, or game input were used.");
         return failed == 0 ? 0 : 1;
     }
 
@@ -36,12 +37,12 @@ internal static class Program
     private static (Window Window, ScriptStudioView View, ScriptStudioViewModel Model) Open(bool active, int failures = 0)
     {
         MaaProcessor.Processors.Clear(); MaaProcessor.Processors.Add(new() { IsTaskRunActive = active });
-        StudioWindows.ListCalls = 0;
+        WindowFixture.ListCalls = 0;
         var model = new ScriptStudioViewModel(); model.Client.FailLists = failures;
         var view = new ScriptStudioView(model);
         var window = new Window { Content = view, Width = 1200, Height = 800 };
         window.Show(); Dispatcher.UIThread.RunJobs();
-        Console.WriteLine($"TRACE attached active={active} lists={model.Client.Calls.Count(x => x == "list")} windows={StudioWindows.ListCalls} initialized={Field<bool>(view,"_initialized")} status={Field<TextBlock>(view,"_status").Text}");
+        Console.WriteLine($"TRACE attached active={active} lists={model.Client.Calls.Count(x => x == "list")} windows={WindowFixture.ListCalls} initialized={Field<bool>(view,"_initialized")} status={Field<TextBlock>(view,"_status").Text}");
         return (window, view, model);
     }
     private static void Close(Window window, ScriptStudioViewModel model)
@@ -54,7 +55,7 @@ internal static class Program
         try
         {
             Check(Field<ListBox>(view,"_library").ItemCount == 2, "first open must show both scripts while a task runs");
-            Check(StudioWindows.ListCalls == 1, "read-only window discovery must run");
+            Check(WindowFixture.ListCalls == 1, "read-only window discovery must run");
             Check(!Field<Button>(view,"_record").IsEnabled, "recording must remain disabled");
         }
         finally { Close(window, model); }
@@ -89,6 +90,15 @@ internal static class Program
         }
         finally { Close(window, model); }
     }
+    private static void RecordingUsesCurrentTaskController()
+    {
+        WindowFixture.Windows = new[] { new WindowFixture(7,"Alternate game client","OtherWindowClass"), new WindowFixture(3,"Second client","OtherWindowClass") };
+        var before = WindowFixture.ListCalls;
+        var windows = StudioWindows.List();
+        Check(WindowFixture.ListCalls == before+1, "recording must query the current task page instead of enumerating with its own filters");
+        Check(windows.Select(x=>x.Handle).SequenceEqual(new nint[] { 7,3 }), "recording must keep the host-selected ordering and support arbitrary titles/classes");
+        Check(windows[0].Title == "Alternate game client", "recording must use the host-provided labels");
+    }
 }
 
 internal sealed class TestApplication : Application
@@ -105,16 +115,23 @@ namespace MFAAvalonia.Extensions.MaaFW
     {
         public static List<MaaProcessor> Processors { get; } = new();
         public bool IsTaskRunActive { get; set; }
+        public string InstanceId => "fixture";
+    }
+    public sealed class MaaProcessorManager
+    {
+        public static bool IsInstanceCreated => true;
+        public static MaaProcessorManager Instance { get; } = new();
+        public MaaProcessor Current { get; } = new();
+        public WindowFixture GetViewModel(string instanceId) => new(0,"","");
     }
 }
 namespace MFAAvalonia.Services
 {
-    public sealed record StudioWindow(nint Handle, string Title, string ClassName);
-    public static class StudioWindows
+    public sealed record WindowFixture(nint Handle, string Name, string ClassName)
     {
         public static int ListCalls;
-        public static IReadOnlyList<StudioWindow> List() { ListCalls++; return new[] { new StudioWindow(1,"Fixture window","Fixture") }; }
-        public static int VirtualKeyFromKey(Avalonia.Input.Key key) => 65;
+        public static IReadOnlyList<WindowFixture> Windows = new[] { new WindowFixture(1,"Fixture window","Fixture") };
+        public IReadOnlyList<WindowFixture> GetScriptRecordingWindows() { ListCalls++; return Windows; }
     }
     public static class ScriptStudioGuard
     {
