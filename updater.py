@@ -262,12 +262,6 @@ class Updater(tk.Tk):
         self.title("MAA造梦西游4 更新")
         self.resizable(False, False)
         self.configure(padx=18, pady=14)
-        self.update_idletasks()
-        w, h = 420, 190
-        x = (self.winfo_screenwidth() - w) // 2
-        y = (self.winfo_screenheight() - h) // 3
-        self.geometry("%dx%d+%d+%d" % (w, h, x, y))
-        self._center = (w, h, x, y)
 
         tk.Label(self, text="发现新版本 v%s" % remote.get("version"),
                  font=("Microsoft YaHei UI", 13, "bold")).pack(anchor="w")
@@ -293,6 +287,14 @@ class Updater(tk.Tk):
         self.btn_skip.pack(side="left", padx=(0, 8))
         self.btn_ok = tk.Button(btns, text="立即更新", width=10, command=self.on_update)
         self.btn_ok.pack(side="left")
+
+        # 窗口高度按实际内容算：说明文字长短不一，写死高度会把底部按钮裁掉。
+        self.update_idletasks()
+        w = max(460, self.winfo_reqwidth())
+        h = self.winfo_reqheight()
+        x = (self.winfo_screenwidth() - w) // 2
+        y = (self.winfo_screenheight() - h) // 3
+        self.geometry("%dx%d+%d+%d" % (w, h, x, y))
 
     def on_skip(self):
         remember_skip(self.remote.get("version"))
