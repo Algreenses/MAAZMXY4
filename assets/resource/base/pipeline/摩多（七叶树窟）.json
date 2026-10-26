@@ -6,8 +6,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "示例-最小",
-          "speed": 1
+          "file": "@task:task-b45fc06b6915a7790b8255079a5e1e8c",
+          "speed": 1,
+          "script_binding": {
+            "recorded_return_next": [
+              "摩多（七叶树窟）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -172,5 +177,25 @@
         "display": "log"
       }
     }
+  },
+  "摩多（七叶树窟）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "七叶树窟.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "摩多（七叶树窟）-刷取次数",
+      "停止运行"
+    ]
   }
 }

@@ -1,0 +1,472 @@
+{
+  "version": 1,
+  "name": "守卫宝烛_雷",
+  "base": [
+    1148,
+    720
+  ],
+  "actions": [
+    {
+      "t": 412,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 88,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 76,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 2428,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 144,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 144,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1176,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 104,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1148,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 104,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1672,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 880,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 16,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1248,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 136,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1120,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 748,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 664,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 120,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 1292,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 592,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 368,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1148,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 156,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 992,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 144,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1060,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 260,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 0,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 160,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 61,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 63,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1352,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 132,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 992,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 160,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 884,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 492,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 160,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 112,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1172,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 164,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 312,
+      "op": "keydown",
+      "key": 32
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 32
+    },
+    {
+      "t": 664,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 176,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1200,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 232,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 24,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 728,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 392,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 116,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 140,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1036,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 132,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 646,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 378,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 16,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 140,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 92,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 56,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1008,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 200,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 120,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 760,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 152,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 680,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 156,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1180,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 936,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 496,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 1545,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 71,
+      "op": "down",
+      "x": 703,
+      "y": 674,
+      "button": "left"
+    },
+    {
+      "t": 4,
+      "op": "move",
+      "x": 703,
+      "y": 674
+    },
+    {
+      "t": 66,
+      "op": "up",
+      "x": 704,
+      "y": 674,
+      "button": "left"
+    },
+    {
+      "t": 782,
+      "op": "down",
+      "x": 589,
+      "y": 283,
+      "button": "left"
+    },
+    {
+      "t": 78,
+      "op": "up",
+      "x": 589,
+      "y": 283,
+      "button": "left"
+    }
+  ],
+  "duration_ms": 41407,
+  "editor": {
+    "markers": [
+      {
+        "id": "585c1d14-dd6b-5119-8118-33c1683108fd",
+        "at_ms": 1,
+        "label": "暂停：请切回游戏窗口后按 F8 开始"
+      },
+      {
+        "id": "00dcec54-7464-5a97-9881-99a7f1dfa4fc",
+        "at_ms": 1,
+        "label": "继续录制"
+      },
+      {
+        "id": "5bedfbb3-0c1c-5281-b594-74df6319bc8d",
+        "at_ms": 41407,
+        "label": "暂停：目标窗口失焦"
+      },
+      {
+        "id": "2b721036-0be8-5ac2-b61b-13d068be3fe3",
+        "at_ms": 41407,
+        "label": "录制停止"
+      }
+    ]
+  },
+  "notes": "",
+  "description": "",
+  "builtin_id": "1916fd0b-589f-4612-818f-e68e692b463d"
+}

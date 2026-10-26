@@ -1,0 +1,6 @@
+{
+  "description": "Embed the imagegen toolbar atlas in the existing Avalonia resource system.",
+  "path": "MFAAvalonia/MFAAvalonia.csproj",
+  "find": "        <AvaloniaResource Include=\"Assets\\Sound\\**\" />",
+  "replace": "        <AvaloniaResource Include=\"Assets\\Sound\\**\" />\n        <AvaloniaResource Include=\"Assets\\studio-toolbar-solid.png\" />"
+}

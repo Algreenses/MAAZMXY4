@@ -1,0 +1,54 @@
+name: Script studio
+on:
+  pull_request:
+    paths:
+      - 'agent/**'
+      - 'assets/**'
+      - 'frontend/**'
+      - 'tests/**'
+      - 'tools/build_frontend.ps1'
+      - 'tools/migrate_zaomeng_scripts.py'
+      - 'tools/sync_task_assets.py'
+      - 'tools/build_update.py'
+      - 'tools/install.py'
+      - 'updater.py'
+      - '新图标.ico'
+      - '.github/workflows/script-studio.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline recording, import, editing and playback tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Native task recovery policy checks without processes or input
+        shell: pwsh
+        run: dotnet run --project frontend/tests/NativeRecovery/NativeRecovery.csproj -c Release
+      - name: Script page lifecycle and controller reuse checks
+        shell: pwsh
+        run: dotnet run --project frontend/tests/StudioPage/StudioPage.csproj -c Release
+      - name: Script worker disconnect and protocol fault injection
+        shell: pwsh
+        run: dotnet run --project frontend/tests/StudioClient/StudioClient.csproj -c Release
+      - name: Build native MFAAvalonia page
+        shell: pwsh
+        run: ./tools/build_frontend.ps1
+      - name: Save frontend for assembling the manually distributed client
+        uses: actions/upload-artifact@v4
+        with:
+          name: script-studio-frontend-win-x64
+          path: |
+            dist/script-studio/MFAAvalonia.*
+            dist/script-studio/libloader.dll
+            dist/script-studio/libs/
+            dist/script-studio/runtimes/win-x64/native/
+            dist/script-studio/script-studio-build.json
+            dist/script-studio/LICENSE-MFAAvalonia.txt
+          if-no-files-found: error

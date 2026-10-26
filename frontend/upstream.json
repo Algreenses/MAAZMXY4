@@ -1,0 +1,35 @@
+{
+  "repository": "MaaXYZ/MFAAvalonia",
+  "commit": "1080d3e1500f3439ac896ab2eca9aeb8e885f1f4",
+  "core_version": "2.14.0",
+  "archive_url": "https://codeload.github.com/MaaXYZ/MFAAvalonia/zip/1080d3e1500f3439ac896ab2eca9aeb8e885f1f4",
+  "archive_sha256": "351ecf655c7bfeb2b70e3285f727d7bb44061a136a215df095eeefd3bab5eb64",
+  "cache_directory": ".runtime-cache/mfa-source-1080d3e",
+  "project": "MFAAvalonia.Desktop/MFAAvalonia.Desktop.csproj",
+  "overlay_directory": "frontend/ScriptStudio",
+  "runtime_identifier": "win-x64",
+  "application_icon": "新图标.ico",
+  "retired_overlay_files": [
+    "Services/BountyCandleRecovery.cs",
+    "Services/BountyCandleRecoveryPolicy.cs"
+  ],
+  "patches": [
+    "frontend/patches/01-script-studio-navigation.json",
+    "frontend/patches/02-script-studio-registration.json",
+    "frontend/patches/03-script-studio-task-guard.json",
+    "frontend/patches/04-selected-win32-controller.json",
+    "frontend/patches/05-selected-controller-resource.json",
+    "frontend/patches/06-task-script-execution.json",
+    "frontend/patches/07-win32-recovery-rebind.json",
+    "frontend/patches/08-task-stop-race.json",
+    "frontend/patches/09-agent-callbacks-only.json",
+    "frontend/patches/10-agent-connection-health.json",
+    "frontend/patches/11-script-studio-icons.json",
+    "frontend/patches/12-option-default-array.json",
+    "frontend/patches/13-option-default-string.json",
+    "frontend/patches/14-shared-recording-windows.json",
+    "frontend/patches/15-manual-frontend-version-check.json",
+    "frontend/patches/16-manual-frontend-download.json",
+    "frontend/patches/17-manual-frontend-help.json"
+  ]
+}

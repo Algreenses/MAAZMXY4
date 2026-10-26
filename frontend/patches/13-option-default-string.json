@@ -1,0 +1,6 @@
+{
+  "description": "Apply the same declared-default behavior to single-string options; saved object indices stay unchanged.",
+  "path": "MFAAvalonia/Helper/Converters/MaaInterfaceSelectOptionConverter.cs",
+  "find": "Name = oName ?? \"\",\n                        Index = 0",
+  "replace": "Name = oName ?? \"\",\n                        Index = null"
+}

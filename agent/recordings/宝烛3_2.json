@@ -1,0 +1,384 @@
+{
+  "version": 1,
+  "name": "宝烛3_2",
+  "base": [
+    1148,
+    720
+  ],
+  "actions": [
+    {
+      "t": 729,
+      "op": "down",
+      "x": 852,
+      "y": 445,
+      "button": "left"
+    },
+    {
+      "t": 87,
+      "op": "up",
+      "x": 852,
+      "y": 445,
+      "button": "left"
+    },
+    {
+      "t": 899,
+      "op": "down",
+      "x": 846,
+      "y": 361,
+      "button": "left"
+    },
+    {
+      "t": 80,
+      "op": "up",
+      "x": 846,
+      "y": 361,
+      "button": "left"
+    },
+    {
+      "t": 10820,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 87,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 77,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 2507,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 177,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 115,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1209,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 99,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 958,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 107,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 131,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 913,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 307,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 2041,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 115,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1333,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 116,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1265,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 143,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1340,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 168,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 204,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 112,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1820,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1264,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 144,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1604,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 168,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 264,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 224,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 109,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 143,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 972,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 224,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1256,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 64,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 12,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 96,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 957,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 71,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 36,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 80,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 84,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 68,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 2640,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 80,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 116,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1192,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 152,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 732,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 156,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 64,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 88,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 28,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 137,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1670,
+      "op": "down",
+      "x": 710,
+      "y": 671,
+      "button": "left"
+    },
+    {
+      "t": 59,
+      "op": "up",
+      "x": 710,
+      "y": 671,
+      "button": "left"
+    },
+    {
+      "t": 1213,
+      "op": "down",
+      "x": 591,
+      "y": 265,
+      "button": "left"
+    },
+    {
+      "t": 65,
+      "op": "up",
+      "x": 591,
+      "y": 265,
+      "button": "left"
+    }
+  ],
+  "duration_ms": 51514,
+  "editor": {
+    "markers": [
+      {
+        "id": "9ec99740-d478-580e-80ac-253f6c508fc1",
+        "at_ms": 51514,
+        "label": "暂停：目标窗口失焦"
+      },
+      {
+        "id": "2fa1d44c-ee70-5f34-b2a4-e14fb9b9383d",
+        "at_ms": 51514,
+        "label": "录制停止"
+      }
+    ]
+  },
+  "notes": "",
+  "description": "",
+  "builtin_id": "b82eff83-cdaa-47ea-b9ac-8acfb003ef9a"
+}

@@ -33,8 +33,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "示例-最小",
-          "speed": 1
+          "file": "@task:task-84721e228779a69a61fb97bd2e1fc9ca",
+          "speed": 1,
+          "script_binding": {
+            "recorded_return_next": [
+              "烛时（钟晷极地）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -175,5 +180,25 @@
       }
     },
     "post_delay": 1000
+  },
+  "烛时（钟晷极地）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "钟晷极地.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "烛时（钟晷极地）-刷取次数",
+      "停止运行"
+    ]
   }
 }

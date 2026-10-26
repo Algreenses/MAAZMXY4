@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "source": "ZaoMengScript",
+  "items": [
+    {
+      "id": "1916fd0b-589f-4612-818f-e68e692b463d",
+      "file": "守卫宝烛_雷.json",
+      "name": "守卫宝烛_雷",
+      "sha256": "da69e95735aaea694de35166b2f556e89efc8d87302827750fa2d4af762e3f29"
+    },
+    {
+      "id": "2865f773-1b20-44ca-90c2-8104eb5ff1f1",
+      "file": "守卫宝烛_雷_2.json",
+      "name": "守卫宝烛_雷_2",
+      "sha256": "73d2538644586eccc9b5e698dc2edba83fb44c87d89f304ae8e8936b1ccb9847"
+    },
+    {
+      "id": "2cdbf199-c62d-444c-a8f6-f70fa1c20cdd",
+      "file": "通用版本.json",
+      "name": "通用版本",
+      "sha256": "cbb2cd30188bb67855ff505e8a0b90dd89cf5a87662f41428346f9c9ea105392"
+    },
+    {
+      "id": "b82eff83-cdaa-47ea-b9ac-8acfb003ef9a",
+      "file": "宝烛3_2.json",
+      "name": "宝烛3_2",
+      "sha256": "6d817da0b5cc482ef617c8a5a56f0bb4211c9468d5a5e42253eb3d3199809ba9"
+    },
+    {
+      "id": "c70d40bf-a1f5-5174-9094-2dce4c32cef7",
+      "file": "守卫宝烛_雷 · 任务片段.json",
+      "name": "守卫宝烛_雷 · 任务片段",
+      "sha256": "7407df67eb8bc7e0502fcb7525b96b5bf9e3be36abebc95db053b37adf417367"
+    },
+    {
+      "id": "e0e572fc-8e41-4b2f-ba0a-ca80533709da",
+      "file": "须弥山宝烛4位置.json",
+      "name": "须弥山宝烛4位置",
+      "sha256": "c2eae663f739f5713c10cde2cd0d42f16cc5237cc2411d9b8844ac739f929ef3"
+    },
+    {
+      "id": "f92991a7-428f-44e5-88d4-7b3554c8ce2d",
+      "file": "须弥山宝烛3位置.json",
+      "name": "须弥山宝烛3位置",
+      "sha256": "800532b8b04be6c77ea652ee0c88259b7de72b8302468590fc1867cf41f42fdb"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "file": "示例-移动与攻击.json",
+      "name": "示例-移动与攻击",
+      "sha256": "e167455df2cdf101a33d22bc32cdbc77b565556cb57e006494a7d0fa1f6f2566"
+    }
+  ],
+  "initial_bindings": [
+    {
+      "task_id": "bounty-candle",
+      "default_id": "2865f773-1b20-44ca-90c2-8104eb5ff1f1",
+      "mode": "pipeline"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import adventure
 import battle_player
 import loop_counter
 import battle_record
+import script_task
 
 # 掉落预判是本地私有扩展（adventure_drops.py / adventure_drops_action.py 不入库），
 # 公开仓库里没有这两个文件，缺了就跳过，不影响其它任务。

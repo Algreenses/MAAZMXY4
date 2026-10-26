@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "retired_tasks": [
+    { "name": "录制战斗过程", "entry": "录制战斗过程_开始" },
+    { "name": "打开录制文件夹", "entry": "打开录制文件夹_开始" }
+  ],
+  "retired_options": ["回放文件", "任务脚本来源"]
+}

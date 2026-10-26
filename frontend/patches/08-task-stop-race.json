@@ -1,0 +1,6 @@
+{
+  "description": "Keep one tasker reference when a user Stop races native recovery detachment.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    private MaaJobStatus AbortCurrentTasker()\n    {\n        if (MaaTasker == null)\n            return MaaJobStatus.Succeeded;\n        var status = MaaTasker.Stop().Wait();\n\n        return status;\n    }",
+  "replace": "    private MaaJobStatus AbortCurrentTasker()\n    {\n        // Recovery can detach the property concurrently with a user Stop.\n        // Keep the same tasker alive for the null check and native Stop call.\n        var tasker = MaaTasker;\n        if (tasker == null)\n            return MaaJobStatus.Succeeded;\n        var status = tasker.Stop().Wait();\n\n        return status;\n    }"
+}

@@ -1,0 +1,414 @@
+using System.Text.Json.Nodes;
+using MFAAvalonia.Services;
+
+var tests = new List<(string Name, Func<Task> Run)>();
+var enabled = new TaskRecoveryOptions(true, 3, 1, Path.GetFullPath("game.exe"));
+TaskAttempt Good() => new(TaskAttemptStatus.Success);
+TaskAttempt White() => new(TaskAttemptStatus.Recoverable, "white_screen");
+TaskAttempt Ready() => new(TaskAttemptStatus.Ready);
+void Require(bool value) { if (!value) throw new Exception("Assertion failed"); }
+async Task Throws<T>(Func<Task> action) where T : Exception
+{
+    try { await action(); }
+    catch (T) { return; }
+    throw new Exception("Expected " + typeof(T).Name);
+}
+Task<TaskAttempt> NoRecovery(int slot, int attempt, CancellationToken token) => throw new Exception("Recovery must not run");
+void Test(string name, Func<Task> run) => tests.Add((name, run));
+void Sync(string name, Action action) => Test(name, () => { action(); return Task.CompletedTask; });
+
+Test("success completes exactly one round", async () =>
+{
+    var calls = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled, _ => { calls++; return Task.FromResult(Good()); }, NoRecovery, default);
+    Require(result.Status == TaskAttemptStatus.Success && calls == 1);
+});
+Test("disabled recovery stops after first failure", async () =>
+{
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = false }, _ => Task.FromResult(White()), NoRecovery, default);
+    Require(result.Status == TaskAttemptStatus.Recoverable);
+});
+Test("fatal and unknown failures never restart", async () =>
+{
+    foreach (var outcome in new[] { TaskAttempt.Fatal("unaccepted"), new TaskAttempt(TaskAttemptStatus.Recoverable, "unknown_screen") })
+    {
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled, _ => Task.FromResult(outcome), NoRecovery, default);
+        Require(result.Status == TaskAttemptStatus.Fatal);
+    }
+});
+Test("recovery retries same round without extra completion", async () =>
+{
+    var runs = 0; var restarts = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(++runs == 1 ? White() : Good()),
+        (slot, attempt, _) => { Require(slot == 1 && attempt == 1); restarts++; return Task.FromResult(Ready()); }, default);
+    Require(result.Status == TaskAttemptStatus.Success && runs == 2 && restarts == 1);
+});
+Test("three restart budget is enforced", async () =>
+{
+    var runs = 0; var restarts = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { runs++; return Task.FromResult(White()); },
+        (_, attempt, _) => { Require(attempt == ++restarts); return Task.FromResult(Ready()); }, default);
+    Require(result.Status == TaskAttemptStatus.Fatal && runs == 4 && restarts == 3);
+});
+Test("success resets the next MFA round budget", async () =>
+{
+    var restarts = 0;
+    for (var round = 0; round < 2; round++)
+    {
+        var runs = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+            _ => Task.FromResult(++runs < 4 ? White() : Good()),
+            (_, attempt, _) => { Require(attempt is >= 1 and <= 3); restarts++; return Task.FromResult(Ready()); }, default);
+        Require(result.Status == TaskAttemptStatus.Success);
+    }
+    Require(restarts == 6);
+});
+Test("cancellation before task prevents all work", async () =>
+{
+    using var cancel = new CancellationTokenSource(); cancel.Cancel();
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => throw new Exception("Task must not run"), NoRecovery, cancel.Token));
+});
+Test("stop during failed task prevents restart", async () =>
+{
+    using var cancel = new CancellationTokenSource();
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { cancel.Cancel(); return Task.FromResult(White()); }, NoRecovery, cancel.Token));
+});
+Test("stop during restart prevents retry input", async () =>
+{
+    using var cancel = new CancellationTokenSource(); var calls = 0;
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { calls++; return Task.FromResult(White()); },
+        (_, _, _) => { cancel.Cancel(); return Task.FromResult(Ready()); }, cancel.Token));
+    Require(calls == 1);
+});
+Test("startup failure ends recovery without another round", async () =>
+{
+    var calls = 0;
+    await Throws<IOException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { calls++; return Task.FromResult(White()); },
+        (_, _, _) => throw new IOException("start failed"), default));
+    Require(calls == 1);
+});
+Test("login fatal stops without replaying round", async () =>
+{
+    var calls = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { calls++; return Task.FromResult(White()); },
+        (_, _, _) => Task.FromResult(TaskAttempt.Fatal("captcha")), default);
+    Require(result.Status == TaskAttemptStatus.Fatal && calls == 1);
+});
+Test("white screen during login consumes remaining restart budget", async () =>
+{
+    var calls = 0; var retries = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => { calls++; return Task.FromResult(White()); },
+        (_, _, _) => { retries++; return Task.FromResult(White()); }, default);
+    Require(result.Status == TaskAttemptStatus.Fatal && retries == 3 && calls == 1);
+});
+Sync("stale and cross-instance checkpoints are rejected", () =>
+{
+    JsonObject State(string run, string instance, string status) => new() { ["version"] = 1, ["run_id"] = run, ["instance_id"] = instance, ["status"] = status };
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("old", "a", "success"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "b", "success"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "running"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "ready"), "new", "a", false).Status == TaskAttemptStatus.Fatal);
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "success"), "new", "a", true).Status == TaskAttemptStatus.Fatal);
+    Require(TaskRecoveryPolicy.ReadCheckpoint(State("new", "a", "ready"), "new", "a", true).Status == TaskAttemptStatus.Ready);
+});
+Sync("only the selected PID and start identity can be ended", () =>
+{
+    var expected = new TaskProcessIdentity(12, 100, Path.GetFullPath("game.exe"));
+    expected.RequireSame(expected);
+    foreach (var wrong in new[] { expected with { Pid = 13 }, expected with { StartedUtcTicks = 101 }, expected with { ExePath = Path.GetFullPath("other.exe") } })
+    {
+        try { expected.RequireSame(wrong); throw new Exception("Identity should fail"); }
+        catch (InvalidOperationException) { }
+    }
+});
+Sync("configured executable cannot silently target a launcher", () =>
+{
+    var expected = new TaskProcessIdentity(12, 100, Path.GetFullPath("game.exe"));
+    try { expected.RequireConfiguredPath(Path.GetFullPath("launcher.exe")); throw new Exception("Path should fail"); }
+    catch (InvalidOperationException) { }
+});
+Sync("other running instance sharing the PID blocks restart", () =>
+{
+    TaskRecoveryPolicy.RequireExclusivePid(12, new[] { 13, 14 });
+    try { TaskRecoveryPolicy.RequireExclusivePid(12, new[] { 12, 14 }); throw new Exception("Shared process should fail"); }
+    catch (InvalidOperationException) { }
+});
+Sync("old process windows are rejected and new ambiguity stops", () =>
+{
+    Require(!TaskRecoveryPolicy.SelectUniqueWindow(new[] { (Pid: 1, Handle: 11) }, w => w.Pid, 2).Found);
+    var selected = TaskRecoveryPolicy.SelectUniqueWindow(new[] { (Pid: 1, Handle: 11), (Pid: 2, Handle: 21) }, w => w.Pid, 2);
+    Require(selected.Found && selected.Window.Handle == 21);
+    try { TaskRecoveryPolicy.SelectUniqueWindow(new[] { (Pid: 2, Handle: 21), (Pid: 2, Handle: 22) }, w => w.Pid, 2); throw new Exception("Ambiguity should fail"); }
+    catch (InvalidOperationException) { }
+});
+Sync("policy rejects unreviewable paths and invalid limits", () =>
+{
+    foreach (var invalid in new[]
+    {
+        "{\"enabled\":true,\"exe_path\":\"game.exe\"}",
+        "{\"enabled\":true,\"exe_path\":\"C:/game.cmd\"}",
+        "{\"max_retries\":4}", "{\"save_slot\":0}"
+    })
+    {
+        try { TaskRecoveryOptions.Read(new() { ["recovery"] = JsonNode.Parse(invalid) }); throw new Exception("Policy should fail"); }
+        catch (InvalidDataException) { }
+    }
+    Require(!TaskRecoveryOptions.Read(new()).Enabled);
+});
+Sync("complete native parameters survive object replacement semantics", () =>
+{
+    var parameters = new JsonObject { ["file"] = "chosen.json", ["exit_mode"] = "battle_only" };
+    TaskRecoveryPolicy.CompleteParameters(parameters, enabled, false);
+    parameters["run_id"] = "nonce";
+    Require(parameters["phase"]!.GetValue<string>() == "begin");
+    Require(parameters["file"]!.GetValue<string>() == "chosen.json" && parameters["exit_mode"]!.GetValue<string>() == "battle_only");
+    Require(parameters["recovery"]!["enabled"]!.GetValue<bool>());
+    var defaults = new JsonObject();
+    TaskRecoveryPolicy.CompleteParameters(defaults, enabled with { SaveSlot = 4 }, true);
+    Require(defaults["phase"]!.GetValue<string>() == "recovery_begin");
+    Require(defaults["file"] == null);
+    Require(defaults["exit_mode"] == null);
+    Require(defaults["save_slot"]!.GetValue<int>() == 4);
+});
+Sync("actual MaaToken ordered option array keeps file mode and enabled recovery inputs", () =>
+{
+    const string entry = "悬赏（任务）-初始化";
+    JsonObject Override(JsonObject parameters) => new()
+    {
+        [entry] = new JsonObject { ["action"] = new JsonObject { ["param"] = new JsonObject { ["custom_action_param"] = parameters } } }
+    };
+    var serialized = new JsonArray
+    {
+        Override(new() { ["file"] = "@selected:strict" }),
+        Override(new() { ["exit_mode"] = "battle_only" }),
+        Override(new() { ["recovery"] = new JsonObject { ["enabled"] = true } }),
+        Override(new() { ["recovery"] = new JsonObject { ["exe_path"] = enabled.ExePath } }),
+        Override(new() { ["recovery"] = new JsonObject { ["save_slot"] = "4", ["max_retries"] = "2" } })
+    }.ToJsonString();
+    var merged = TaskRecoveryPolicy.MergePipelineOverrides(serialized);
+    var parameters = merged[entry]!["action"]!["param"]!["custom_action_param"]!.AsObject();
+    var options = TaskRecoveryOptions.Read(parameters);
+    TaskRecoveryPolicy.CompleteParameters(parameters, options, false);
+    Require(parameters["file"]!.GetValue<string>() == "@selected:strict");
+    Require(parameters["exit_mode"]!.GetValue<string>() == "battle_only");
+    Require(parameters["phase"]!.GetValue<string>() == "begin");
+    Require(options.Enabled && options.SaveSlot == 4 && options.MaxRetries == 2 && options.ExePath == enabled.ExePath);
+    Require(merged[entry]!["action"]!["param"]!["custom_action_param"]!["recovery"]!["enabled"]!.GetValue<bool>());
+});
+Sync("option merge respects order and replaces next lists", () =>
+{
+    var result = TaskRecoveryPolicy.MergePipelineOverrides("[{\"node\":{\"next\":[\"old\"],\"flag\":1}},{\"node\":{\"next\":[\"new\"],\"flag\":2}}]");
+    Require(result["node"]!["flag"]!.GetValue<int>() == 2);
+    Require(result["node"]!["next"]!.AsArray().Count == 1 && result["node"]!["next"]![0]!.GetValue<string>() == "new");
+    Require(TaskRecoveryPolicy.MergePipelineOverrides("[]").Count == 0);
+    Require(TaskRecoveryPolicy.MergePipelineOverrides("{}").Count == 0);
+    try { TaskRecoveryPolicy.MergePipelineOverrides("[17]"); throw new Exception("Invalid option should fail"); }
+    catch (InvalidDataException) { }
+});
+Sync("same round pins script filename and bytes across automatic recovery", () =>
+{
+    var first = new JsonObject { ["recording_file"] = "任务.json", ["recording_sha256"] = new string('a', 64) };
+    var revision = new TaskRecordingRevision();
+    revision.Observe(first);
+    var retry = new JsonObject(); revision.Apply(retry);
+    Require(retry["expected_recording_file"]!.GetValue<string>() == "任务.json");
+    Require(retry["expected_recording_sha256"]!.GetValue<string>() == new string('a', 64));
+    revision.Observe(new()); // Login ready has no new recording and cannot clear the pin.
+    foreach (var changed in new[]
+    {
+        new JsonObject { ["recording_file"] = "other.json", ["recording_sha256"] = new string('a', 64) },
+        new JsonObject { ["recording_file"] = "任务.json", ["recording_sha256"] = new string('b', 64) }
+    })
+    {
+        try { revision.Observe(changed); throw new Exception("Changed script should stop recovery"); }
+        catch (InvalidDataException) { }
+    }
+    Require(revision.Sha256 == new string('a', 64));
+});
+Sync("next MFA round can adopt a newly saved script revision", () =>
+{
+    var next = new TaskRecordingRevision();
+    next.Observe(new() { ["recording_file"] = "new.json", ["recording_sha256"] = new string('b', 64) });
+    Require(next.FileName == "new.json" && next.Sha256 == new string('b', 64));
+});
+Sync("only matching capture failures may be checked for positive window loss", () =>
+{
+    JsonObject State(string status, string reason, string run = "new") => new()
+    {
+        ["version"] = 1, ["run_id"] = run, ["instance_id"] = "default", ["status"] = status, ["reason"] = reason
+    };
+    Require(TaskRecoveryPolicy.IsCaptureLossCandidate(State("running", ""), "new", "default"));
+    Require(TaskRecoveryPolicy.IsCaptureLossCandidate(State("fatal", "capture_unavailable"), "new", "default"));
+    foreach (var state in new[] { State("fatal", "unknown_screen"), State("fatal", "recording_changed"),
+        State("fatal", "not_accepted"), State("cancelled", "capture_unavailable"), State("running", "", "old") })
+        Require(!TaskRecoveryPolicy.IsCaptureLossCandidate(state, "new", "default"));
+});
+Sync("client restoration accounts for borders without changing recording scale", () =>
+{
+    var original = new TaskWindowSize(1175, 737);
+    var target = original.OuterSizeFor(new(1000, 600), new(1016, 639));
+    Require(target == new TaskWindowSize(1191, 776));
+    Require(original.OuterSizeFor(original, new(1191, 776)) == new TaskWindowSize(1191, 776));
+    foreach (var invalid in new[] { new TaskWindowSize(0, 720), new TaskWindowSize(720, -1), new TaskWindowSize(40000, 720) })
+    {
+        try { invalid.OuterSizeFor(new(1000, 600), new(1016, 639)); throw new Exception("Invalid size should stop recovery"); }
+        catch (InvalidOperationException) { }
+    }
+    try { original.OuterSizeFor(new(1000, 600), new(900, 639)); throw new Exception("Invalid border should stop recovery"); }
+    catch (InvalidOperationException) { }
+});
+
+Test("old native input and Agent finish before process termination", async () =>
+{
+    var lifecycle = new FakeLifecycle();
+    var result = await TaskRecoveryPolicy.RestartAsync(lifecycle, 3, default);
+    Require(result.Status == TaskAttemptStatus.Ready && lifecycle.Slot == 3);
+    Require(string.Join(",", lifecycle.Calls) == "release,kill,start,bind,resize,connect,login");
+});
+Test("failed native input cleanup never kills the game", async () =>
+{
+    var lifecycle = new FakeLifecycle { FailAt = "release" };
+    await Throws<IOException>(() => TaskRecoveryPolicy.RestartAsync(lifecycle, 1, default));
+    Require(string.Join(",", lifecycle.Calls) == "release");
+});
+Test("cancellation at every lifecycle phase prevents subsequent work", async () =>
+{
+    var phases = new[] { "release", "kill", "start", "bind", "resize", "connect", "login" };
+    for (var i = 0; i < phases.Length; i++)
+    {
+        using var cancel = new CancellationTokenSource();
+        var lifecycle = new FakeLifecycle { CancelAfter = phases[i], Cancellation = cancel };
+        await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RestartAsync(lifecycle, 1, cancel.Token));
+        Require(lifecycle.Calls.SequenceEqual(phases.Take(i + 1)));
+    }
+});
+Test("window ambiguity prevents reconnect and login input", async () =>
+{
+    var lifecycle = new FakeLifecycle { FailAt = "bind" };
+    await Throws<IOException>(() => TaskRecoveryPolicy.RestartAsync(lifecycle, 1, default));
+    Require(string.Join(",", lifecycle.Calls) == "release,kill,start,bind");
+});
+Test("reconnect failure never attempts login", async () =>
+{
+    var lifecycle = new FakeLifecycle { FailAt = "connect" };
+    await Throws<IOException>(() => TaskRecoveryPolicy.RestartAsync(lifecycle, 1, default));
+    Require(string.Join(",", lifecycle.Calls) == "release,kill,start,bind,resize,connect");
+});
+
+Sync("countdown displays remaining seconds instead of elapsed recording time", () =>
+{
+    foreach (var state in new[] { "countdown", "resume_countdown" })
+    {
+        var text = StudioCapturePresentation.Title(new JsonObject { ["state"] = state, ["countdown_seconds"] = 2.1, ["elapsed_ms"] = 0 });
+        Require(text.Contains("3 秒") && !text.Contains("0.0"));
+    }
+    Require(StudioCapturePresentation.Title(JsonNode.Parse("{\"state\":\"paused\",\"elapsed_ms\":1500}")!.AsObject()).Contains("1.5"));
+});
+JsonObject Recording() => new() { ["file"] = "test.json", ["path"] = "C:/project/recordings/test.json", ["sha256"] = new string('a', 64) };
+Test("unbound task logs once and uses the host stopped path", async () =>
+{
+    var logs = new List<string>();
+    var plan = new JsonObject { ["handled"] = true, ["stop_reason"] = "unbound_script", ["message"] = "请先绑定脚本，本次任务已结束。" };
+    await Throws<OperationCanceledException>(() => { TaskScriptPlan.StopIfUnbound(plan, logs.Add, default); return Task.CompletedTask; });
+    Require(logs.Count == 1 && logs[0].Contains("绑定脚本"));
+    TaskScriptPlan.StopIfUnbound(new JsonObject { ["handled"] = false }, logs.Add, default);
+    Require(logs.Count == 1);
+});
+
+Sync("ordinary tasks retain flow and receive the selected script on playback nodes", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" }, ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight", "FightAgain") };
+    var result = TaskScriptPlan.Prepare(plan, "Start", "{\"Start\":{\"next\":[\"Fight\"]},\"Fight\":{\"action\":{\"param\":{\"custom_action_param\":{\"repeat\":2}}}}}");
+    Require(result.Entry == "Start" && result.Profile == null);
+    foreach (var node in new[] { "Fight", "FightAgain" })
+        Require(TaskScriptPlan.Parameters(result.Pipeline, node)["file"]!.GetValue<string>().EndsWith("test.json"));
+    Require(TaskScriptPlan.Parameters(result.Pipeline, "Fight")["repeat"]!.GetValue<int>() == 2);
+    Require(result.Pipeline["Start"]!["next"]![0]!.GetValue<string>() == "Fight");
+});
+Sync("replacement binding executes only a standalone native playback node", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "replace" }, ["recording"] = Recording() };
+    var result = TaskScriptPlan.Prepare(plan, "UnrelatedTask", "{\"UnrelatedTask\":{\"next\":[\"Other\"]}}");
+    Require(result.Entry != "UnrelatedTask" && result.Pipeline.Count == 1 && result.Profile == null);
+    Require(result.Pipeline[result.Entry]!["action"]!["param"]!["custom_action"]!.GetValue<string>() == "battle_play");
+    Require(result.Pipeline[result.Entry]!["next"]!.AsArray().Count == 0);
+});
+Sync("configured task profiles merge shared options without hardcoded task names", () =>
+{
+    var plan = JsonNode.Parse("{\"id\":\"task-custom\",\"profile\":{\"resume_entry\":\"LoginAgain\",\"parameters\":{\"playback_node\":\"Play\",\"execution\":{\"settings_node\":\"Settings\"},\"routes\":{\"done\":[\"Exit\"]},\"exit_mode\":\"done\"}}}")!.AsObject();
+    var result = TaskScriptPlan.Prepare(plan, "MyEntry", "[{\"Settings\":{\"action\":{\"param\":{\"custom_action_param\":{\"file\":\"@selected\",\"recovery\":{\"enabled\":false}}}}}}]");
+    var values = TaskScriptPlan.Parameters(result.Pipeline, "MyEntry");
+    Require(values["file"]!.GetValue<string>() == "@selected" && values["task_binding_id"]!.GetValue<string>() == "task-custom");
+    Require(values["playback_node"]!.GetValue<string>() == "Play" && values["routes"]!["done"]![0]!.GetValue<string>() == "Exit");
+    Require(result.Profile!["resume_entry"]!.GetValue<string>() == "LoginAgain");
+});
+
+Sync("recorded return skips native exit and verifies the configured map scene", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["playback_routes"] = new JsonObject { ["Fight"] = new JsonObject { ["recorded_return_next"] = new JsonArray("ConfirmMap") } } };
+    var overrides = new JsonObject { ["Fight"] = new JsonObject { ["next"] = new JsonArray("Exit") } };
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "recorded_return";
+    var result = TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString());
+    Require(result.Entry == "Enter" && result.Pipeline["Fight"]!["next"]![0]!.GetValue<string>() == "ConfirmMap");
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "battle_only";
+    result = TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString());
+    Require(result.Pipeline["Fight"]!["next"]![0]!.GetValue<string>() == "Exit");
+});
+Test("unsupported recorded-return routes fail before starting a native task", async () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight") };
+    var overrides = new JsonObject();
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "recorded_return";
+    await Throws<InvalidDataException>(() => { TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString()); return Task.CompletedTask; });
+});
+
+var passed = 0;
+foreach (var test in tests)
+{
+    try { await test.Run(); Console.WriteLine("PASS " + test.Name); passed++; }
+    catch (Exception error) { Console.Error.WriteLine("FAIL " + test.Name + ": " + error); Environment.ExitCode = 1; }
+}
+Console.WriteLine($"{passed}/{tests.Count} recovery checks passed; no processes or input devices were used.");
+
+sealed class FakeLifecycle : ITaskRestartLifecycle
+{
+    public List<string> Calls { get; } = new();
+    public string FailAt { get; init; } = "";
+    public string CancelAfter { get; init; } = "";
+    public CancellationTokenSource? Cancellation { get; init; }
+    public int Slot { get; private set; }
+    private Task Phase(string name)
+    {
+        Calls.Add(name);
+        if (FailAt == name) throw new IOException(name + " failed");
+        if (CancelAfter == name) Cancellation!.Cancel();
+        return Task.CompletedTask;
+    }
+    public Task StopInputsAndAgentAsync(CancellationToken token) => Phase("release");
+    public Task StopSelectedProcessAsync(CancellationToken token) => Phase("kill");
+    public Task StartSelectedProcessAsync(CancellationToken token) => Phase("start");
+    public async Task BindUniqueWindowAsync(CancellationToken token)
+    {
+        await Phase("bind");
+        token.ThrowIfCancellationRequested();
+        await Phase("resize");
+    }
+    public Task ReconnectAsync(CancellationToken token) => Phase("connect");
+    public async Task<TaskAttempt> ResumeAsync(int slot, CancellationToken token)
+    {
+        Slot = slot;
+        await Phase("login");
+        return new(TaskAttemptStatus.Ready);
+    }
+}

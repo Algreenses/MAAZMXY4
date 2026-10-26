@@ -1,0 +1,6 @@
+{
+  "description": "Prevent direct UI-update calls from replacing the custom script studio with a generic MFAAvalonia binary.",
+  "path": "MFAAvalonia/Helper/VersionChecker.cs",
+  "find": "    public async static Task UpdateMFA(bool isGithub, bool noDialog = false)\n    {\n        Instances.RootViewModel.SetUpdating(true);",
+  "replace": "    public async static Task UpdateMFA(bool isGithub, bool noDialog = false)\n    {\n        if (!MFAAvalonia.Services.FrontendUpdatePolicy.OnlineFrontendUpdateEnabled)\n        {\n            ToastHelper.Info(\"项目客户端升级\", MFAAvalonia.Services.FrontendUpdatePolicy.ManualUpdateMessage);\n            return;\n        }\n        Instances.RootViewModel.SetUpdating(true);"
+}

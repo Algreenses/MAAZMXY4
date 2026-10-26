@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../ScriptStudio/Services/TaskRecoveryPolicy.cs" Link="TaskRecoveryPolicy.cs" />
+    <Compile Include="../../ScriptStudio/Services/TaskScriptPlan.cs" Link="TaskScriptPlan.cs" />
+    <Compile Include="../../ScriptStudio/Services/StudioCapturePresentation.cs" Link="StudioCapturePresentation.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+</Project>

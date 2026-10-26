@@ -1,0 +1,6 @@
+{
+  "description": "Reuse the existing version-check command to explain manual project-client upgrades beside the software version.",
+  "path": "MFAAvalonia/Views/UserControls/Settings/VersionUpdateSettingsUserControl.axaml",
+  "find": "                            Text=\"{markup:I18n {x:Static helper:LangKeys.SoftwareVersion}}\"\n                            VerticalAlignment=\"Center\" />",
+  "replace": "                            Text=\"{markup:I18n {x:Static helper:LangKeys.SoftwareVersion}}\"\n                            VerticalAlignment=\"Center\" />\n                        <Button Content=\"前端升级说明\"\n                                Command=\"{Binding CheckMFAUpdateCommand}\"\n                                HorizontalAlignment=\"Left\" Margin=\"0,8,0,0\" Padding=\"10,4\" />"
+}
