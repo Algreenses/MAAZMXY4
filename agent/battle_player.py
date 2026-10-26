@@ -28,6 +28,7 @@
 """
 
 import ctypes
+import hashlib
 import json
 import math
 import os
@@ -41,6 +42,7 @@ from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
+from script_library import resolve_recording_reference
 
 try:
     from toast import toast as _toast
@@ -194,17 +196,40 @@ def recording_path(name: str) -> str:
     return os.path.join(RECORDING_DIR, name + ".json")
 
 
-def load_recording(name: str) -> Dict[str, Any]:
-    path = recording_path(name)
+def load_recording(name: str, *, expected_sha256=None, strict=False,
+                   expected_base=None, expected_short_side=None) -> Dict[str, Any]:
+    path = str(resolve_recording_reference(RECORDING_DIR, name)) if strict else recording_path(name)
     if not os.path.exists(path):
         raise FileNotFoundError("找不到录制文件：%s" % path)
     if os.path.getsize(path) > MAX_FILE_BYTES:
         raise ValueError("录制文件不能超过 16 MiB")
-    with open(path, encoding="utf-8-sig") as f:
-        rec = json.load(f)
+    with open(path, "rb") as f:
+        raw = f.read(MAX_FILE_BYTES + 1)
+    if len(raw) > MAX_FILE_BYTES:
+        raise ValueError("录制文件不能超过 16 MiB")
+    if expected_sha256 is not None:
+        if not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha256):
+            raise ValueError("录制版本校验值无效")
+        if hashlib.sha256(raw).hexdigest() != expected_sha256.lower():
+            raise ValueError("录制在本轮准备后已改变，本轮未回放；请重新开始以读取保存后的版本")
+    rec = json.loads(raw.decode("utf-8-sig"))
     document = RecordingDocument.from_dict(rec)
     if not rec.get("actions"):
         raise ValueError("录制文件里没有 actions：%s" % path)
+    if expected_base is not None:
+        if (not isinstance(expected_base, (list, tuple)) or len(expected_base) != 2
+                or any(type(value) is not int or value < 1 for value in expected_base)):
+            raise ValueError("任务预期录制尺寸无效")
+        if list(document.base) != list(expected_base):
+            raise ValueError("录制基准尺寸与任务当前截图不一致，请重新导入或录制")
+    short_side = 720 if strict and expected_short_side is None else expected_short_side
+    if short_side is not None:
+        if type(short_side) is not int or not 1 <= short_side <= 32768:
+            raise ValueError("任务预期录制短边无效")
+        if min(document.base) != short_side:
+            raise ValueError("任务脚本必须使用短边%d坐标，不能直接回放原尺寸录制" % short_side)
+    if strict:
+        document.to_dict()  # New task bindings never silently repair input pairs.
     # Legacy recorder files can end while a key/button is still held. Preserve
     # their timing and report this, while the player guarantees a final release.
     pair_warnings = []
@@ -344,6 +369,18 @@ class BattlePlay(CustomAction):
             param = {}
 
         name = str(param.get("file") or param.get("name") or "").strip()
+        strict_task = param.get("strict_task", False)
+        if type(strict_task) is not bool:
+            self._log("[battle_play] strict_task 必须为布尔值")
+            return False
+        if strict_task or name.startswith("@task:"):
+            strict_task = True
+            try:
+                name = str(resolve_recording_reference(RECORDING_DIR, name))
+            except (OSError, ValueError) as exc:
+                self._log("[battle_play] %s" % exc)
+                _toast("任务脚本无法回放", str(exc))
+                return False
         if name in (SELECTED_TOKEN, SELECTED_CASE):
             try:
                 selected = selected_recording()
@@ -388,7 +425,9 @@ class BattlePlay(CustomAction):
             return False
 
         try:
-            rec = load_recording(name)
+            rec = load_recording(name, expected_sha256=param.get("expected_sha256"), strict=strict_task,
+                                 expected_base=param.get("expected_base"),
+                                 expected_short_side=param.get("expected_short_side"))
         except Exception as exc:  # 文件缺失 / 格式错误都在这里
             self._log("[battle_play] 录制文件有问题：%s" % exc)
             _toast("录制文件无法回放", str(exc))

@@ -1,180 +1,3355 @@
 {
-  "悬赏（守卫宝烛）-刷取次数": {
-    "max_hit": 1,
-    "post_delay": 0,
-    "next": [
-      "悬赏（守卫宝烛）-点击任务"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 960,
-        "y": 58
+  "悬赏（守卫宝烛）-初始化": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:bounty-candle",
+          "exit_mode": "recorded_return",
+          "recovery": {
+            "enabled": false,
+            "max_retries": 3,
+            "save_slot": 1,
+            "exe_path": ""
+          }
+        }
       }
-    }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-定位"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-定位": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-暂停大厅",
+      "悬赏（守卫宝烛）-核对目标卡片",
+      "悬赏（守卫宝烛）-未接目标悬赏",
+      "悬赏（守卫宝烛）-打开悬赏榜",
+      "悬赏（守卫宝烛）-进入须弥山",
+      "悬赏（守卫宝烛）-洲地图A返回世界",
+      "悬赏（守卫宝烛）-洲地图B返回世界"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-阻断提示": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "请输入验证码|请输入密码|账号密码登录|扫码登录|背包已满|网络连接.*断|连接.*失败|挑战失败|余额不足"
+        ],
+        "roi": [
+          0,
+          0,
+          1148,
+          720
+        ],
+        "threshold": 0.65
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "blocked_dialog"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-暂停大厅": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-大厅恢复核对"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-大厅恢复核对": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-大厅暂停中止",
+      "悬赏（守卫宝烛）-大厅初检"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-大厅暂停中止": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause-cloudy.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "unexpected_pause"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-核对目标卡片": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          254,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          253,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          234,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          233,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          525,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          524,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          505,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          504,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          795,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          794,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          776,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          775,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          254,
+                                          615,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          253,
+                                          614,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          234,
+                                          409,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          233,
+                                          408,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/header.png",
+                "roi": [
+                  523,
+                  16,
+                  107,
+                  56
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待场内"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-未接目标悬赏": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/header.png",
+        "roi": [
+          523,
+          16,
+          107,
+          56
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "unaccepted_or_wrong_bounty"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-打开悬赏榜": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待目标卡片"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-等待目标卡片": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-核对目标卡片",
+      "悬赏（守卫宝烛）-未接目标悬赏"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-进入须弥山": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/world/sumeru-entry.png",
+                "roi": [
+                  518,
+                  273,
+                  115,
+                  88
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/world/landmark-05.png",
+                "roi": [
+                  274,
+                  370,
+                  190,
+                  126
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待大厅"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-等待大厅": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-暂停大厅",
+      "悬赏（守卫宝烛）-大厅初检"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-大厅初检": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-大厅暂停中止",
+      "悬赏（守卫宝烛）-大厅复检"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-大厅复检": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-大厅暂停中止",
+      "悬赏（守卫宝烛）-打开悬赏榜"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-洲地图A返回世界": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-a/world.png",
+                "roi": [
+                  1053,
+                  28,
+                  92,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-a/landmark-06.png",
+                "roi": [
+                  530,
+                  286,
+                  133,
+                  98
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-a/landmark-09.png",
+                "roi": [
+                  406,
+                  430,
+                  147,
+                  118
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待世界地图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-洲地图B返回世界": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-b/world.png",
+                "roi": [
+                  1053,
+                  28,
+                  92,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-b/landmark-06.png",
+                "roi": [
+                  648,
+                  238,
+                  119,
+                  106
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/map-b/landmark-09.png",
+                "roi": [
+                  399,
+                  403,
+                  132,
+                  89
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待世界地图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-等待世界地图": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-进入须弥山"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-等待场内": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-场内恢复",
+      "悬赏（守卫宝烛）-场内初检"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-场内恢复": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/cave.png",
+                "roi": [
+                  347,
+                  120,
+                  350,
+                  184
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-场内初检"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-场内初检": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/cave.png",
+        "roi": [
+          347,
+          120,
+          350,
+          184
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-场内暂停中止",
+      "悬赏（守卫宝烛）-回放战斗"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-场内暂停中止": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause-cloudy.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "unexpected_pause"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   },
   "悬赏（守卫宝烛）-回放战斗": {
-    "pre_delay": 0,
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/cave.png",
+        "roi": [
+          347,
+          120,
+          350,
+          184
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
     "action": {
       "type": "Custom",
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "{回放文件}",
+          "file": "@task:bounty-candle",
+          "strict_task": true,
+          "expected_short_side": 720,
           "speed": 1
         }
       }
     },
+    "next": [
+      "悬赏（守卫宝烛）-回放后分流"
+    ],
+    "timeout": 10000,
     "post_delay": 0,
-    "next": [
-      "悬赏（守卫宝烛）-点击设置"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 248
-      }
-    }
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   },
-  "悬赏（守卫宝烛）-成功进入守卫宝烛关卡": {
+  "悬赏（守卫宝烛）-回放后分流": {
     "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "守卫宝烛场景.png"
-        ]
-      }
-    },
-    "post_delay": 20,
-    "timeout": 20000,
-    "next": [
-      "悬赏（守卫宝烛）-回放战斗"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 2240,
-        "y": 72
-      }
-    }
-  },
-  "悬赏（守卫宝烛）-点击任务": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
-        ]
-      }
-    },
-    "pre_delay": 1000,
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 20000,
-    "next": [
-      "悬赏（守卫宝烛）-点击悬赏任务"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    }
-  },
-  "悬赏（守卫宝烛）-点击前往副本": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "前往副本"
-        ]
-      }
+      "type": "DirectHit"
     },
     "action": {
-      "type": "Click"
+      "type": "DoNothing"
     },
-    "post_delay": 1000,
-    "timeout": 20000,
     "next": [
-      "悬赏（守卫宝烛）-成功进入守卫宝烛关卡"
+      "悬赏（守卫宝烛）-等待返回"
     ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1920,
-        "y": 42
-      }
-    }
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   },
-  "悬赏（守卫宝烛）-点击悬赏任务": {
+  "悬赏（守卫宝烛）-等待返回": {
     "recognition": {
-      "type": "OCR",
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-返回恢复",
+      "悬赏（守卫宝烛）-返回初检"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-返回恢复": {
+    "recognition": {
+      "type": "And",
       "param": {
-        "expected": [
-          "悬赏任务"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-返回初检"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-返回初检": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-返回暂停中止",
+      "悬赏（守卫宝烛）-返回复检"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-返回暂停中止": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/pause-cloudy.png",
+                "roi": [
+                  381,
+                  342,
+                  390,
+                  38
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
         ]
       }
     },
     "action": {
-      "type": "Click"
-    },
-    "post_delay": 500,
-    "timeout": 20000,
-    "next": [
-      "悬赏（守卫宝烛）-点击前往副本"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1600,
-        "y": 42
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "unexpected_pause"
+        }
       }
-    }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-返回复检": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-成功"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   },
   "悬赏（守卫宝烛）-点击设置": {
     "recognition": {
       "type": "TemplateMatch",
       "param": {
-        "template": [
-          "设置.png"
-        ]
+        "template": "设置.png",
+        "threshold": 0.8
       }
     },
-    "pre_delay": 2000,
     "action": {
-      "type": "Click"
+      "type": "Click",
+      "param": {
+        "target": true
+      }
     },
-    "timeout": 3000,
     "next": [
       "悬赏（守卫宝烛）-返回地图"
     ],
-    "$__mpe_code": {
-      "position": {
-        "x": 320,
-        "y": 58
-      }
-    }
+    "timeout": 5000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   },
   "悬赏（守卫宝烛）-返回地图": {
     "recognition": {
       "type": "OCR",
       "param": {
         "expected": [
-          "返回地图"
-        ]
+          "^返回地图$"
+        ],
+        "roi": [
+          0,
+          0,
+          1148,
+          720
+        ],
+        "threshold": 0.75
       }
     },
     "action": {
-      "type": "Click"
-    },
-    "timeout": 3000,
-    "next": [
-      "悬赏（守卫宝烛）-刷取次数",
-      "停止运行"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 640,
-        "y": 100
+      "type": "Click",
+      "param": {
+        "target": true
       }
-    }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待返回"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "recognition_or_action_failed"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-恢复登录": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "recovery_begin",
+          "save_slot": 1
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复界面分流"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复界面分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-恢复存档页",
+      "悬赏（守卫宝烛）-恢复登录页",
+      "悬赏（守卫宝烛）-恢复世界就绪",
+      "悬赏（守卫宝烛）-恢复大厅暂停",
+      "悬赏（守卫宝烛）-恢复大厅就绪",
+      "悬赏（守卫宝烛）-恢复榜单就绪"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复登录页": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-start.png",
+                "roi": [
+                  458,
+                  595,
+                  236,
+                  90
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-logo.png",
+                "roi": [
+                  23,
+                  19,
+                  276,
+                  178
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复等待存档"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复等待存档": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-恢复存档页"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复存档页": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/save-header.png",
+        "roi": [
+          458,
+          77,
+          251,
+          80
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复选择存档"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复选择存档": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-恢复存档1"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复存档1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  154,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-1.png",
+                "roi": [
+                  257,
+                  163,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复等待进图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复存档2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  154,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-2.png",
+                "roi": [
+                  583,
+                  163,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复等待进图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复存档3": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  272,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-3.png",
+                "roi": [
+                  257,
+                  280,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复等待进图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复存档4": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  272,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-4.png",
+                "roi": [
+                  583,
+                  280,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复等待进图"
+    ],
+    "timeout": 10000,
+    "post_delay": 400,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复等待进图": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-恢复世界就绪",
+      "悬赏（守卫宝烛）-恢复大厅暂停",
+      "悬赏（守卫宝烛）-恢复大厅就绪",
+      "悬赏（守卫宝烛）-恢复榜单就绪"
+    ],
+    "timeout": 60000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复世界就绪": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/world/sumeru-entry.png",
+                "roi": [
+                  518,
+                  273,
+                  115,
+                  88
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/world/landmark-05.png",
+                "roi": [
+                  274,
+                  370,
+                  190,
+                  126
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复就绪"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复大厅暂停": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "roi": [
+                          381,
+                          342,
+                          390,
+                          38
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复大厅核对"
+    ],
+    "timeout": 10000,
+    "post_delay": 350,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ],
+    "max_hit": 1
+  },
+  "悬赏（守卫宝烛）-恢复大厅核对": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-大厅暂停中止",
+      "悬赏（守卫宝烛）-恢复大厅就绪"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复大厅就绪": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/noticeboard-cloudy.png",
+                        "roi": [
+                          772,
+                          418,
+                          140,
+                          110
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/clear-stairs-cloudy.png",
+                        "roi": [
+                          298,
+                          276,
+                          330,
+                          66
+                        ],
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复就绪"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复榜单就绪": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          254,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          253,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          234,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          233,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          525,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          524,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          505,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          504,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          795,
+                                          334,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          794,
+                                          333,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          776,
+                                          125,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          775,
+                                          124,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "And",
+                      "param": {
+                        "all_of": [
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫$"
+                                        ],
+                                        "roi": [
+                                          254,
+                                          615,
+                                          137,
+                                          68
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/guard.png",
+                                        "roi": [
+                                          253,
+                                          614,
+                                          139,
+                                          70
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "recognition": {
+                              "type": "Or",
+                              "param": {
+                                "any_of": [
+                                  {
+                                    "recognition": {
+                                      "type": "OCR",
+                                      "param": {
+                                        "expected": [
+                                          "^守卫宝烛$"
+                                        ],
+                                        "roi": [
+                                          234,
+                                          409,
+                                          176,
+                                          44
+                                        ],
+                                        "threshold": 0.75
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "recognition": {
+                                      "type": "TemplateMatch",
+                                      "param": {
+                                        "template": "bounty-candle/candle-title.png",
+                                        "roi": [
+                                          233,
+                                          408,
+                                          178,
+                                          46
+                                        ],
+                                        "method": 1,
+                                        "threshold": 0.045
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ],
+                        "box_index": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/header.png",
+                "roi": [
+                  523,
+                  16,
+                  107,
+                  56
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-恢复就绪"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-恢复就绪": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "bounty_candle_state",
+        "custom_action_param": {
+          "phase": "ready"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
   }
 }

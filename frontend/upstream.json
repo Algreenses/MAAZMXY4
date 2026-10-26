@@ -13,6 +13,9 @@
     "frontend/patches/02-script-studio-registration.json",
     "frontend/patches/03-script-studio-task-guard.json",
     "frontend/patches/04-selected-win32-controller.json",
-    "frontend/patches/05-selected-controller-resource.json"
+    "frontend/patches/05-selected-controller-resource.json",
+    "frontend/patches/06-native-candle-recovery.json",
+    "frontend/patches/07-win32-recovery-rebind.json",
+    "frontend/patches/08-candle-stop-race.json"
   ]
 }

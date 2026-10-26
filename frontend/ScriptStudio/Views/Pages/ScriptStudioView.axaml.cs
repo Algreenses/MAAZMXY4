@@ -30,6 +30,7 @@ public sealed class ScriptStudioView : UserControl
     private readonly TextBox _search = new() { Watermark = "搜索脚本名称" };
     private readonly TextBox _name = new() { Watermark = "为脚本起个名字" };
     private readonly TextBlock _summary = new(), _status = new(), _captureState = new(), _selection = new();
+    private readonly TextBlock _candleBinding = new() { TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _diagnostics = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _windows = new() { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 200 };
     private readonly NumericUpDown _countdown = Number(3, 0, 30, "0");
@@ -44,7 +45,7 @@ public sealed class ScriptStudioView : UserControl
     private readonly TextBox _keyCapture = new() { Watermark = "点此后按一个键", IsReadOnly = true };
     private readonly StackPanel _inspector = new() { Spacing = 8 };
     private Control? _keyFields, _mouseFields, _scrollFields;
-    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo, _use, _editPage;
+    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo, _use, _editPage, _bindCandle;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private JsonArray _files = new();
     private StudioOperation? _selected;
@@ -74,7 +75,8 @@ public sealed class ScriptStudioView : UserControl
         _apply = Button("应用操作", ApplyInspectorAsync, true);
         _undo = Button("撤销", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("undo"); });
         _redo = Button("重做", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("redo"); });
-        _use = Button("设为任务回放", SelectForTasksAsync);
+        _use = Button("设为通用回放", SelectForTasksAsync);
+        _bindCandle = Button("绑定守卫宝烛", BindCandleAsync, true);
         _editPage = Button("打开时间轴编辑 →", async () => { if (_vm.Document != null) _tabs.SelectedIndex = 1; await Task.CompletedTask; });
         BuildPage();
         _vm.Changed += RenderDocument;
@@ -192,8 +194,12 @@ public sealed class ScriptStudioView : UserControl
         Grid.SetColumn(_captureState, 1); ready.Children.Add(_captureState); recording.Children.Add(ready);
         recording.Children.Add(Wrap(_record, _pause, _stop, Button("添加标记", async () => await _vm.Client.CallAsync("capture_mark", new JsonObject { ["label"] = "阶段标记" }))));
         recording.Children.Add(new TextBlock { Text = "F8 暂停 / 继续    F9 停录    F10 停录并保存\n切出游戏会暂停，回到游戏后按 F8 继续。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
-        recording.Children.Add(new Separator()); recording.Children.Add(_selection);
-        recording.Children.Add(Wrap(_use, _editPage, Button("新建空白脚本", async () => { if (await EnsureSavedAsync()) { await _vm.ChangeAsync("new"); _tabs.SelectedIndex = 1; BeginInsert(); } })));
+        recording.Children.Add(new Separator()); recording.Children.Add(_candleBinding);
+        recording.Children.Add(Wrap(_bindCandle, _editPage));
+        recording.Children.Add(new TextBlock { Text = "绑定读取脚本库中的同一文件，编辑保存后下轮生效；另存为新文件后请重新绑定。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
+        _selection.TextWrapping = TextWrapping.Wrap;
+        recording.Children.Add(_selection);
+        recording.Children.Add(Wrap(_use, Button("新建空白脚本", async () => { if (await EnsureSavedAsync()) { await _vm.ChangeAsync("new"); _tabs.SelectedIndex = 1; BeginInsert(); } })));
         var right = Card(new ScrollViewer { Content = recording }); Grid.SetColumn(right, 2); layout.Children.Add(right); return layout;
     }
     private Control BuildEditorTab()
@@ -335,7 +341,11 @@ public sealed class ScriptStudioView : UserControl
     {
         var result = await _vm.Client.CallAsync("list"); _files = result["items"]!.AsArray();
         var selected = result["selected_file"]?.GetValue<string>();
-        _selection.Text = selected == null ? "任务回放：尚未指定，默认使用最新录制。" : "任务回放：" + selected;
+        _selection.Text = selected == null ? "通用回放：尚未指定，普通任务默认使用最新录制。" : "通用回放：" + selected;
+        var candle = result["task_bindings"]?["bounty-candle"]?.GetValue<string>();
+        var bindingError = result["binding_errors"]?["bounty-candle"]?.GetValue<string>();
+        _candleBinding.Text = bindingError != null ? "守卫宝烛绑定需要处理：" + bindingError
+            : candle == null ? "守卫宝烛：尚未绑定，请选择并保存脚本后绑定。" : "守卫宝烛已绑定：" + candle;
         FilterLibrary();
     }
     private void FilterLibrary()
@@ -520,7 +530,14 @@ public sealed class ScriptStudioView : UserControl
     {
         if (!await EnsureSavedAsync() || _vm.File == null) return;
         await _vm.Client.CallAsync("select"); await RefreshLibraryAsync();
-        _status.Text = "已设为任务回放。任务选项使用「脚本工具所选」时会直接读取这份脚本。";
+        _status.Text = "已设为通用回放。普通任务选择「脚本工具所选」时读取这份脚本；守卫宝烛使用独立绑定。";
+    }
+    private async Task BindCandleAsync()
+    {
+        if (!await EnsureSavedAsync() || _vm.File == null) return;
+        await _vm.Client.CallAsync("bind_task", new JsonObject { ["task_id"] = "bounty-candle" });
+        await RefreshLibraryAsync();
+        _status.Text = "守卫宝烛已绑定「" + _vm.File + "」。编辑保存后下一轮直接读取新版，无需重新导入。";
     }
     private async Task StartRecordingAsync()
     {
@@ -602,7 +619,9 @@ public sealed class ScriptStudioView : UserControl
         _apply.IsEnabled = editable && (_selected != null || _adding);
         _undo.IsEnabled = editable && _vm.Document?["can_undo"]?.GetValue<bool>() == true;
         _redo.IsEnabled = editable && _vm.Document?["can_redo"]?.GetValue<bool>() == true;
-        _use.IsEnabled = editable && _vm.Document != null; _editPage.IsEnabled = _vm.Document != null;
+        _use.IsEnabled = editable && _vm.Document != null;
+        _bindCandle.IsEnabled = editable && _vm.Document != null;
+        _editPage.IsEnabled = _vm.Document != null;
     }
     private async void OnShortcut(object? sender, KeyEventArgs e)
     {

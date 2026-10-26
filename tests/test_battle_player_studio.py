@@ -1,5 +1,6 @@
 """Fake-controller playback checks: never load Maa native libraries or send input."""
 from contextlib import redirect_stdout
+import hashlib
 import importlib.util
 import io
 import json
@@ -217,6 +218,70 @@ class BattlePlayerStudioTests(unittest.TestCase):
             selection.write_text(json.dumps(dict(file=filename)),encoding="utf8")
             self.assertTrue(self.run_recording(file="@selected"))
             self.assertEqual(self.controller.calls[-1],("post_click_key",(key,),{}))
+
+    def test_bound_library_edit_is_used_by_next_playback_without_reimport(self):
+        with patch.object(sys, "path", [str(ROOT/"agent"), *sys.path]):
+            from script_studio_service import StudioService
+        root = self.directory / "project"
+        recordings = root / "recordings"
+        recordings.mkdir(parents=True)
+        saved = recordings / "战斗.json"
+        saved.write_text(json.dumps(dict(version=1,name="战斗",base=[1148,720],
+            actions=[dict(t=0,op="key",key=74)])), encoding="utf8")
+        service = StudioService(root)
+        try:
+            service.dispatch("load",dict(file="战斗.json"))
+            service.dispatch("bind_task",dict(task_id="bounty-candle"))
+            with patch.object(player,"RECORDING_DIR",str(recordings)):
+                self.assertTrue(self.run_recording("@task:bounty-candle",strict_task=True))
+                operation=service.snapshot()["operations"][0]
+                service.dispatch("edit",dict(id=operation["id"],changes=dict(key=75)))
+                service.dispatch("save")
+                self.assertTrue(self.run_recording("@task:bounty-candle",strict_task=True))
+            self.assertEqual([call[1][0] for call in self.controller.calls], [74,75])
+            self.assertCountEqual([path.name for path in recordings.glob("*.json")], ["战斗.json", ".bindings.json"])
+            self.assertFalse((root/".local-migrations").exists())
+        finally:
+            service.close()
+
+    def test_task_binding_never_falls_back_to_latest_or_manual_selection(self):
+        self.write([dict(t=0,op="key",key=74)])
+        with patch.object(player,"ask_recording_file",side_effect=AssertionError("must not ask")):
+            self.assertFalse(self.run_recording("@task:bounty-candle"))
+        self.assertEqual(self.controller.calls,[])
+
+    def test_strict_task_rejects_unselected_external_raw_and_unbalanced_files(self):
+        self.write([dict(t=0,op="key",key=74)])
+        self.assertFalse(self.run_recording("@selected",strict_task=True))
+        self.assertFalse(self.run_recording("@latest",strict_task=True))
+        with tempfile.TemporaryDirectory() as other:
+            path=Path(other)/"external.json"
+            path.write_text(json.dumps(dict(version=1,name="外部",base=[1148,720],actions=[dict(t=0,op="key",key=74)])),encoding="utf8")
+            self.assertFalse(self.run_recording(str(path),strict_task=True))
+        self.write([dict(t=0,op="key",key=74)],base=[1175,737])
+        self.assertFalse(self.run_recording(strict_task=True))
+        self.write([dict(t=0,op="keydown",key=74)])
+        self.assertFalse(self.run_recording(strict_task=True))
+        self.assertEqual(self.controller.calls,[])
+
+    def test_round_preflight_hash_rejects_mid_round_edit_and_next_round_reads_new(self):
+        self.write([dict(t=0,op="key",key=74)])
+        path=self.directory/"record.json"
+        old_hash=hashlib.sha256(path.read_bytes()).hexdigest()
+        self.write([dict(t=0,op="key",key=75)])
+        self.assertFalse(self.run_recording(strict_task=True,expected_sha256=old_hash))
+        self.assertEqual(self.controller.calls,[])
+        new_hash=hashlib.sha256(path.read_bytes()).hexdigest()
+        self.assertTrue(self.run_recording(strict_task=True,expected_sha256=new_hash))
+        self.assertEqual(self.controller.calls[-1],("post_click_key",(75,),{}))
+
+    def test_invalid_round_contract_fails_before_input(self):
+        self.write([dict(t=0,op="key",key=74)])
+        for options in (dict(expected_sha256="bad"),dict(expected_base=[1148,720]),
+                        dict(expected_short_side=737),dict(strict_task="true")):
+            with self.subTest(options=options):
+                self.assertFalse(self.run_recording(**options))
+                self.assertEqual(self.controller.calls,[])
 
     def test_unselected_falls_back_to_latest_but_stale_selection_never_does(self):
         self.write([dict(t=0,op="key",key=74)])

@@ -19,6 +19,8 @@ from uuid import uuid4
 from weakref import WeakKeyDictionary
 
 from script_studio.model import RecordingDocument
+from script_library import (TASK_LABELS, bind_task_recording, library_recording_path,
+                            read_task_bindings, resolve_task_recording)
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -79,15 +81,7 @@ class StudioService:
         self._closed = False
 
     def path(self, name):
-        if (not isinstance(name, str) or not name or Path(name).name != name
-                or any(c in name for c in '<>:"/\\|?*') or any(ord(c) < 32 for c in name)
-                or name.startswith(".") or not name.lower().endswith(".json")
-                or name.split(".")[0].upper() in {"CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(1, 10)), *(f"LPT{i}" for i in range(1, 10))}):
-            raise ValueError("请选择脚本库中的 JSON 文件。")
-        path = self.directory / name
-        if path.resolve().parent != self.directory.resolve():
-            raise ValueError("脚本不能指向录制目录以外的位置。")
-        return path
+        return library_recording_path(self.directory, name)
 
     def open_document(self, document, *, file=None, revision=None, edited=False):
         """Commit a fully validated document switch, with isolated history."""
@@ -203,7 +197,19 @@ class StudioService:
                 selected = value["file"]
         except (OSError, ValueError, TypeError):
             pass
-        return dict(items=items, selected_file=selected, root=str(self.directory))
+        bindings, binding_errors = {}, {}
+        try:
+            bindings = read_task_bindings(self.directory)
+            for task_id in TASK_LABELS:
+                if task_id in bindings:
+                    try:
+                        resolve_task_recording(self.directory, task_id)
+                    except (OSError, ValueError) as error:
+                        binding_errors[task_id] = str(error)
+        except (OSError, ValueError) as error:
+            binding_errors = {task_id: str(error) for task_id in TASK_LABELS}
+        return dict(items=items, selected_file=selected, root=str(self.directory),
+                    task_bindings=bindings, binding_errors=binding_errors)
 
     def dispatch(self, method, params=None):
         if self._closed:
@@ -329,6 +335,23 @@ class StudioService:
             # to restart to see a newly selected recording.
             atomic_json(self.directory / ".selected.json", dict(file=self.file))
             return dict(file=self.file, name=document.snapshot()["name"])
+        if method == "bind_task":
+            self.require_clean()
+            if not self.file or self.revision is None:
+                raise ValueError("请先保存脚本。")
+            task_id = params.get("task_id")
+            if task_id not in TASK_LABELS:
+                raise ValueError("请选择支持脚本绑定的任务。")
+            saved, revision = read_json(self.path(self.file))
+            if revision != self.revision:
+                raise ValueError("文件已被其他程序修改，请重新加载后绑定。")
+            saved_document = RecordingDocument.from_dict(saved)
+            saved_document.to_dict()
+            if not saved.get("actions"):
+                raise ValueError("空白脚本不能绑定到任务。")
+            if min(saved_document.base) != 720:
+                raise ValueError("任务脚本必须使用短边720坐标，请先通过脚本库导入转换。")
+            return bind_task_recording(self.directory, task_id, self.file, expected_revision=self.revision)
         if method == "split":
             left, right = document.split(params["at_ms"])
             paths = []
