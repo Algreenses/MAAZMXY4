@@ -78,6 +78,51 @@ class TaskAssetSyncTests(unittest.TestCase):
         self.assertTrue(result['changes'])
         self.assertEqual(self.snapshot(), before)
 
+    def test_full_upgrade_retires_only_exact_owned_entries_and_unreferenced_options(self):
+        retired = dict(name='录制入口', entry='RetiredEntry')
+        custom = dict(name='录制入口', entry='CustomEntry', option=['保留来源'])
+        self.write(self.source/'assets/task-migrations.json', dict(version=1, retired_tasks=[retired],
+                   retired_options=['旧来源', '保留来源']))
+        before = self.read(self.target/'interface.json')
+        before['task'] += [retired, custom]
+        before['option'].update({'旧来源': {}, '保留来源': {}})
+        self.write(self.target/'interface.json', before)
+        config = self.read(self.target/'config/instances/default.json')
+        config['TaskItems'] += [retired, custom]
+        config['CurrentTasks'] += ['录制入口<|||>RetiredEntry', '录制入口<|||>CustomEntry']
+        self.write(self.target/'config/instances/default.json', config)
+        sync.sync_task_assets(self.source, self.target, dry_run=False)
+        after = self.read(self.target/'interface.json')
+        self.assertNotIn(retired, after['task'])
+        self.assertIn(custom, after['task'])
+        self.assertNotIn('旧来源', after['option'])
+        self.assertIn('保留来源', after['option'])
+        config = self.read(self.target/'config/instances/default.json')
+        self.assertNotIn(retired, config['TaskItems'])
+        self.assertIn(custom, config['TaskItems'])
+        self.assertNotIn('录制入口<|||>RetiredEntry', config['CurrentTasks'])
+        self.assertIn('录制入口<|||>CustomEntry', config['CurrentTasks'])
+
+    def test_selected_task_upgrade_does_not_retire_other_tasks(self):
+        retired = dict(name='录制入口', entry='RetiredEntry')
+        self.write(self.source/'assets/task-migrations.json', dict(version=1, retired_tasks=[retired]))
+        before = self.read(self.target/'interface.json')
+        before['task'].append(retired)
+        self.write(self.target/'interface.json', before)
+        sync.sync_task_assets(self.source, self.target, dry_run=False, task_names=[TASK_NAME])
+        self.assertIn(retired, self.read(self.target/'interface.json')['task'])
+
+    def test_default_bundle_installs_without_overwriting_user_library(self):
+        raw = b'{"version":1,"name":"default"}'
+        self.bytes(self.source/'assets/recordings/default.json', raw)
+        self.write(self.source/'assets/recordings/manifest.json', dict(version=1, items=[
+            dict(file='default.json', sha256=sync._sha(raw))]))
+        self.bytes(self.target/'recordings/default.json', b'user edits')
+        sync.sync_task_assets(self.source, self.target, dry_run=False)
+        self.assertEqual((self.target/'recordings/default.json').read_bytes(), b'user edits')
+        self.assertEqual((self.target/'assets/recordings/default.json').read_bytes(), raw)
+        self.assertFalse(sync.sync_task_assets(self.source, self.target)['changes'])
+
     def test_select_second_task_and_install_its_cross_file_dependencies(self):
         source = self.read(self.source/'assets/interface.json')
         source['task'].append(dict(name='第二任务',entry='Second',option=[]))

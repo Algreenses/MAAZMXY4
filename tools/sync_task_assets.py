@@ -250,6 +250,16 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None):
         raise ValueError('请选择源工程中存在的任务。')
     if len({task['name'] for task in tasks}) != len(tasks): raise ValueError('源任务名称重复。')
     options = _options_for(tasks, source_interface['option'])
+    retired_tasks, retired_options = set(), set()
+    migrations_path = _safe(source_root, 'assets/task-migrations.json')
+    migrations_raw = _read(migrations_path, source_inputs)
+    if task_names is None and migrations_raw is not None:
+        migrations = _json(migrations_raw)
+        if migrations.get('version') != 1:
+            raise ValueError('不支持的任务迁移清单版本。')
+        canonical = {(task['name'], task['entry']) for task in source_interface['task']}
+        retired_tasks = {(item['name'], item['entry']) for item in migrations.get('retired_tasks', [])} - canonical
+        retired_options = set(migrations.get('retired_options', [])) - set(source_interface['option'])
     pipeline_files, node_files = {}, {}
     base = _safe(source_root, 'assets/resource/base/pipeline')
     for path in sorted(base.rglob('*.json')):
@@ -301,6 +311,8 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None):
     by_name = {task['name']: task for task in tasks}
     after_tasks, installed = [], set()
     for item in after['task']:
+        if (item.get('name'), item.get('entry')) in retired_tasks:
+            continue
         name = item.get('name')
         if name in by_name:
             if name not in installed: after_tasks.append(deepcopy(by_name[name])); installed.add(name)
@@ -308,7 +320,31 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None):
     after_tasks += [deepcopy(task) for task in tasks if task['name'] not in installed]
     after['task'] = after_tasks
     after['option'].update(options)
+    # Keep legacy options when an unrelated custom task still references them.
+    referenced, pending_options = set(), [name for task in after_tasks for name in task.get('option', [])]
+    while pending_options:
+        name = pending_options.pop()
+        if name in referenced: continue
+        referenced.add(name)
+        pending_options += [value for value in _strings(after['option'].get(name, {}))
+                            if value in after['option'] and value not in referenced]
+    for name in retired_options - referenced:
+        after['option'].pop(name, None)
     plan_json('interface.json', before, after)
+    bundle_path = _safe(source_root, 'assets/recordings/manifest.json')
+    bundle_raw = _read(bundle_path, source_inputs)
+    if bundle_raw is not None:
+        bundle = _json(bundle_raw)
+        if bundle.get('version') != 1: raise ValueError('不支持的默认脚本清单版本。')
+        for item in bundle.get('items', []):
+            filename = item['file']
+            if '/' in filename or not filename.endswith('.json') or filename == 'manifest.json':
+                raise ValueError('默认录制文件名无效。')
+            relative = 'assets/recordings/' + filename
+            raw = _read(_safe(source_root, relative), source_inputs)
+            if raw is None or _sha(raw) != item['sha256']: raise ValueError('默认录制校验失败：' + filename)
+            plan_bytes(relative, raw)
+        plan_bytes('assets/recordings/manifest.json', bundle_raw)
     for path in sorted(selected_files):
         raw, pipeline = pipeline_files[path]
         plan_bytes(path.relative_to(source_root/'assets').as_posix(), raw)
@@ -325,9 +361,14 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None):
             original = _json(_read(path, target_inputs))
             if not isinstance(original, dict):
                 raise ValueError('实例配置必须是JSON对象。')
-            updated = original
+            updated = deepcopy(original)
+            updated['TaskItems'] = [item for item in updated.get('TaskItems', [])
+                                    if not isinstance(item, dict) or (item.get('name'), item.get('entry')) not in retired_tasks]
+            retired_history = {name + SEPARATOR + entry for name, entry in retired_tasks}
+            updated['CurrentTasks'] = [item for item in updated.get('CurrentTasks', []) if item not in retired_history]
             for task in tasks:
-                updated = _merge_instance(updated, task, _default_options(task, options), before['option'], options)
+                task_options = _options_for([task], options)
+                updated = _merge_instance(updated, task, _default_options(task, task_options), before['option'], task_options)
             if not _same_json(original, updated):
                 updated_instances.append(relative)
                 plan_json(relative, original, updated)
