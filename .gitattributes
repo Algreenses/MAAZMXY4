@@ -5,3 +5,6 @@
 # Isolate binary files in case the auto-detection algorithm fails and
 # marks them as text files (which could brick them).
 *.{png,jpg,jpeg,gif,webp,woff,woff2} binary
+
+# Windows 批处理必须是 CRLF：cmd 逐行按行尾解析，纯 LF 会把整行拆成单个字符执行。
+*.bat text eol=crlf
