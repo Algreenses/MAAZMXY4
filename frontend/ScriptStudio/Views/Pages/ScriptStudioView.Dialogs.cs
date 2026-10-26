@@ -62,7 +62,7 @@ public sealed partial class ScriptStudioView
             Spacing = 8, Children = { cancel, save } });
         dialog.Content = content;
         dialog.Opened += (_, _) => { name.Focus(); name.SelectAll(); };
-        return await dialog.ShowDialog<string?>(owner);
+        return await ShowStudioDialogAsync<string?>(dialog, owner);
     }
 
     private async Task<bool> ConfirmDeleteAsync(string message)
@@ -77,6 +77,12 @@ public sealed partial class ScriptStudioView
         remove.Click += (_, _) => dialog.Close(true); cancel.Click += (_, _) => dialog.Close(false);
         content.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
             Spacing = 8, Children = { cancel, remove } });
-        dialog.Content = content; return await dialog.ShowDialog<bool>(owner);
+        dialog.Content = content; return await ShowStudioDialogAsync<bool>(dialog, owner);
+    }
+
+    private async Task<T> ShowStudioDialogAsync<T>(Window dialog, Window owner)
+    {
+        try { return await dialog.ShowDialog<T>(owner); }
+        finally { if (IsEffectivelyVisible) Focus(); }
     }
 }

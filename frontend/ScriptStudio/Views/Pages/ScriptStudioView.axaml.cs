@@ -67,7 +67,7 @@ public sealed partial class ScriptStudioView : UserControl
 
     public ScriptStudioView(ScriptStudioViewModel viewModel)
     {
-        _vm = viewModel; DataContext = viewModel;
+        _vm = viewModel; DataContext = viewModel; Focusable = true;
         _save = Button("保存", SaveAsync, true);
         _record = Button("开始录制", StartRecordingAsync, true);
         _pause = Button("暂停", async () => RenderCapture(await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause")));
@@ -486,7 +486,7 @@ public sealed partial class ScriptStudioView : UserControl
         var buttons = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right };
         foreach (var item in new[] { (primary, 1), (secondary, 2), ("取消", 0) })
         { var button = new Button { Content = item.Item1, Margin = new Thickness(4), Padding = new Thickness(12, 8) }; var result = item.Item2; button.Click += (_, _) => dialog.Close(result); buttons.Children.Add(button); }
-        content.Children.Add(buttons); dialog.Content = content; return await dialog.ShowDialog<int>(owner);
+        content.Children.Add(buttons); dialog.Content = content; return await ShowStudioDialogAsync<int>(dialog, owner);
     }
     private async void OnClosing(object? sender, WindowClosingEventArgs e)
     {
