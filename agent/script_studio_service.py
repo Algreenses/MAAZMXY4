@@ -23,7 +23,7 @@ from script_library import (bind_task_recording, unbind_task_recording, library_
                             read_task_bindings, resolve_task_recording)
 from task_catalog import task_catalog, execution_plan
 from recording_store import (ensure_default_recordings, default_recordings,
-                             duplicate_recording, delete_recording)
+                             duplicate_recording, delete_recording, binding_snapshot, set_file_bindings)
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -206,10 +206,11 @@ class StudioService:
                 selected = value["file"]
         except (OSError, ValueError, TypeError):
             pass
-        bindings, binding_errors, tasks = {}, {}, []
+        bindings, binding_errors, tasks, binding_revision = {}, {}, [], None
         try:
-            bindings = read_task_bindings(self.directory)
-            tasks = task_catalog(self.root)
+            records, binding_revision = binding_snapshot(self.directory)
+            bindings = {key: value['file'] for key, value in records.items()}
+            tasks = task_catalog(self.root, bindings=records)
             for task_id in bindings:
                 try:
                     resolve_task_recording(self.directory, task_id)
@@ -223,7 +224,7 @@ class StudioService:
         except (OSError, ValueError) as error:
             binding_errors = {'catalog': str(error)}
         return dict(items=items, selected_file=selected, root=str(self.directory),
-                    task_bindings=bindings, binding_errors=binding_errors, tasks=tasks)
+                    task_bindings=bindings, binding_errors=binding_errors, tasks=tasks, binding_revision=binding_revision)
 
     def dispatch(self, method, params=None):
         if self._closed:
@@ -249,21 +250,25 @@ class StudioService:
                 self._clear_history()
             result['document'] = self.snapshot() if self.document is not None else dict(empty=True)
             return result
-        if method == 'bind_file':
+        if method in ('bind_file', 'set_file_bindings'):
             self.require_idle()
             filename = params.get('file')
             if filename == self.file: self.require_clean()
-            task = next((item for item in task_catalog(self.root) if item['id'] == params.get('task_id')), None)
-            if task is None: raise ValueError('请选择当前工程中的任务。')
-            mode = params.get('mode', 'pipeline')
-            if mode not in task['modes']: raise ValueError('该任务没有战斗回放节点；如需替代整个任务，请明确选择此方式。')
+            tasks = {item['id']: item for item in task_catalog(self.root)}
+            targets = params.get('tasks') if method == 'set_file_bindings' else {params.get('task_id'):params.get('mode','pipeline')}
+            if not isinstance(targets, dict): raise ValueError('任务选择格式无效。')
+            for ident, mode in targets.items():
+                if ident not in tasks: raise ValueError('请选择当前工程中的任务。')
+                if mode not in tasks[ident]['modes']: raise ValueError('该任务没有战斗回放节点；如需替代整个任务，请明确选择此方式。')
             saved, revision = read_json(self.path(filename))
             if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
             document = RecordingDocument.from_dict(saved)
             document.to_dict(strict=True)
             if not saved.get('actions') or document.diagnostics or min(document.base) != 720:
                 raise ValueError('请先保存有完整操作的720基准脚本。')
-            return bind_task_recording(self.directory, task['id'], filename, expected_revision=revision, mode=mode)
+            if method == 'set_file_bindings':
+                return set_file_bindings(self.directory, filename, targets, revision, params.get('binding_revision'))
+            return bind_task_recording(self.directory, params['task_id'], filename, expected_revision=revision, mode=params.get('mode','pipeline'))
         if method == 'capture_cancel':
             if self.capture is None or self.capture.snapshot()['state'] != 'countdown':
                 raise ValueError('仅录制开始前可以取消准备。')

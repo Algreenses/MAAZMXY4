@@ -121,3 +121,34 @@ class RecordingStoreTests(unittest.TestCase):
             value=json.loads(path.read_text(encoding='utf8'))
             self.assertNotIn('source_macro',value.get('editor',{}))
             store.RecordingDocument.from_dict(value).to_dict(strict=True)
+
+    def test_default_task_binding_is_seeded_once_and_never_replaces_user_binding(self):
+        manifest=self.root/'assets/recordings/manifest.json'
+        value=json.loads(manifest.read_text(encoding='utf8'))
+        value['initial_bindings']=[dict(task_id='task-one',default_id='default-1',mode='pipeline')]
+        manifest.write_text(json.dumps(value),encoding='utf8')
+        store.ensure_default_recordings(self.root)
+        self.assertEqual(read_task_bindings(self.library),{'task-one':'默认战斗.json'})
+        _, token=store.binding_snapshot(self.library)
+        store.set_file_bindings(self.library,'默认战斗.json',{},self.revision(),token)
+        store.ensure_default_recordings(self.root)
+        self.assertEqual(read_task_bindings(self.library),{})
+
+    def test_row_binding_replaces_only_selected_file_associations_atomically(self):
+        store.ensure_default_recordings(self.root)
+        store.duplicate_recording(self.library,'默认战斗.json','其他',self.revision())
+        bind_task_recording(self.library,'keep-other','其他.json',expected_revision=self.revision('其他.json'))
+        _, token=store.binding_snapshot(self.library)
+        store.set_file_bindings(self.library,'默认战斗.json',{'first':'pipeline','second':'replace'},self.revision(),token)
+        self.assertEqual(read_task_bindings(self.library),{'keep-other':'其他.json','first':'默认战斗.json','second':'默认战斗.json'})
+        _, token=store.binding_snapshot(self.library)
+        store.set_file_bindings(self.library,'默认战斗.json',{'second':'pipeline'},self.revision(),token)
+        self.assertEqual(read_task_bindings(self.library),{'keep-other':'其他.json','second':'默认战斗.json'})
+
+    def test_stale_binding_dialog_cannot_overwrite_another_window(self):
+        store.ensure_default_recordings(self.root)
+        _, token=store.binding_snapshot(self.library)
+        bind_task_recording(self.library,'external-task','默认战斗.json',expected_revision=self.revision())
+        with self.assertRaisesRegex(ValueError,'其他窗口'):
+            store.set_file_bindings(self.library,'默认战斗.json',{'new-task':'pipeline'},self.revision(),token)
+        self.assertEqual(read_task_bindings(self.library),{'external-task':'默认战斗.json'})

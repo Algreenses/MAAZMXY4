@@ -67,6 +67,14 @@ public static class TaskScriptPlan
                 var action = pipeline[name]!["action"]!.AsObject();
                 action["type"] = "Custom";
                 action["param"]!["custom_action"] = "battle_play";
+                var includesReturn = pipeline["脚本任务设置"]?["action"]?["param"]?["custom_action_param"]?["exit_mode"]?.GetValue<string>() == "recorded_return";
+                if (includesReturn)
+                {
+                    var next = plan["playback_routes"]?[name]?["recorded_return_next"] as JsonArray;
+                    if (next == null || next.Count == 0)
+                        throw new InvalidDataException("此任务未配置录制返回后的确认流程，请选择不包含返回地图的录制。");
+                    pipeline[name]!["next"] = next.DeepClone();
+                }
             }
         }
         return (entry, pipeline, profile);

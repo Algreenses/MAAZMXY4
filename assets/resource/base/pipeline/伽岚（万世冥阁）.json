@@ -67,8 +67,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "示例-最小",
-          "speed": 1.0
+          "file": "@task:task-cec278429a196341000ce6276792c544",
+          "speed": 1.0,
+          "script_binding": {
+            "recorded_return_next": [
+              "伽岚（万世冥阁）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -121,5 +126,26 @@
     ],
     "max_hit": 1,
     "post_delay": 0
+  },
+  "伽岚（万世冥阁）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "万世冥阁.png",
+          "万世冥阁（高亮）.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "伽岚（万世冥阁）-刷取次数",
+      "停止运行"
+    ]
   }
 }

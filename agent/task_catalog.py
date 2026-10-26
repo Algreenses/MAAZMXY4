@@ -100,13 +100,13 @@ def _action_parameters(node):
     return action.get('param', {}) if isinstance(action, dict) else node
 
 
-def task_catalog(root):
+def task_catalog(root, bindings=None):
     root = Path(root).resolve()
     interface, nodes = _configuration(root)
     definitions = list(interface.get('task', []))
     for source in sorted((root / 'config/instances').glob('*.json')):
         definitions += read_document(source).get('TaskItems', [])
-    bindings = read_binding_records(root / 'recordings')
+    if bindings is None: bindings = read_binding_records(root / 'recordings')
     tasks, seen = [], set()
     for definition in definitions:
         if not isinstance(definition, dict): continue
@@ -130,6 +130,7 @@ def task_catalog(root):
         tasks.append(dict(id=ident, name=name, label=definition.get('label') or name,
                           entry=entry, playback_nodes=playback, modes=modes,
                           playback_parameters={node: deepcopy(_action_parameters(graph[node]).get('custom_action_param', {})) for node in playback},
+                          playback_routes={node: deepcopy(_action_parameters(graph[node]).get('custom_action_param', {}).get('script_binding', {})) for node in playback},
                           binding=deepcopy(binding), profile=profile))
     return tasks
 
@@ -151,6 +152,8 @@ def execution_plan(root, name, entry):
     task = next((item for item in task_catalog(root) if item['name'] == name and item['entry'] == entry), None)
     if task is None: return dict(handled=False)
     binding = task['binding']
+    if not binding and (task['playback_nodes'] or task['profile']):
+        raise ValueError('请先在脚本库中为“' + str(task['label']) + '”绑定脚本。')
     if binding:
         if binding['mode'] not in task['modes']: raise ValueError('任务已没有脚本回放节点，请重新选择绑定方式。')
         task['recording'] = inspect_saved_recording(root, binding['file'])

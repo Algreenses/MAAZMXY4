@@ -73,7 +73,8 @@ class TaskCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'修改'):
             unbind_task_recording(self.root/'recordings',ident,expected_file='different.json')
         self.service.dispatch('unbind_task',dict(task_id=ident,expected_file='test.json'))
-        self.assertFalse(execution_plan(self.root,'挑战甲','A')['handled'])
+        with self.assertRaisesRegex(ValueError, '绑定脚本'):
+            execution_plan(self.root,'挑战甲','A')
         self.assertTrue(execution_plan(self.root,'挑战乙','B')['handled'])
 
     def test_unknown_tasks_and_unsupported_modes_cannot_be_bound(self):

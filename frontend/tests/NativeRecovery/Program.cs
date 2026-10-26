@@ -341,6 +341,28 @@ Sync("configured task profiles merge shared options without hardcoded task names
     Require(result.Profile!["resume_entry"]!.GetValue<string>() == "LoginAgain");
 });
 
+Sync("recorded return skips native exit and verifies the configured map scene", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["playback_routes"] = new JsonObject { ["Fight"] = new JsonObject { ["recorded_return_next"] = new JsonArray("ConfirmMap") } } };
+    var overrides = new JsonObject { ["Fight"] = new JsonObject { ["next"] = new JsonArray("Exit") } };
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "recorded_return";
+    var result = TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString());
+    Require(result.Entry == "Enter" && result.Pipeline["Fight"]!["next"]![0]!.GetValue<string>() == "ConfirmMap");
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "battle_only";
+    result = TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString());
+    Require(result.Pipeline["Fight"]!["next"]![0]!.GetValue<string>() == "Exit");
+});
+Test("unsupported recorded-return routes fail before starting a native task", async () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight") };
+    var overrides = new JsonObject();
+    TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "recorded_return";
+    await Throws<InvalidDataException>(() => { TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString()); return Task.CompletedTask; });
+});
+
 var passed = 0;
 foreach (var test in tests)
 {

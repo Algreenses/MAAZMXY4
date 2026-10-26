@@ -50,5 +50,12 @@
       "name": "示例-移动与攻击",
       "sha256": "e167455df2cdf101a33d22bc32cdbc77b565556cb57e006494a7d0fa1f6f2566"
     }
+  ],
+  "initial_bindings": [
+    {
+      "task_id": "bounty-candle",
+      "default_id": "2865f773-1b20-44ca-90c2-8104eb5ff1f1",
+      "mode": "pipeline"
+    }
   ]
 }

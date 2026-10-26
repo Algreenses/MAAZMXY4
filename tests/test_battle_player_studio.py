@@ -311,17 +311,21 @@ class BattlePlayerStudioTests(unittest.TestCase):
         self.assertEqual(player.list_recordings(),["record"])
         self.assertEqual(player.newest_recording(),"record")
 
-    def test_interface_selected_case_is_first_default_and_covers_all_replays(self):
+    def test_tasks_use_library_bindings_instead_of_competing_file_selectors(self):
         interface=json.loads((ROOT/"assets/interface.json").read_text(encoding="utf8"))
-        option=interface["option"]["回放文件"]
-        self.assertEqual(option["default_case"],"（脚本工具所选）")
-        first=option["cases"][0]
-        self.assertEqual(first["name"],option["default_case"])
-        latest=next(case for case in option["cases"] if case["name"]=="（最新录制）")
-        self.assertEqual(set(first["pipeline_override"]),set(latest["pipeline_override"]))
-        self.assertEqual(len(first["pipeline_override"]),11)
-        for node in first["pipeline_override"].values():
-            self.assertEqual(node["action"]["param"]["custom_action_param"]["file"],"@selected")
+        self.assertNotIn('回放文件',interface['option'])
+        self.assertNotIn('任务脚本来源',interface['option'])
+        for option in ('录制内容','战斗录制内容'):
+            self.assertEqual(interface['option'][option]['label'],'录制内容是否包含返回地图')
+            self.assertEqual([case['name'] for case in interface['option'][option]['cases']],['是','否'])
+        count=0
+        for path in (ROOT/'assets/resource/base/pipeline').glob('*.json'):
+            for node in json.loads(path.read_text(encoding='utf8')).values():
+                action=node.get('action',{})
+                if isinstance(action,dict) and action.get('param',{}).get('custom_action')=='battle_play':
+                    self.assertTrue(action['param']['custom_action_param']['file'].startswith('@task:'))
+                    count+=1
+        self.assertEqual(count,11)
 
     def test_timestamp_wait_checks_stop_instead_of_sleeping_entire_gap(self):
         # Unpatch only the timing helper; all OS timer and clock access stays fake.

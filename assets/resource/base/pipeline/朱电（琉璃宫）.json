@@ -6,8 +6,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "示例-最小",
-          "speed": 1
+          "file": "@task:task-f7fd4182e815e9d7810fe1e3925a3cdd",
+          "speed": 1,
+          "script_binding": {
+            "recorded_return_next": [
+              "朱电（琉璃宫）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -156,5 +161,25 @@
     ],
     "max_hit": 1,
     "post_delay": 0
+  },
+  "朱电（琉璃宫）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "朱电（琉璃宫）-刷取次数",
+      "停止运行"
+    ]
   }
 }

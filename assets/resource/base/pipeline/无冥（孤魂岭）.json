@@ -6,8 +6,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "示例-最小",
-          "speed": 1
+          "file": "@task:task-c57f88bbbb36fe7d14fc6f86fc050c7e",
+          "speed": 1,
+          "script_binding": {
+            "recorded_return_next": [
+              "无冥（孤魂岭）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -156,5 +161,25 @@
     ],
     "max_hit": 1,
     "post_delay": 0
+  },
+  "无冥（孤魂岭）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "无冥（孤魂岭）-刷取次数",
+      "停止运行"
+    ]
   }
 }

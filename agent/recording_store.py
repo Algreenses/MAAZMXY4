@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 from uuid import uuid4
 
-from script_library import (_binding_lock, _bindings_state, _index_path,
+from script_library import (_binding_lock, _bindings_state, _index_path, _task_id,
                             library_recording_path)
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 
@@ -28,7 +28,7 @@ def _encoded(value):
     return (json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n').encode('utf8')
 
 
-def _publish(path, raw, expected):
+def _publish(path, raw, expected, verify=None):
     """Publish a complete file only if its previous revision is unchanged."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
@@ -38,6 +38,7 @@ def _publish(path, raw, expected):
             stream.write(raw)
             stream.flush()
             os.fsync(stream.fileno())
+        if verify is not None: verify()
         if _read(path) != expected: raise ValueError('脚本库已被其他窗口修改，请刷新后重试。')
         if expected is None: os.link(temporary, path)
         else: os.replace(temporary, path)
@@ -109,6 +110,16 @@ def ensure_default_recordings(root):
             _publish(_index_path(directory, DEFAULT_INDEX), updated, previous)
             previous = updated
             seeded.append(name)
+        if not registry.get('bindings_initialized') and spec.get('initial_bindings'):
+            bindings, binding_raw = _bindings_state(directory)
+            for initial in spec['initial_bindings']:
+                entry = registry['items'].get(initial['default_id'])
+                if entry and entry['state'] == 'present' and initial['task_id'] not in bindings:
+                    bindings[initial['task_id']] = dict(file=entry['file'], mode=initial['mode'])
+            if bindings:
+                _publish(_index_path(directory), _encoded(dict(version=2, tasks=bindings)), binding_raw)
+            registry['bindings_initialized'] = True
+            _publish(_index_path(directory, DEFAULT_INDEX), _encoded(registry), previous)
     return seeded
 
 
@@ -118,6 +129,29 @@ def _revision_file(directory, filename, expected_revision):
     if not isinstance(expected_revision, str) or hashlib.sha256(raw).hexdigest() != expected_revision:
         raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
     return path, raw
+
+
+def binding_snapshot(directory):
+    bindings, raw = _bindings_state(Path(directory))
+    return bindings, hashlib.sha256(raw or b'').hexdigest()
+
+
+def set_file_bindings(directory, filename, task_modes, expected_revision, expected_bindings):
+    directory = Path(directory)
+    with _binding_lock(directory):
+        _revision_file(directory, filename, expected_revision)
+        bindings, raw = _bindings_state(directory)
+        if hashlib.sha256(raw or b'').hexdigest() != expected_bindings:
+            raise ValueError('任务绑定已被其他窗口修改，请刷新后重新选择。')
+        for key, value in list(bindings.items()):
+            if value['file'] == filename and key not in task_modes: del bindings[key]
+        for key, mode in task_modes.items():
+            _task_id(key)
+            if mode not in ('pipeline', 'replace'): raise ValueError('任务绑定方式无效。')
+            bindings[key] = dict(file=filename, mode=mode)
+        _publish(_index_path(directory), _encoded(dict(version=2, tasks=bindings)), raw,
+                 verify=lambda: _revision_file(directory, filename, expected_revision))
+    return dict(file=filename, task_ids=list(task_modes))
 
 
 def duplicate_recording(directory, filename, name, expected_revision):

@@ -19,8 +19,13 @@
       "param": {
         "custom_action": "battle_play",
         "custom_action_param": {
-          "file": "{回放文件}",
-          "speed": 1
+          "file": "@task:task-b870345faa9eb39595389c1c99e46cd9",
+          "speed": 1,
+          "script_binding": {
+            "recorded_return_next": [
+              "悬赏（追捕飞贼）-脚本返回确认"
+            ]
+          }
         }
       }
     },
@@ -176,5 +181,25 @@
         "y": 100
       }
     }
+  },
+  "悬赏（追捕飞贼）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "悬赏（追捕飞贼）-刷取次数",
+      "停止运行"
+    ]
   }
 }
