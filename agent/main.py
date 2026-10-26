@@ -16,7 +16,6 @@ import adventure
 import battle_player
 import loop_counter
 import battle_record
-import migrated_task
 
 
 def main():

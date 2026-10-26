@@ -6,7 +6,7 @@ on:
       - 'frontend/**'
       - 'tests/**'
       - 'tools/build_frontend.ps1'
-      - 'tools/migrate_zaomeng*.py'
+      - 'tools/migrate_zaomeng_scripts.py'
       - '.github/workflows/script-studio.yml'
   workflow_dispatch:
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Offline recording, migration, editing and playback tests
+      - name: Offline recording, import, editing and playback tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
       - uses: actions/setup-dotnet@v4
         with:
