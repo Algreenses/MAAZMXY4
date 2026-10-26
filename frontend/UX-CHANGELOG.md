@@ -45,3 +45,11 @@
 - [Premiere键盘快捷键](https://helpx.adobe.com/cn/premiere/desktop/get-started/keyboard-shortcuts/default-keyboard-shortcuts.html)
 
 图标由内置imagegen生成，保存在 `frontend/ScriptStudio/Assets/studio-toolbar-solid.png`；完整生成提示词同目录保存。首次透明图集导出的主图形缺失，已弃用；最终图集在独立预览中正常显示。
+
+## 后续修复：任务运行时首次打开脚本库为空
+
+用户截图同时显示空脚本列表、空游戏窗口下拉框和“任务正在运行”提示。磁盘及脚本服务仍返回10份脚本、没有解析错误。页面首次加载误用了修改操作的任务互斥检查，读操作未执行便提前标记初始化完成；手动刷新也被同一检查拦截。
+
+修复将首次加载、库刷新和窗口枚举明确列为只读操作，允许任务运行时执行；只有加载成功后才标记初始化完成。编辑、绑定、文件修改和录制仍受原有任务互斥保护。没有改动录制文件、任务队列或回放过程。
+
+`frontend/tests/StudioPage` 编译真实页面与模型，仅替换宿主任务状态、窗口枚举和服务传输。三个针对性检查在旧代码全部失败，修复后全部通过：运行中首次加载、运行中刷新且禁止修改、首次加载失败后重新进入可重试。命令：`dotnet run --project frontend/tests/StudioPage/StudioPage.csproj`。遵照用户要求不再扩大测试，实际运行交由用户手动验证。

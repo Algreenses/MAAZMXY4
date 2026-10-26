@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Layout;
 using Avalonia.Media;
+using MFAAvalonia.Extensions.MaaFW;
 
 namespace MFAAvalonia.Views.Pages;
 
@@ -34,7 +35,7 @@ public sealed partial class ScriptStudioView
         recording.Children.Add(new TextBlock { Text = "倒计时结束前切回游戏，失焦会自动暂停。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
         var target = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 6 };
         _windows.MinWidth = 0; target.Children.Add(_windows);
-        _refreshWindows = Button("刷新", async () => { RefreshWindows(); await Task.CompletedTask; });
+        _refreshWindows = Button("刷新", async () => { RefreshWindows(); await Task.CompletedTask; }, allowDuringTask: true);
         _refreshWindows.Padding = new Thickness(8, 6); Grid.SetColumn(_refreshWindows, 1); target.Children.Add(_refreshWindows);
         recording.Children.Add(Field("游戏窗口", target));
         var countdown = new Grid { ColumnDefinitions = new ColumnDefinitions("*,85"), ColumnSpacing = 8 };
@@ -76,7 +77,7 @@ public sealed partial class ScriptStudioView
         else
         {
             _deleteFile = Button("删除", async () => { if (CurrentLibraryItem is JsonNode item) await DeleteLibraryFileAsync(item); });
-            var tools = Wrap(Button("新建", NewScriptAsync), Button("导入…", ImportAsync), _deleteFile, Button("刷新", RefreshLibraryAsync), _libraryCount);
+            var tools = Wrap(Button("新建", NewScriptAsync), Button("导入…", ImportAsync), _deleteFile, Button("刷新", RefreshLibraryAsync, allowDuringTask: true), _libraryCount);
             foreach (var button in tools.Children.OfType<Button>()) { button.Padding = new Thickness(10, 6); button.MinHeight = 32; }
             _libraryCount.VerticalAlignment = VerticalAlignment.Center; _libraryCount.Opacity = .6; _libraryCount.FontSize = 12;
             pane.Children.Add(tools);
@@ -151,6 +152,7 @@ public sealed partial class ScriptStudioView
         _files = result["items"]!.AsArray(); _availableTasks = result["tasks"]?.AsArray() ?? new JsonArray();
         _bindingRevision = result["binding_revision"]?.GetValue<string>();
         if (result["binding_errors"]?["catalog"] is JsonNode error) _status.Text = error.GetValue<string>();
+        else if (MaaProcessor.Processors.Any(p => p.IsTaskRunActive)) _status.Text = RunningHint;
         FilterLibrary();
     }
 

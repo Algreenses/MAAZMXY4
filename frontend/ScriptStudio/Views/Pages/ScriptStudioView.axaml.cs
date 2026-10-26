@@ -24,6 +24,7 @@ namespace MFAAvalonia.Views.Pages;
 /// <summary>Native MFA page, retaining the existing app navigation and themes.</summary>
 public sealed partial class ScriptStudioView : UserControl
 {
+    private const string RunningHint = "任务正在运行，可查看和刷新脚本列表；编辑、绑定或录制请先停止任务。";
     private readonly ScriptStudioViewModel _vm;
     private readonly TabControl _tabs = new();
     private readonly ListBox _library = new(), _events = new();
@@ -127,12 +128,20 @@ public sealed partial class ScriptStudioView : UserControl
         };
         AttachedToVisualTree += async (_, _) =>
         {
-            _owner = TopLevel.GetTopLevel(this) as Window;
+            var owner = TopLevel.GetTopLevel(this) as Window;
+            if (!ReferenceEquals(owner, _owner))
+            {
+                if (_owner != null) _owner.Closing -= OnClosing;
+                _owner = owner;
+                if (_owner != null) _owner.Closing += OnClosing;
+            }
             if (!_initialized)
             {
-                _initialized = true;
-                if (_owner != null) _owner.Closing += OnClosing;
-                await Run(async () => { RefreshWindows(); await RefreshLibraryAsync(); });
+                await Run(async () =>
+                {
+                    RefreshWindows(); await RefreshLibraryAsync();
+                    _initialized = true;
+                }, allowDuringTask: true);
             }
             _poll.Start();
         };
@@ -164,11 +173,11 @@ public sealed partial class ScriptStudioView : UserControl
 
     private static NumericUpDown Number(double value, double minimum = 0, double maximum = 604800, string format = "0.000") => new()
     { Value = (decimal)value, Minimum = (decimal)minimum, Maximum = (decimal)maximum, Increment = format == "0" ? 1 : .01m, FormatString = format, MinWidth = 90, HorizontalAlignment = HorizontalAlignment.Stretch };
-    private Button Button(string label, Func<Task> action, bool primary = false)
+    private Button Button(string label, Func<Task> action, bool primary = false, bool allowDuringTask = false)
     {
         var button = new Button { Content = label, Padding = new Thickness(14, 9), MinHeight = 38 };
         if (primary) button.Classes.Add("Flat");
-        button.Click += async (_, _) => await Run(action); return button;
+        button.Click += async (_, _) => await Run(action, allowDuringTask); return button;
     }
     private static WrapPanel Wrap(params Control[] controls)
     {
@@ -185,11 +194,11 @@ public sealed partial class ScriptStudioView : UserControl
         border.Bind(Border.BackgroundProperty, new DynamicResourceExtension("SukiCardBackground")); return border;
     }
     private static long Milliseconds(NumericUpDown field) => (long)Math.Round((field.Value ?? 0) * 1000);
-    private async Task Run(Func<Task> action)
+    private async Task Run(Func<Task> action, bool allowDuringTask = false)
     {
         if (_busy) return;
-        if (MaaProcessor.Processors.Any(p => p.IsTaskRunActive))
-        { _status.Text = "任务正在运行，请停止任务后再修改或录制脚本。"; return; }
+        if (!allowDuringTask && MaaProcessor.Processors.Any(p => p.IsTaskRunActive))
+        { _status.Text = RunningHint; return; }
         _busy = true; UpdateControls();
         try { await action(); }
         catch (Exception error)
@@ -449,7 +458,7 @@ public sealed partial class ScriptStudioView : UserControl
         _stop.IsEnabled = !_busy && _vm.Capturing;
         _stop.Content = _state == "countdown" ? "取消倒计时" : "停止并编辑";
         _windows.IsEnabled = _countdown.IsEnabled = editable;
-        if (_refreshWindows != null) _refreshWindows.IsEnabled = editable;
+        if (_refreshWindows != null) _refreshWindows.IsEnabled = !_busy && !_vm.Capturing;
         if (_mark != null) _mark.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused";
         _library.IsEnabled = !_busy && !_vm.Capturing;
         _editorLibrary.IsEnabled = _editorPicker.IsEnabled = !_busy && !_vm.Capturing;
@@ -463,6 +472,7 @@ public sealed partial class ScriptStudioView : UserControl
         _inspector.IsVisible = _selected != null || _adding;
         _emptyInspector.IsVisible = !_inspector.IsVisible;
         _deleteFile.IsEnabled = editable && CurrentLibraryItem != null;
+        if (!tasks && _status.Text == RunningHint) _status.Text = "任务已停止，可以编辑、绑定或录制脚本。";
     }
     private async void OnShortcut(object? sender, KeyEventArgs e)
     {

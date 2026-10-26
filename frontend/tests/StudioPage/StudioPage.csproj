@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>MFAAvalonia.Core</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <Compile Include="../../ScriptStudio/Views/Pages/ScriptStudioView*.cs" Link="Views/%(Filename)%(Extension)" />
+    <Compile Include="../../ScriptStudio/ViewModels/Pages/ScriptStudioViewModel.cs" Link="ScriptStudioViewModel.cs" />
+    <Compile Include="../../ScriptStudio/Controls/*.cs" Link="Controls/%(Filename)%(Extension)" />
+    <Compile Include="../../ScriptStudio/Services/StudioCapturePresentation.cs" Link="StudioCapturePresentation.cs" />
+    <AvaloniaResource Include="../../ScriptStudio/Assets/studio-toolbar-solid.png" Link="Assets/studio-toolbar-solid.png" />
+  </ItemGroup>
+</Project>
