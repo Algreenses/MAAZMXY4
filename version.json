@@ -1,12 +1,12 @@
 {
-  "version": "2.2",
-  "file": "update-v2.2.zip",
-  "sha256": "5f7161edef25aa39bcb8fa9a1425ec2651b068228fe7309dfd086971b0645992",
-  "size": 28201462,
+  "version": "2.2.1",
+  "file": "update-v2.2.1.zip",
+  "sha256": "c4cb5e6eac209834a1c7de4cdd02a4de189a7d1d31bc68989f419f2434fd0f07",
+  "size": 28208611,
   "urls": [
-    "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2/update-v2.2.zip",
-    "https://pub-2b261f42e9e445f7ba82f6ad70309148.r2.dev/maa/update-v2.2.zip"
+    "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2.1/update-v2.2.1.zip",
+    "https://pub-2b261f42e9e445f7ba82f6ad70309148.r2.dev/maa/update-v2.2.1.zip"
   ],
-  "url": "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2/update-v2.2.zip",
-  "note": "修复生存大冒险答完不收工；副本节点超时与点击节奏优化；去掉固定刷取次数限制"
+  "url": "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2.1/update-v2.2.1.zip",
+  "note": "修复：生存大冒险在整包安装下无法识别界面（原先依赖 assets/data 里的文件，而发布包不带 assets）。现在数据文件随 agent 一起分发，装包即用。"
 }

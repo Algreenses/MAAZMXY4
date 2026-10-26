@@ -34,10 +34,11 @@ INTERFACE_CANDIDATES = ("assets/interface.json", "interface.json")
 
 # 绝不进更新包的文件：私有插件、备份、字节码、私有 pipeline。
 EXCLUDE_NAMES = {
-    "adventure_order.py",       # 题序规则（自用）
-    "adventure_local_hook.py",  # 本地钩子（自用）
-    "adventure_drops.py",       # 掉落预判（自用）
-    "掉落预判.json",             # 上面那个插件的 pipeline
+    "adventure_order.py",        # 题序规则（自用）
+    "adventure_local_hook.py",   # 本地钩子（自用）
+    "adventure_drops.py",        # 掉落预判（自用）
+    "adventure_drops_action.py", # 掉落预判的 CustomRecognition 注册（自用）
+    "掉落预判.json",              # 上面那个插件的 pipeline
 }
 EXCLUDE_DIRS = {"__pycache__", ".git"}
 
