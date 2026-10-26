@@ -81,7 +81,9 @@ class FakeCapture:
 class ServiceTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
-        self.root = Path(self.temporary.name)
+        # StudioService resolves its root; fault targets must use the same form
+        # when Windows TEMP contains a short-path alias.
+        self.root = Path(self.temporary.name).resolve()
         self.recordings = self.root / "recordings"
         self.recordings.mkdir()
         self.file = self.recordings / "原脚本.json"
@@ -288,15 +290,18 @@ class ServiceTests(unittest.TestCase):
     def test_resolved_path_guard_rejects_external_targets_without_native_symlinks(self):
         original_resolve = Path.resolve
         candidate = self.recordings / "linked.json"
+        injected = []
 
         def resolve(path, *args, **kwargs):
             if path == candidate:
+                injected.append(path)
                 return self.root / "outside.json"
             return original_resolve(path, *args, **kwargs)
 
         with patch.object(Path, "resolve", resolve):
             with self.assertRaisesRegex(ValueError, "目录以外"):
                 self.service.path("linked.json")
+        self.assertEqual(injected, [candidate], "external-path injection was not exercised")
 
     def test_capture_fake_state_is_exclusive_and_stop_imports_once(self):
         capture = FakeCapture()

@@ -32,7 +32,9 @@ def source_macro(ident="source-one",name="原录制",key=74):
 class MigrationTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory()
-        self.base=Path(self.temp.name)
+        # Windows TEMP can contain an 8.3 alias (e.g. RUNNER~1). Match the
+        # production code's canonical paths so fault injection actually fires.
+        self.base=Path(self.temp.name).resolve()
         self.source=self.base/"source"
         self.target=self.base/"target"
         self.scripts=self.source/"data/scripts"
@@ -225,12 +227,15 @@ class MigrationTests(unittest.TestCase):
 
     def test_source_change_during_publication_rolls_back_created_outputs(self):
         original_write=migration._atomic_write
+        injected=[]
         def external_change(path,raw,**kwargs):
             original_write(path,raw,**kwargs)
             if path.parent==self.outputs:
+                injected.append(path)
                 self.file.write_text(json.dumps(source_macro(key=75)),encoding="utf8")
         with patch.object(migration,"_atomic_write",side_effect=external_change):
             result=self.run_migration()
+        self.assertEqual(len(injected),1,"source-change injection did not reach the output file")
         self.assertTrue(result["errors"])
         self.assertEqual(list(self.outputs.iterdir()),[])
         self.assertFalse(self.manifest.exists())
@@ -246,6 +251,7 @@ class MigrationTests(unittest.TestCase):
             return original_write(path,raw,**kwargs)
         with patch.object(migration,"_atomic_write",side_effect=fail_second):
             result=self.run_migration()
+        self.assertEqual(count[0],2,"second-write failure injection did not reach both outputs")
         self.assertTrue(result["errors"])
         self.assertEqual(list(self.outputs.iterdir()),[])
         self.assertFalse(self.manifest.exists())
@@ -257,11 +263,15 @@ class MigrationTests(unittest.TestCase):
         before_output=(self.outputs/initial["file"]).read_bytes()
         self.write_source("two.json",source_macro(ident="source-two",name="第二份"))
         original_write=migration._atomic_write
+        injected=[]
         def fail_manifest(path,raw,**kwargs):
-            if path==self.manifest: raise OSError("fake manifest failure")
+            if path==self.manifest:
+                injected.append(path)
+                raise OSError("fake manifest failure")
             return original_write(path,raw,**kwargs)
         with patch.object(migration,"_atomic_write",side_effect=fail_manifest):
             result=self.run_migration()
+        self.assertEqual(injected,[self.manifest],"manifest failure injection was not exercised")
         self.assertTrue(result["errors"])
         self.assertEqual(self.manifest.read_bytes(),before_manifest)
         self.assertEqual((self.outputs/initial["file"]).read_bytes(),before_output)
@@ -285,11 +295,15 @@ class MigrationTests(unittest.TestCase):
 
     def test_concurrent_destination_creation_is_not_overwritten_or_removed(self):
         original_write=migration._atomic_write
+        injected=[]
         def competing_writer(path,raw,**kwargs):
-            if path.parent==self.outputs: path.write_bytes(b"concurrent-user-file")
+            if path.parent==self.outputs:
+                injected.append(path)
+                path.write_bytes(b"concurrent-user-file")
             return original_write(path,raw,**kwargs)
         with patch.object(migration,"_atomic_write",side_effect=competing_writer):
             result=self.run_migration()
+        self.assertEqual(len(injected),1,"concurrent-file injection did not reach the output file")
         self.assertTrue(result["errors"])
         self.assertEqual((self.outputs/"原录制.json").read_bytes(),b"concurrent-user-file")
         self.assertFalse(self.manifest.exists())
