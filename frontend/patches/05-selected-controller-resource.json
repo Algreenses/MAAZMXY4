@@ -1,0 +1,6 @@
+{
+  "description": "Keep resource and task filtering aligned with the selected named controller in multi-profile instances.",
+  "path": "MFAAvalonia/Extensions/MaaFW/TaskLoader.cs",
+  "find": "    public string? GetCurrentControllerName()\n    {\n        return GetControllerName(taskQueueViewModel.CurrentController, maaInterface);\n    }",
+  "replace": "    public string? GetCurrentControllerName()\n    {\n        // The view model resolves the selected/saved profile name before its\n        // type fallback. Its fallback calls the static helper, not this method.\n        var controllerName = taskQueueViewModel.GetCurrentControllerName();\n        var selected = maaInterface?.Controller?.FirstOrDefault(controller =>\n            controller.ControllerType == taskQueueViewModel.CurrentController\n            && !string.IsNullOrWhiteSpace(controllerName)\n            && controller.Name?.Equals(controllerName, StringComparison.OrdinalIgnoreCase) == true);\n        return selected?.Name ?? GetControllerName(taskQueueViewModel.CurrentController, maaInterface);\n    }"
+}

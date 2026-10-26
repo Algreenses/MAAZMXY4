@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 - `01-script-studio-navigation.json`：在共享 `RootViewContent.axaml` 的现有侧栏加入页面。
 - `02-script-studio-registration.json`：接入现有 DI 和 ViewLocator 映射。
 - `03-script-studio-task-guard.json`：在两个任务启动入口共用的 `TryBeginTaskRun()` 内，与录制端使用同一把锁，防止录制与界面、定时或其它实例启动任务并行。冲突通过原有 Toast 与日志反馈。
+- `04-selected-win32-controller.json`、`05-selected-controller-resource.json`：有多个 Win32 配置时，窗口、资源及任务使用当前命名控制器的筛选规则，支持原尺寸迁移任务的独立配置。
 
 宿主互斥接口由页面源码中的 `MFAAvalonia.Services.ScriptStudioGuard` 提供：`SyncRoot`、`IsCapturing` 和 `ThrowIfCapturing()`。录制端必须在同一把锁内检查所有实例的任务状态并取得录制所有权，停止及异常时释放。
 

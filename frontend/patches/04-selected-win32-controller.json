@@ -1,0 +1,6 @@
+{
+  "description": "Use the selected named Win32 profile for window discovery and validity checks; preserve other controller filters.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    private List<DesktopWindowInfo> ApplyRegexFilters(List<DesktopWindowInfo> windows, MaaInterface.MaaResourceControllerWin32 win32)\n        => ApplyRegexFilters(windows, win32.ClassRegex, win32.WindowRegex);",
+  "replace": "    private List<DesktopWindowInfo> ApplyRegexFilters(List<DesktopWindowInfo> windows, MaaInterface.MaaResourceControllerWin32 win32)\n    {\n        // Both discovery and the selected-window validity check use this overload.\n        // Multiple Win32 profiles may have different title/class expressions.\n        var controllerName = GetCurrentControllerName();\n        var selected = MaaProcessor.Interface?.Controller?.FirstOrDefault(controller =>\n            controller.ControllerType == MaaControllerTypes.Win32\n            && !string.IsNullOrWhiteSpace(controllerName)\n            && controller.Name?.Equals(controllerName, StringComparison.OrdinalIgnoreCase) == true);\n        var profile = selected?.Win32 ?? win32;\n        return ApplyRegexFilters(windows, profile.ClassRegex, profile.WindowRegex);\n    }"
+}

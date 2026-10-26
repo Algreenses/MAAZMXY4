@@ -11,6 +11,8 @@
   "patches": [
     "frontend/patches/01-script-studio-navigation.json",
     "frontend/patches/02-script-studio-registration.json",
-    "frontend/patches/03-script-studio-task-guard.json"
+    "frontend/patches/03-script-studio-task-guard.json",
+    "frontend/patches/04-selected-win32-controller.json",
+    "frontend/patches/05-selected-controller-resource.json"
   ]
 }
