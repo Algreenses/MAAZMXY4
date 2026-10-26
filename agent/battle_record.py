@@ -360,6 +360,7 @@ def _refresh_option_list(log=None) -> bool:
         manual = "（手动选择文件…）"
         latest_case = "（最新录制）"
         latest_token = "@latest"
+        selected_case = "（脚本工具所选）"
 
         def _ov(file_value):
             return {
@@ -368,12 +369,12 @@ def _refresh_option_list(log=None) -> bool:
                 for n in play_nodes
             }
 
-        # 「（最新录制）」放第一个并默认选中：它由 battle_player 在运行时
-        # 现查磁盘，所以录完新战斗**不用重启 MFA** 就能用上。
-        cases = [{"name": latest_case, "pipeline_override": _ov(latest_token)},
+        # 脚本工具的选择在运行时解析；尚未选择时兼容地使用最新录制。
+        cases = [{"name": selected_case, "pipeline_override": _ov("@selected")},
+                 {"name": latest_case, "pipeline_override": _ov(latest_token)},
                  {"name": manual, "pipeline_override": _ov("?")}]
         cases += [{"name": n, "pipeline_override": _ov(n)} for n, _ in items]
-        default = latest_case
+        default = selected_case
 
         new = {
             "type": "select",

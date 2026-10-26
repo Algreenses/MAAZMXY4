@@ -1,0 +1,6 @@
+{
+  "description": "Register the script studio with the existing view locator and DI container.",
+  "path": "MFAAvalonia/App.axaml.cs",
+  "find": "            .AddView<TaskQueueView, TaskQueueViewModel>(services)",
+  "replace": "            .AddView<TaskQueueView, TaskQueueViewModel>(services)\n            .AddView<ScriptStudioView, ScriptStudioViewModel>(services)"
+}

@@ -1,0 +1,16 @@
+{
+  "repository": "MaaXYZ/MFAAvalonia",
+  "commit": "1080d3e1500f3439ac896ab2eca9aeb8e885f1f4",
+  "core_version": "2.14.0",
+  "archive_url": "https://codeload.github.com/MaaXYZ/MFAAvalonia/zip/1080d3e1500f3439ac896ab2eca9aeb8e885f1f4",
+  "archive_sha256": "351ecf655c7bfeb2b70e3285f727d7bb44061a136a215df095eeefd3bab5eb64",
+  "cache_directory": ".runtime-cache/mfa-source-1080d3e",
+  "project": "MFAAvalonia.Desktop/MFAAvalonia.Desktop.csproj",
+  "overlay_directory": "frontend/ScriptStudio",
+  "runtime_identifier": "win-x64",
+  "patches": [
+    "frontend/patches/01-script-studio-navigation.json",
+    "frontend/patches/02-script-studio-registration.json",
+    "frontend/patches/03-script-studio-task-guard.json"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "description": "Add a native script studio page beside the existing task page.",
+  "path": "MFAAvalonia/Views/Mobile/RootViewContent.axaml",
+  "find": "                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:InstanceContainerView}}\" />",
+  "replace": "                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:InstanceContainerView}}\" />\n                        <suki:SukiSideMenuItem IsContentMovable=\"False\"\n                                               Header=\"脚本工具\"\n                                               Icon=\"{fluent:FluentIcon Icon=DocumentEdit, IconVariant=Regular}\"\n                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:ScriptStudioView}}\" />"
+}

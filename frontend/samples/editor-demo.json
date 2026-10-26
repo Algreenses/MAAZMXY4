@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "name": "编辑练习（示例，非副本策略）",
+  "base": [1148, 720],
+  "duration_ms": 8000,
+  "actions": [
+    {"t": 500, "op": "keydown", "key": 68},
+    {"t": 800, "op": "keydown", "key": 74},
+    {"t": 650, "op": "keyup", "key": 74},
+    {"t": 450, "op": "keyup", "key": 68},
+    {"t": 600, "op": "keydown", "key": 75},
+    {"t": 950, "op": "keyup", "key": 75},
+    {"t": 550, "op": "down", "x": 480, "y": 360},
+    {"t": 200, "op": "move", "x": 550, "y": 360},
+    {"t": 200, "op": "move", "x": 620, "y": 380},
+    {"t": 200, "op": "up", "x": 660, "y": 380},
+    {"t": 900, "op": "keydown", "key": 32},
+    {"t": 150, "op": "keyup", "key": 32}
+  ],
+  "editor": {
+    "markers": [
+      {"at_ms": 500, "label": "移动与攻击"},
+      {"at_ms": 4000, "label": "鼠标拖动"},
+      {"at_ms": 6000, "label": "跳跃"}
+    ]
+  }
+}

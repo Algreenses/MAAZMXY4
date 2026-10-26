@@ -137,8 +137,123 @@
         "回放文件": {
             "type": "select",
             "label": "回放文件",
-            "default_case": "（最新录制）",
+            "default_case": "（脚本工具所选）",
             "cases": [
+                {
+                    "name": "（脚本工具所选）",
+                    "pipeline_override": {
+                        "伽岚（万世冥阁）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫太宗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（守卫宝烛）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（追捕飞贼）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "悬赏（遁地大盗）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（七叶树窟）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "摩多（幕山）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "无冥（孤魂岭）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "朱电（琉璃宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "烛时（钟晷极地）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        },
+                        "贪妄（金蟾宝宫）-回放战斗": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "file": "@selected",
+                                        "speed": 1.0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 {
                     "name": "（最新录制）",
                     "pipeline_override": {

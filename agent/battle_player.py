@@ -27,8 +27,11 @@
 想打几波，就把几波的完整操作一起录下来。
 """
 
+import ctypes
 import json
+import math
 import os
+import re
 import sys
 import threading
 import time
@@ -36,6 +39,8 @@ from typing import Any, Dict, List, Optional
 
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
+
+from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 
 try:
     from toast import toast as _toast
@@ -54,6 +59,8 @@ MANUAL_CASE = "（手动选择文件…）"
 # 重启前不会变），直接跑就能用上刚录的那份。
 LATEST_CASE = "（最新录制）"
 LATEST_TOKEN = "@latest"
+SELECTED_CASE = "（脚本工具所选）"
+SELECTED_TOKEN = "@selected"
 
 
 def _ensure_tcl_env() -> None:
@@ -137,6 +144,8 @@ def newest_recording() -> Optional[str]:
             if fn.startswith(".") or not fn.lower().endswith(".json"):
                 continue
             fp = os.path.join(RECORDING_DIR, fn)
+            if not os.path.isfile(fp):
+                continue
             items.append((os.path.getmtime(fp), fn[:-5]))
         if not items:
             return None
@@ -144,6 +153,30 @@ def newest_recording() -> Optional[str]:
         return items[0][1]
     except Exception:
         return None
+
+
+def selected_recording() -> Optional[str]:
+    """Resolve the live studio selection; a stale selection must never run another file."""
+    selection = os.path.join(RECORDING_DIR, ".selected.json")
+    if not os.path.exists(selection):
+        return None
+    try:
+        with open(selection, encoding="utf-8-sig") as stream:
+            data = json.load(stream)
+    except Exception as exc:
+        raise ValueError("脚本工具选择记录损坏，请重新选择脚本") from exc
+    if not isinstance(data, dict):
+        raise ValueError("脚本工具选择记录无效，请重新选择脚本")
+    name = data.get("file")
+    if name is None or name == "":
+        return None
+    if (not isinstance(name, str) or name.startswith(".") or not name.lower().endswith(".json")
+            or os.path.basename(name) != name or any(char in name for char in '<>:"/\\|?*')):
+        raise ValueError("脚本工具选择文件无效，请在脚本库重新选择")
+    path = os.path.join(RECORDING_DIR, name)
+    if not os.path.isfile(path):
+        raise FileNotFoundError("脚本工具所选文件已不存在：%s；请重新选择，未自动改用其他脚本" % name)
+    return name
 
 
 def recording_path(name: str) -> str:
@@ -156,7 +189,7 @@ def recording_path(name: str) -> str:
     """
     if os.path.isabs(name):
         return name
-    if name.endswith(".json"):
+    if name.lower().endswith(".json"):
         return os.path.join(RECORDING_DIR, name)
     return os.path.join(RECORDING_DIR, name + ".json")
 
@@ -165,27 +198,28 @@ def load_recording(name: str) -> Dict[str, Any]:
     path = recording_path(name)
     if not os.path.exists(path):
         raise FileNotFoundError("找不到录制文件：%s" % path)
-    with open(path, encoding="utf-8") as f:
+    if os.path.getsize(path) > MAX_FILE_BYTES:
+        raise ValueError("录制文件不能超过 16 MiB")
+    with open(path, encoding="utf-8-sig") as f:
         rec = json.load(f)
-
-    actions = rec.get("actions")
-    if not isinstance(actions, list) or not actions:
+    document = RecordingDocument.from_dict(rec)
+    if not rec.get("actions"):
         raise ValueError("录制文件里没有 actions：%s" % path)
-
-    known = {"key", "keydown", "keyup", "click", "down", "move", "up", "text", "scroll"}
-    for i, act in enumerate(actions):
-        if not isinstance(act, dict):
-            raise ValueError("第 %d 个动作不是对象：%r" % (i, act))
-        op = act.get("op")
-        if op not in known:
-            raise ValueError("第 %d 个动作的 op 不认识：%r" % (i, op))
-        if op in ("click", "down", "move") and ("x" not in act or "y" not in act):
-            raise ValueError("第 %d 个动作（%s）缺少 x / y" % (i, op))
-        if op in ("key", "keydown", "keyup") and "key" not in act:
-            raise ValueError("第 %d 个动作（%s）缺少 key" % (i, op))
-        if op == "text" and "text" not in act:
-            raise ValueError("第 %d 个动作（text）缺少 text" % i)
-
+    # Legacy recorder files can end while a key/button is still held. Preserve
+    # their timing and report this, while the player guarantees a final release.
+    pair_warnings = []
+    for diagnostic in document.diagnostics:
+        if re.fullmatch(r"(?:键 \d+|鼠标 (?:left|right|middle)) (?:未释放|重复按下|释放没有对应按下)", diagnostic):
+            pair_warnings.append(diagnostic)
+        else:
+            raise ValueError(diagnostic)
+    for action in rec["actions"]:
+        if action["op"] == "scroll" and ("x" in action or "y" in action):
+            raise ValueError("此脚本含有带坐标的滚轮动作，当前后台输入无法可靠保留滚轮位置；整次回放未开始，请在脚本工具调整")
+    if pair_warnings:
+        message = "旧录制存在键鼠配对问题，结束/停止时会补释放；建议在脚本工具修复：" + "；".join(pair_warnings[:4])
+        print("[battle_play] 警告：" + message, flush=True)
+        _toast("录制兼容提示", message)
     return rec
 
 
@@ -208,7 +242,7 @@ def _boost_timer() -> None:
         pass
 
 
-def _sleep_until(target: float) -> None:
+def _sleep_until(target: float, should_stop=None) -> bool:
     """睡到 monotonic 的 target 时刻。
 
     不能直接用 `time.sleep(gap)`：那样每个动作的实际间隔是
@@ -221,34 +255,55 @@ def _sleep_until(target: float) -> None:
     _boost_timer()
     # 先睡，最后 1.5ms 自旋。自旋窗口刻意压得很小：机器忙的时候
     # 长时间自旋反而会被调度器抢占，误差更大。
-    remain = target - time.monotonic()
-    if remain > 0.0015:
-        time.sleep(remain - 0.0015)
-    while time.monotonic() < target:
-        pass
+    while True:
+        if should_stop is not None and should_stop():
+            return False
+        remain = target - time.monotonic()
+        if remain <= 0:
+            return True
+        if remain > 0.0015:
+            time.sleep(min(0.02, remain - 0.0015))
 
 
-def _dispatch(ctrl, act: Dict[str, Any]) -> None:
+_BUTTON_CONTACTS = {"left": 0, "right": 1, "middle": 2}
+
+
+def _wait_job(job) -> None:
+    result = job.wait()
+    if result is False or getattr(result, "succeeded", True) is False:
+        raise RuntimeError("Maa 输入作业执行失败")
+
+
+def _dispatch(ctrl, act: Dict[str, Any], active_buttons=None) -> None:
     """执行单个动作。所有 job 都 wait，保证顺序。"""
     op = act["op"]
     if op == "key":
-        ctrl.post_click_key(int(act["key"])).wait()
+        _wait_job(ctrl.post_click_key(int(act["key"])))
     elif op == "keydown":
-        ctrl.post_key_down(int(act["key"])).wait()
+        _wait_job(ctrl.post_key_down(int(act["key"])))
     elif op == "keyup":
-        ctrl.post_key_up(int(act["key"])).wait()
+        _wait_job(ctrl.post_key_up(int(act["key"])))
     elif op == "click":
-        ctrl.post_click(int(act["x"]), int(act["y"])).wait()
+        _wait_job(ctrl.post_click(int(act["x"]), int(act["y"])))
     elif op == "down":
-        ctrl.post_touch_down(int(act["x"]), int(act["y"])).wait()
+        contact = _BUTTON_CONTACTS[act.get("button", "left")]
+        _wait_job(ctrl.post_touch_down(int(act["x"]), int(act["y"]), contact=contact))
     elif op == "move":
-        ctrl.post_touch_move(int(act["x"]), int(act["y"])).wait()
+        # Moves belong to every held mouse button; legacy standalone moves keep
+        # their original left-contact behavior.
+        for contact in sorted(active_buttons or {0}):
+            _wait_job(ctrl.post_touch_move(int(act["x"]), int(act["y"]), contact=contact))
     elif op == "up":
-        ctrl.post_touch_up().wait()
+        contact = _BUTTON_CONTACTS[act.get("button", "left")]
+        if "x" in act and "y" in act:
+            # New capture/import files retain the final drag endpoint even when
+            # the preceding move was rate-limited. Old coordinate-free up stays unchanged.
+            _wait_job(ctrl.post_touch_move(int(act["x"]), int(act["y"]), contact=contact))
+        _wait_job(ctrl.post_touch_up(contact=contact))
     elif op == "text":
-        ctrl.post_input_text(str(act["text"])).wait()
+        _wait_job(ctrl.post_input_text(str(act["text"])))
     elif op == "scroll":
-        ctrl.post_scroll(int(act.get("dx", 0)), int(act.get("dy", 0))).wait()
+        _wait_job(ctrl.post_scroll(int(act.get("dx", 0)), int(act.get("dy", 0))))
 
 
 @AgentServer.custom_action("battle_play")
@@ -289,6 +344,19 @@ class BattlePlay(CustomAction):
             param = {}
 
         name = str(param.get("file") or param.get("name") or "").strip()
+        if name in (SELECTED_TOKEN, SELECTED_CASE):
+            try:
+                selected = selected_recording()
+            except (ValueError, FileNotFoundError) as exc:
+                self._log("[battle_play] %s" % exc)
+                _toast("无法回放所选脚本", str(exc))
+                return False
+            if selected is not None:
+                name = selected
+                self._log("[battle_play] 使用脚本工具所选：%s" % selected)
+            else:
+                name = LATEST_TOKEN
+                self._log("[battle_play] 脚本工具尚未选择文件，使用最新录制")
         if name == LATEST_TOKEN:
             latest = newest_recording()
             if latest:
@@ -308,14 +376,22 @@ class BattlePlay(CustomAction):
             name = picked
             self._log("[battle_play] 已选择：%s" % picked)
 
-        speed = float(param.get("speed", 1.0) or 1.0)
-        if speed <= 0:
-            speed = 1.0
+        try:
+            speed_value = param.get("speed", 1.0)
+            if isinstance(speed_value, bool):
+                raise ValueError
+            speed = float(speed_value)
+            if not math.isfinite(speed) or not 0.01 <= speed <= 100:
+                raise ValueError
+        except (TypeError, ValueError, OverflowError):
+            self._log("[battle_play] 回放速度必须是 0.01～100 的有限数值")
+            return False
 
         try:
             rec = load_recording(name)
         except Exception as exc:  # 文件缺失 / 格式错误都在这里
             self._log("[battle_play] 录制文件有问题：%s" % exc)
+            _toast("录制文件无法回放", str(exc))
             return False
 
         actions: List[Dict[str, Any]] = rec["actions"]
@@ -326,8 +402,9 @@ class BattlePlay(CustomAction):
         )
         # 第一个动作的 t 现在可能是非 0（录制开始后先等了一会儿），
         # 回放会照等，所以先把它报出来，免得用户以为卡住。
-        _lead = max(0.0, float(actions[0].get("t", 0) or 0)) / 1000.0 / speed
-        _total = sum(max(0.0, float(a.get("t", 0) or 0)) for a in actions) / 1000.0 / speed
+        _lead = float(actions[0].get("t", 0)) / 1000.0 / speed
+        action_duration = sum(float(a.get("t", 0)) for a in actions)
+        _total = float(rec.get("duration_ms", action_duration)) / 1000.0 / speed
         if _lead >= 0.5:
             self._log("[battle_play] 起手等待 %.1f 秒（按录制时的空档重现）" % _lead)
         self._log("[battle_play] 回放总时长 %.1f 秒" % _total)
@@ -335,33 +412,81 @@ class BattlePlay(CustomAction):
         started = time.monotonic()
         # 绝对时刻调度：每个动作的目标时刻 = 起点 + 累计时间偏移。
         # 某个动作执行得慢，下一个动作就少睡一点，整体不会越跑越慢。
-        offset = 0.0
-        for i, act in enumerate(actions):
-            # MAA 界面上点「停止任务」时 stopping 会变 True。
-            # 不检查它，回放会一直跑到最后，任务也停不下来（按钮不回弹）。
+        offset, held_keys, held_buttons, loose_contacts = 0.0, set(), set(), set()
+        def stopping():
             try:
-                if context.tasker.stopping:
-                    self._log("[battle_play] 收到停止任务指令，中止回放")
-                    try:
-                        ctrl.post_touch_up().wait()
-                    except Exception:
-                        pass
-                    return False
+                return bool(context.tasker.stopping)
             except Exception:
-                pass
-
-            offset += max(0.0, float(act.get("t", 0))) / 1000.0 / speed
-            _sleep_until(started + offset)
-            try:
-                _dispatch(ctrl, act)
-            except Exception as exc:
-                self._log("[battle_play] 第 %d 个动作（%s）执行失败：%s" % (i, act.get("op"), exc))
-                # 按键/触摸按下去没抬起来会让游戏卡在按住状态，兜底松一次
-                try:
-                    ctrl.post_touch_up().wait()
-                except Exception:
-                    pass
                 return False
+        completed, cleanup_errors = False, []
+        try:
+            for i, act in enumerate(actions):
+                offset += float(act.get("t", 0)) / 1000.0 / speed
+                if stopping() or not _sleep_until(started + offset, stopping) or stopping():
+                    self._log("[battle_play] 收到停止任务指令，中止回放")
+                    break
+                # Remember a press before submission: a failing native job may
+                # have pressed the device before reporting failure.
+                op = act["op"]
+                transient_key = int(act["key"]) if op == "key" else None
+                had_key = transient_key in held_keys
+                had_left = 0 in held_buttons
+                press_key = int(act["key"]) if op in ("keydown", "key") else None
+                press_contact = (_BUTTON_CONTACTS[act.get("button", "left")] if op == "down" else
+                                 0 if op == "click" else None)
+                key_was_held = press_key in held_keys
+                contact_was_held = press_contact in held_buttons
+                if op in ("keydown", "key"):
+                    held_keys.add(int(act["key"]))
+                if op in ("down", "click"):
+                    held_buttons.add(_BUTTON_CONTACTS[act.get("button", "left")] if op == "down" else 0)
+                try:
+                    # Check once more immediately before dispatch, after local
+                    # bookkeeping, so cancellation never schedules an old action.
+                    if stopping():
+                        if not key_was_held:
+                            held_keys.discard(press_key)
+                        if not contact_was_held:
+                            held_buttons.discard(press_contact)
+                        break
+                    if op == "move" and not held_buttons:
+                        # The legacy Win32 touch-move API carries a left-button
+                        # flag even for recorded hover movement. Clear it on exit.
+                        loose_contacts.add(0)
+                    _dispatch(ctrl, act, held_buttons)
+                except Exception as exc:
+                    self._log("[battle_play] 第 %d 个动作（%s）执行失败：%s" % (i, op, exc))
+                    break
+                if op == "keyup":
+                    held_keys.discard(int(act["key"]))
+                elif op == "key" and not had_key:
+                    held_keys.discard(transient_key)
+                elif op == "up":
+                    held_buttons.discard(_BUTTON_CONTACTS[act.get("button", "left")])
+                    loose_contacts.discard(_BUTTON_CONTACTS[act.get("button", "left")])
+                elif op == "click" and not had_left:
+                    held_buttons.discard(0)
+            else:
+                # The editor preserves the empty interval after the final event.
+                completed = _sleep_until(started + _total, stopping) and not stopping()
+        finally:
+            # Cleanup does not consult stopping: cancellation must never prevent
+            # releases, and one failed release must not skip the remaining ones.
+            for key in sorted(held_keys):
+                try:
+                    _wait_job(ctrl.post_key_up(key))
+                except Exception as exc:
+                    cleanup_errors.append("释放键 %d：%s" % (key, exc))
+            for contact in sorted(held_buttons | loose_contacts):
+                try:
+                    _wait_job(ctrl.post_touch_up(contact=contact))
+                except Exception as exc:
+                    cleanup_errors.append("释放鼠标 %d：%s" % (contact, exc))
+        if cleanup_errors:
+            self._log("[battle_play] 输入清理未完成：%s" % "；".join(cleanup_errors))
+            return False
+        if not completed:
+            return False
 
         elapsed = time.monotonic() - started
         self._log("[battle_play] 回放结束，耗时 %.1f 秒" % elapsed)
@@ -380,6 +505,7 @@ def list_recordings() -> List[str]:
         return []
     names = []
     for fn in sorted(os.listdir(RECORDING_DIR)):
-        if fn.lower().endswith(".json"):
+        if (not fn.startswith(".") and fn.lower().endswith(".json")
+                and os.path.isfile(os.path.join(RECORDING_DIR, fn))):
             names.append(fn[:-5])
     return names

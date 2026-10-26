@@ -1,0 +1,26 @@
+name: Script studio
+on:
+  pull_request:
+    paths:
+      - 'agent/**'
+      - 'frontend/**'
+      - 'tests/**'
+      - 'tools/build_frontend.ps1'
+      - '.github/workflows/script-studio.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline recording, editing and playback tests
+        run: python -m unittest discover -s tests -p "*studio*.py" -v
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build native MFAAvalonia page
+        shell: pwsh
+        run: ./tools/build_frontend.ps1
