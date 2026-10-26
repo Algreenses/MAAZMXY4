@@ -490,3 +490,7 @@ interface.json.bak*
 /agent/adventure_order.py
 /assets/data/adventure_order_ids.json
 /agent/adventure_local_hook.py
+# 掉落预判：读游戏内存拿 newDrops，属本地私有能力，绝不入库
+/agent/adventure_drops.py
+/agent/adventure_drops_action.py
+/assets/resource/base/pipeline/掉落预判.json

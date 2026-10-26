@@ -88,8 +88,9 @@ def character_attrs(text: str) -> Optional[Dict[str, int]]:
         return dict(CHARACTERS[hit])
     return None
 
+# 与 adventure.py 的 UI_PATH 同理：assets/ 不进发布包，题库放 agent/data 里跟着 agent 走。
 _DEFAULT_DATA = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "assets", "data", "adventure.json"
+    os.path.dirname(os.path.abspath(__file__)), "data", "adventure.json"
 )
 
 # 默认属性权重：健康归零即冒险结束，故给更高权重；战力/智慧是后续门槛的主力，略高。

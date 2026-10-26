@@ -49,14 +49,18 @@ from maa.context import Context  # noqa: E402
 from maa.custom_action import CustomAction  # noqa: E402
 from maa.custom_recognition import CustomRecognition  # noqa: E402
 
-UI_PATH = os.path.join(_ROOT, "assets", "data", "adventure_ui.json")
+# 放在 agent/data 而不是 assets/data：整包 7z 白名单和自动更新包都只带
+# resource/、agent/、interface.json 三样，assets/ 不会进包。以前写 assets/data
+# 时，用户装完包一跑就 FileNotFoundError（每次识别都抛，按未命中处理 →
+# 界面永远认不出来 → 任务卡在「运行中」空转）。
+UI_PATH = os.path.join(_ROOT, "agent", "data", "adventure_ui.json")
 LOG_DIR = os.path.join(_ROOT, "debug", "adventure")
 COLLECTED_PATH = os.path.join(LOG_DIR, "collected.jsonl")
 LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
 # 改动 agent 代码后改这个值，日志里就能确认「agent 到底加载了哪一版」
-AGENT_VERSION = "2026-10-26-stop2"
+AGENT_VERSION = "2026-10-27-phase"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
@@ -948,8 +952,11 @@ class AdventureResult(CustomRecognition):
 
     def analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
         try:
-            param = getattr(argv, "custom_recognition_param", None) or {}
-            phase = (param.get("phase") or "check") if isinstance(param, dict) else "check"
+            # binding 给的是 JSON 字符串（见 _as_dict 的说明），这层不解析的话
+            # phase 会永远落到 "check"：结算节点该走 click 短路却变成 check，
+            # 收工后每轮都 OCR 一次大 ROI 再判失败 → 第十题之后原地空转。
+            param = _as_dict(getattr(argv, "custom_recognition_param", None))
+            phase = (param.get("phase") or "check") if param else "check"
 
             # 大 ROI 的 OCR 很贵，每轮都跑会拖慢整局：两道前置闸门
             # 收尾后只剩「点结束冒险 + 停任务」该做：click 阶段不用再跑 OCR，

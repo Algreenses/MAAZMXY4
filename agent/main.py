@@ -17,6 +17,13 @@ import battle_player
 import loop_counter
 import battle_record
 
+# 掉落预判是本地私有扩展（adventure_drops.py / adventure_drops_action.py 不入库），
+# 公开仓库里没有这两个文件，缺了就跳过，不影响其它任务。
+try:
+    import adventure_drops_action  # noqa: F401
+except Exception:  # noqa: BLE001
+    pass
+
 
 def main():
     Toolkit.init_option("./")
