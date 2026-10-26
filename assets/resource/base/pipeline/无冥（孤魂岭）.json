@@ -11,7 +11,7 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "无冥（孤魂岭）-点击设置"
     ],
@@ -35,7 +35,7 @@
         ]
       }
     },
-    "post_delay": 150,
+    "post_delay": 1000,
     "next": [
       "无冥（孤魂岭）-点击孤魂岭"
     ],
@@ -59,8 +59,8 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 0,
-    "timeout": 2000,
+    "post_delay": 1000,
+    "timeout": 10000,
     "next": [
       "无冥（孤魂岭）-识别孤魂岭场景"
     ],
@@ -87,7 +87,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 8000,
     "next": [
       "无冥（孤魂岭）-返回地图"
     ],
@@ -96,7 +96,8 @@
         "x": 640,
         "y": 93
       }
-    }
+    },
+    "post_delay": 1000
   },
   "无冥（孤魂岭）-识别孤魂岭场景": {
     "recognition": {
@@ -108,8 +109,8 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 0,
-    "timeout": 600,
+    "post_delay": 1000,
+    "timeout": 10000,
     "next": [
       "无冥（孤魂岭）-回放战斗"
     ],
@@ -135,7 +136,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 10000,
     "next": [
       "无冥（孤魂岭）-刷取次数",
       "停止运行"
@@ -145,7 +146,8 @@
         "x": 960,
         "y": 135
       }
-    }
+    },
+    "post_delay": 1000
   },
   "无冥（孤魂岭）-刷取次数": {
     "recognition": {
@@ -154,7 +156,21 @@
     "next": [
       "无冥（孤魂岭）-点击孤魂岭"
     ],
-    "max_hit": 1,
-    "post_delay": 0
+    "post_delay": 1000,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "无冥（孤魂岭）"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/loop/panel.md",
+        "display": "log"
+      }
+    }
   }
 }

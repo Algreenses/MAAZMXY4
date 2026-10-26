@@ -511,6 +511,19 @@ def _exact_cache_file() -> Optional[str]:
         return None
 
 
+def _announce_first_build(reason: str) -> None:
+    """首次给某个角色铺归纳表时先吭一声。
+
+    铺表要 30~80 秒，这期间 agent 一行日志都不会再打，界面上看着就像卡死
+    （用户反馈过「没反应了」）。缓存是按角色分别落盘的，所以每个角色第一次
+    跑都会走到这里；第二个角色起照样提示，只是各自的缓存文件不同。
+    """
+    print("首次构建「%s」的归纳表（%s）：约 75~163 万状态，"
+          "视机器需 30~80 秒，期间界面不会有任何反应，请稍候……"
+          % (_exact_character or "当前角色", reason),
+          flush=True)
+
+
 def _exact_cache_load() -> bool:
     """尝试从磁盘恢复记忆化表，命中返回 True（同时把状态数补回来）。"""
     global _exact_states
@@ -522,12 +535,14 @@ def _exact_cache_load() -> bool:
         return False
     path = _exact_cache_file()
     if not path or not os.path.exists(path):
+        _announce_first_build("还没有缓存文件")
         return False
     try:
         t0 = time.time()
         with gzip.open(path, "rb") as fp:
             head, memo, states = pickle.load(fp)
         if head != _exact_cache_key():
+            _announce_first_build("缓存参数不匹配，需要重算")
             return False
         _exact_memo.clear()
         _exact_memo.update(memo)
@@ -538,6 +553,7 @@ def _exact_cache_load() -> bool:
               flush=True)
         return True
     except Exception:
+        _announce_first_build("缓存读取失败，需要重算")
         return False
 
 
@@ -620,6 +636,17 @@ def exact_stats() -> Tuple[int, int]:
     return len(_exact_memo), _exact_states
 
 
+def ensure_exact_index(events: Mapping[str, Mapping[str, Any]]) -> bool:
+    """确保题库索引（题号→阶段、事件→阶段）已建好。
+
+    `question_for_event()` 依赖 `_exact_event_stage` / `_exact_stage_qs`。
+    第 1 题时索引还没被任何一次 `choose()` 建过，直接调 question_for_event
+    会拿到 None：题号退化成兜底值，事件也登记不进 answered —— 结算时
+    「上帝视角」就只看到 9 题、给不出最优对比。所以在推导题号前先确保建好。
+    """
+    return _build_exact_tables(events)
+
+
 def question_for_event(event: str, answered: Dict[int, list]) -> Optional[int]:
     """由「这一题是什么事件」反推它是本局第几题（0 基），推不出返回 None。
 
@@ -694,12 +721,19 @@ def _build_exact_tables(events: Mapping[str, Mapping[str, Any]]) -> bool:
     global _exact_event_stage, _exact_stage_qs, _exact_event_slot, _exact_fp
     if not EXACT_ENABLED:
         return False
-    key = id(events)
-    if _exact_src == key:
-        return True
+    # 用题库「内容指纹」判断要不要重建，**不能**用 id(events)：调用方每次
+    # 都是新读一份 dict，id() 每次都不同，于是每题都被当成「换了题库」——
+    # 整张索引重建、记忆化表被 reset，下一帧再从磁盘把 122 万状态读回来
+    # （实测每答一题都打一次「归纳表缓存命中…载入 0.6s」，每题白花 0.6 秒）。
+    # 注意：先把阶段元信息补齐再算指纹 —— 指纹里含 _stage_meta，第一次调用时
+    # 它还是空的，算出来的指纹和第二次不一样，缓存就永远命不中。
     _ensure_value_index(events)
     _ensure_stage_meta()
-    _exact_fp = _fingerprint(events)
+    fp = _fingerprint(events)
+    key = fp or "id:%d" % id(events)
+    if _exact_src == key and _exact_qstage:
+        return True
+    _exact_fp = fp
     _exact_ai = {a: i for i, a in enumerate(ATTRS)}
 
     # 题号 → 阶段：题库 `_meta.stages[].questions` 直接给出了题号列表（1 基）

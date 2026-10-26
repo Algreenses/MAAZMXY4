@@ -26,6 +26,7 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 from typing import Any, Dict, List, Optional
 
@@ -55,7 +56,7 @@ LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
 # 改动 agent 代码后改这个值，日志里就能确认「agent 到底加载了哪一版」
-AGENT_VERSION = "2026-10-25-hook"
+AGENT_VERSION = "2026-10-26-stop2"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
@@ -64,6 +65,7 @@ CONTINUE_NODE = "生存大冒险_继续冒险"
 
 # 「继续冒险」按钮在 720p 下的位置（由截图实测：原图 1062..1190 x 689..726）
 CONTINUE_BOX = [863, 520, 106, 34]
+
 
 # 选项文本反查事件的置信度门槛（4 行平均相似度）
 OPTION_MATCH_THRESHOLD = 0.55
@@ -99,6 +101,9 @@ class _State:
     # 开局认出的角色名与它的初始六维（第 1 题时识别一次）
     character: str = ""
     char_checked: bool = False
+    # 本局初始六维（第 1 题时锁定的那一份）。attrs 会被每题改掉，
+    # 上帝模式算最优解必须拿初始值，所以单独留一份。
+    initial_attrs: Dict[str, int] = {}
     # 本局建精确归纳表用了多久（用于把「拉表工作量」量化到日志里）
     table_cost: float = 0.0
     # 本局每题得分 {题号(0 基): 分数}。用字典而不是累加一个整数，是为了
@@ -106,14 +111,25 @@ class _State:
     score_by_q: Dict[int, int] = {}
     # 本局是否已经打过「结算」日志（结算画面每帧都会被读到，只该打一次）
     finished: bool = False
-    # 本局是否已经因为「识别到冒险成功/失败」请求过停止任务（只请求一次）
-    stopped: bool = False
+    # 刚刚点过的那一题 (题号, 事件名)：点完选项后答题动画要一两秒，
+    # 这期间 pipeline 会再跑一次读题，重复决策会让账本多扣一次属性，
+    # 还可能把第二个选项也点进去（实测：螺旋地狱第一次点扣健康的项直接送死）。
+    clicked_key: tuple = ()
+    repeat_count: int = 0
+    # 结算面板的「结束冒险」是否已经点过（防止每轮重复点）
+    result_clicked: bool = False
+    # 最近一次「有进展」的时刻（识别出题干 / 认出结算面板）。只用于空转提示。
+    last_progress_ts: float = 0.0
+    idle_warned: bool = False
 
     def total_score(self) -> int:
         return sum(self.score_by_q.values())
 
 
 STATE = _State()
+
+# 结算收尾的互斥锁，见 _log_result
+_RESULT_LOCK = threading.Lock()
 
 
 def _ensure_dirs() -> None:
@@ -213,6 +229,49 @@ def _pick_text(obj: Any) -> str:
         if isinstance(v, str) and v:
             return v
     return ""
+
+
+def _ocr_detail(context: Context, image: Any, node: str, override: Optional[Dict[str, Any]] = None):
+    """和 _ocr 一样跑一次识别，但返回原始 RecognitionDetail（要拿 box 时用）。"""
+    try:
+        if override:
+            return context.run_recognition(node, image, pipeline_override=override)
+        return context.run_recognition(node, image)
+    except Exception as exc:  # noqa: BLE001
+        _log(f"OCR 调用失败（{node}）：{type(exc).__name__}: {exc}")
+        return None
+
+
+def _texts_and_boxes(detail: Any) -> List[tuple]:
+    """从 RecognitionDetail 里取出 [(文本, [x, y, w, h]), ...]。
+
+    结算面板要点「结束冒险」按钮，光有文字不够，还得有它的框才能点。
+    """
+    if detail is None:
+        return []
+    for group in ("filtered_results", "all_results", "best_result"):
+        results = getattr(detail, group, None)
+        if results is None and isinstance(detail, dict):
+            results = detail.get(group)
+        if results is None:
+            continue
+        if not isinstance(results, (list, tuple)):
+            results = [results]
+        out = []
+        for item in results:
+            t = _pick_text(item)
+            box = getattr(item, "box", None)
+            if box is None and isinstance(item, dict):
+                box = item.get("box")
+            if t:
+                out.append((t, list(box) if box else None))
+        if out:
+            return out
+    t = _pick_text(detail)
+    box = getattr(detail, "box", None)
+    if box is None and isinstance(detail, dict):
+        box = detail.get("box")
+    return [(t, list(box) if box else None)] if t else []
 
 
 def _texts_of(detail: Any) -> List[str]:
@@ -680,10 +739,20 @@ def _collect(
         _log(f"写入采集记录失败：{exc}")
 
 
-_RESULT_MARKS = ("冒险成功", "冒险失败", "直降为0")
+_RESULT_MARKS = ("冒险成功", "冒险失败", "直降为0", "结束冒险")
+
+# 结算识别专用节点（pipeline 里 ROI 放大到题干+选项+按钮）
+RESULT_NODE = "生存大冒险_结算识别"
+# check 阶段只认「真的结算了」（成功/失败/直降），不能含「结束冒险」——
+# 那只是按钮文字，按钮还在时把它当结算标记会提前收工。
+_CHECK_MARKS = ("冒险成功", "冒险失败", "直降为0")
 
 
 PANEL_FILE = os.path.join(LOG_DIR, "panel.md")
+# 同一题「刚点过」的跳过上限（秒级轮询一次）。
+# 实测：点完选项后游戏要 3~10 秒才把界面切走，上限太小会在切走前重新决策，
+# 同一题的条目就会重复贴进面板；上限太大则万一真点空了要等更久才重试。
+_REPEAT_LIMIT = 12
 
 
 _PANEL_LAST: list = []
@@ -706,7 +775,9 @@ def _panel(text: str) -> None:
     try:
         os.makedirs(os.path.dirname(PANEL_FILE), exist_ok=True)
         with open(PANEL_FILE, "w", encoding="utf-8", newline="\n") as fp:
-            fp.write(body + "\n")
+            # 空内容写成真正的空文件：结果面板那一圈会调用 _panel("")，
+            # 若写成 "\n"，focus 仍会贴出一个空条，看着还是"多了一条"。
+            fp.write(body + "\n" if body else "")
     except Exception:
         pass
 
@@ -721,10 +792,44 @@ def _result_mark(text: str) -> str:
     return hit.group(0) if hit else ""
 
 
+def _click_end_adventure(context: Context, image: Any) -> bool:
+    """结算面板上找「结束冒险」按钮点掉，认不到就返回 False（绝不阻塞收工）。
+
+    这活原来是 pipeline「结算」节点 click 阶段干的。挪进 agent 是为了点完
+    当场就能停任务，不用再绕答题循环一圈。
+    """
+    if STATE.result_clicked:
+        return True
+    pairs = _texts_and_boxes(_ocr_detail(context, image, RESULT_NODE)) or []
+    for text, box in pairs:
+        if "结束冒险" in (text or "") and box:
+            bx, by, bw, bh = list(box)[:4]
+            try:
+                context.tasker.controller.post_click(
+                    int(bx) + int(bw) // 2, int(by) + int(bh) // 2
+                ).wait()
+            except Exception as exc:               # noqa: BLE001
+                _log(f"点「结束冒险」失败（{type(exc).__name__}: {exc}），跳过，直接收工")
+                return False
+            STATE.result_clicked = True
+            _log(f"结算面板：点「{text.strip()}」")
+            return True
+    return False
+
+
 def _log_result(context: Context, question: str, mark: str) -> None:
-    """结算面板的统一收尾日志：对账、上帝模式对比，只打一次。"""
-    if STATE.score_by_q and not STATE.finished:
+    """结算面板的统一收尾日志：对账、上帝模式对比，整局只收尾一次。
+
+    结算画面每帧都会被识别到，pipeline 也可能多绕几圈，
+    所以第一件事就是拦重复调用 —— 否则「识别到冒险失败」会刷一串。
+    """
+    # 两个节点（结算 click / 结算确认 check）会同时进来，单靠 finished 布尔量
+    # 会在检查与置位之间被另一个线程钻过去，所以用锁把「判断+置位」做成原子操作。
+    with _RESULT_LOCK:
+        if STATE.finished:
+            return
         STATE.finished = True
+    if STATE.score_by_q:
         mine = STATE.total_score()
         hit = re.search(r"获得\s*(\d+)\s*积分", question or "")
         if hit:
@@ -733,7 +838,15 @@ def _log_result(context: Context, question: str, mark: str) -> None:
             _log(f"本局结束：实测 {real} 分｜预计 {mine} 分（{tail}）")
         else:
             _log(f"本局结束：预计 {mine} 分（{len(STATE.score_by_q)} 题）")
-    answered = getattr(STATE, "answered", None) or []
+    # 题序按题号顺序展平：stage_seen 是 {阶段: [事件名,...]}，
+    # 阶段按 1..5 从小到大拼起来就是本局已答题目的真实顺序。
+    answered = []
+    _seen = getattr(STATE, "stage_seen", None) or {}
+    if isinstance(_seen, dict):
+        for _st in sorted(_seen):
+            answered.extend(_seen[_st])
+    else:
+        answered = list(_seen)
     god_line = ""
     if answered and not getattr(STATE, "god_logged", False):
         STATE.god_logged = True
@@ -794,12 +907,16 @@ class AdventureInit(CustomAction):
             except Exception:                 # noqa: BLE001
                 pass
         STATE.strategy_logged = False
+        STATE.last_progress_ts = time.monotonic()
+        STATE.idle_warned = False
         STATE.character = ""
         STATE.char_checked = False
+        STATE.initial_attrs = {}
         STATE.table_cost = 0.0
         STATE.score_by_q = {}
         STATE.finished = False
-        STATE.stopped = False
+        STATE.last_answer = 0
+        STATE.result_clicked = False
         # 版本标记：用来确认 agent 加载的是改过的代码（改完文件不重启 agent
         # 会一直跑旧模块，日志里看不出区别，全靠这一行区分）
         _log(f"agent 代码版本：{AGENT_VERSION}")
@@ -822,23 +939,68 @@ class AdventureInit(CustomAction):
 # --------------------------------------------------------------------------- #
 @AgentServer.custom_recognition("adventure_result")
 class AdventureResult(CustomRecognition):
-    """结算面板识别：认「冒险成功 / 冒险失败」，命中就让 pipeline 走「结束」。
+    """结算面板处理：先点「结束冒险」，再认「冒险成功 / 冒险失败」收工。
 
-    它挂在答题循环的第一个 next 上，命中后进入 `生存大冒险_结束`（无 next），
-    任务是以**成功**结束的 —— 不用 post_stop，那样 MAA 会记成任务失败。
+    `custom_recognition_param` 里的 `phase` 决定这一轮干哪件事：
+    - `click`：认出「结束冒险」按钮 → 把它的框交给 pipeline 点掉
+    - `check`：认出「冒险成功 / 冒险失败 / 直降为0」→ 记面板，由 pipeline 收工
     """
 
     def analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
         try:
+            param = getattr(argv, "custom_recognition_param", None) or {}
+            phase = (param.get("phase") or "check") if isinstance(param, dict) else "check"
+
+            # 大 ROI 的 OCR 很贵，每轮都跑会拖慢整局：两道前置闸门
+            # 收尾后只剩「点结束冒险 + 停任务」该做：click 阶段不用再跑 OCR，
+            # 但必须返回「命中」把 pipeline 送到下一节点
+            # 「结算确认」，由它执行 StopTask 正常收工。
+            if STATE.finished and phase == "click":
+                # 这里千万不能 return None：返回 None 只是「识别失败」，而「结算」
+                # 是「答题循环」next 里的候选之一，候选失败不会触发它自己的
+                # on_error（on_error 只对正式执行的节点生效），只会回头重试
+                # 答题循环 → 整局原地空转不动（实测 02:12:11 收尾后 36 秒无响应）。
+                # box 给左上角黑边，Click 点上去没有任何副作用。
+                return CustomRecognition.AnalyzeResult(
+                    box=(1, 1, 3, 3),
+                    detail={"phase": "click", "skipped": True},
+                )
+            # stage_seen 是 {阶段: [事件名,...]}，len() 只有阶段数（最多 5），
+            # 要的是「已答题数」→ 把各阶段列表长度加起来。
+            seen = getattr(STATE, "stage_seen", None) or {}
+            done = sum(len(v) for v in seen.values()) if isinstance(seen, dict) else len(seen)
+            if done < 9:
+                return None
+
             image = getattr(argv, "image", None)
-            text = _ocr(context, image, QUESTION_NODE) or ""
-            mark = _result_mark(text)
+            pairs = _texts_and_boxes(_ocr_detail(context, image, RESULT_NODE)) or []
+            if not pairs:
+                return None
+            joined = " ".join(t.strip() for t, _ in pairs if t and t.strip())
+
+            if phase == "click":
+                if STATE.result_clicked:
+                    return None
+                for text, box in pairs:
+                    if "结束冒险" in (text or "") and box:
+                        STATE.result_clicked = True
+                        _log(f"结算面板：点「{text.strip()}」")
+                        return CustomRecognition.AnalyzeResult(
+                            box=tuple(box),
+                            detail={"phase": "click", "text": text[:20]},
+                        )
+                return None
+
+            mark = next((m for m in _CHECK_MARKS if m in joined), "")
+            if not mark:
+                hit = re.search(r"获得\s*\d+\s*积分", joined)
+                mark = hit.group(0) if hit else ""
             if not mark:
                 return None
-            _log_result(context, text, mark)
+            _log_result(context, joined, mark)
             return CustomRecognition.AnalyzeResult(
                 box=(0, 0, 1, 1),
-                detail={"mark": mark, "text": text[:60]},
+                detail={"phase": "check", "mark": mark, "text": joined[:60]},
             )
         except Exception as exc:  # noqa: BLE001
             _log(f"结算识别异常，按未命中处理：{type(exc).__name__}: {exc}")
@@ -861,6 +1023,15 @@ class AdventureRead(CustomRecognition):
             return None
 
     def _analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
+        # 空转提示：游戏崩溃/断线回登录页时，这里会一轮轮空跑。
+        # 只打一行日志方便定位，不改任何流程（是否退出仍由结算节点决定）。
+        _now_ts = time.monotonic()
+        if STATE.last_progress_ts and not STATE.idle_warned:
+            _idle = _now_ts - STATE.last_progress_ts
+            if _idle > 180:
+                STATE.idle_warned = True
+                _log(f"已经 {int(_idle)} 秒没有进展，可能已离开答题界面（游戏卡住/断线？）")
+
         image = getattr(argv, "image", None)
         # 点击行位置同样优先用运行时实测值，避免坐标偏移导致点错行
         boxes = _locate_options(image) or _ui()["layout"]["option_boxes"]
@@ -881,12 +1052,29 @@ class AdventureRead(CustomRecognition):
         # 答完一题后会出现结果面板，此时题干仍在屏幕上，必须优先把它点掉
         if _is_result_panel(context, image):
             _log("检测到「继续冒险」按钮，判定为结果面板，点击它")
-            return CustomRecognition.AnalyzeResult(
-                box=(CONTINUE_BOX[0], CONTINUE_BOX[1], CONTINUE_BOX[2], CONTINUE_BOX[3]),
-                detail={"event": None, "option": 0, "reason": "结果面板：点击「继续冒险」"},
-            )
+            STATE.last_progress_ts = time.monotonic()
+            STATE.idle_warned = False
+            # 自己点掉，然后返回 None（识别失败）。
+            # 不能返回 box：那样「读题」会再成功一次，focus 就把 panel.md
+            # 再贴一条 —— 内容要么是上一条决策、要么是空行（都算重复输出）。
+            # 万一点失败也不怕：on_error 回到答题循环后，「继续冒险」节点
+            # 还有 TemplateMatch + Click 兜底。
+            try:
+                _bx, _by, _bw, _bh = CONTINUE_BOX
+                context.tasker.controller.post_click(
+                    int(_bx) + int(_bw) // 2, int(_by) + int(_bh) // 2
+                ).wait()
+            except Exception as _exc:        # noqa: BLE001
+                _log(f"点「继续冒险」失败（{type(_exc).__name__}: {_exc}），交给 pipeline 兜底")
+            return None
 
-        attrs = _read_attrs(context, image) or dict(STATE.attrs)
+        # 账本优先：点完选项后属性面板刷新比截图慢，读界面会拿到上一题的旧值，
+        # 于是「明明够门槛却判成必然失败」——实测因此少算 5 分（魅力 6 被读成 4）。
+        # 界面 OCR 只在账本为空（本局第一题）时兜底，那时刚进场、数值是静止的。
+        if STATE.attrs:
+            attrs = dict(STATE.attrs)
+        else:
+            attrs = _read_attrs(context, image) or {}
         STATE.attrs = dict(attrs)
 
         option_texts = _read_options(context, image)
@@ -896,10 +1084,13 @@ class AdventureRead(CustomRecognition):
                 f"｜题干：{question[:40]}｜选项：{option_texts}"
             )
             # 结算画面也走这条分支（「获得 N 积分」/「直降为0，冒险失败」）。
-            # 这里只记日志、不点任何东西：真正收工由答题循环的第一个 next
-            # 节点（生存大冒险_结算）负责，那样任务是以成功结束的。
+            # 认到就先点掉「结束冒险」，记收尾日志，然后返回 None 让 pipeline
+            # 接着走「结算」→「结算确认」→ StopTask 正常收工。
+            # 注意：**不能用 tasker.post_stop()** —— 从识别回调里停任务，pipeline
+            # 会以 FAILED 结束，MFA 界面上就是「任务运行失败！」（实测 02:08:48）。
             mark = _result_mark(question)
             if mark:
+                _click_end_adventure(context, image)
                 _log_result(context, question, mark)
             return None
 
@@ -908,14 +1099,33 @@ class AdventureRead(CustomRecognition):
             # 题号优先由「事件属于哪个阶段、在该阶段排第几个」反推：
             # 点击落不到新题上时同一题会被再答一次，用决策次数推题号会一路偏高，
             # 之后每一题的价值评估都偏后一个阶段（实测代价很大）。
+            # 先确保题库索引建好：第 1 题时它还是空的，question_for_event 会
+            # 返回 None，事件也就登记不进 stage_seen（结算时上帝视角只算到 9 题）。
+            logic.ensure_exact_index(_events())
             derived = logic.question_for_event(event, STATE.stage_seen)
             if derived is None:
                 derived = STATE.question  # 题库元信息不全时的兜底
             STATE.question = derived + 1
+            # 同一题刚点过、界面还没切走 → 只回报一个落在左上角黑边的空点击，不再决策。
+            # 上限见 _REPEAT_LIMIT：界面切换慢的时候靠它撑住，别提前重新决策。
+            _key = (derived, event)
+            if _key == STATE.clicked_key and STATE.repeat_count < _REPEAT_LIMIT:
+                STATE.repeat_count += 1
+                # 静默跳过：不再逐次打日志（一题会刷十几条，把决策行冲掉）。
+                # 只在超过上限、真要重新点的时候留一行提示。
+                # 返回 None = 识别失败：节点不产生 Action.Succeeded，
+                # 也就不会触发 focus 把同一条内容再贴进面板（去重靠这里）。
+                return None
+            if _key != STATE.clicked_key:
+                STATE.clicked_key = _key
+                STATE.repeat_count = 0
             # 开局（第 1 题）：先用「角色」锁死初始六维，再拉表 ——
             # 初值对了，归纳表才只展开这一局真正会走到的状态，不做无用功。
             attrs = _opening_attrs(context, image, attrs, derived)
             STATE.attrs = dict(attrs)
+            # 第 1 题这一刻的六维就是本局初值，上帝模式算最优解要用
+            if not STATE.initial_attrs:
+                STATE.initial_attrs = dict(attrs)
             # 交给本地扩展钩子（如有）：由它决定是否提供一份「后续题目预知」，
             # 并自行承担校验责任。没有钩子就是空列表，走按阶段策略。
             seq: List[str] = []
@@ -1001,6 +1211,10 @@ class AdventureRead(CustomRecognition):
                 + _order
             )
             index = decision.index
+            STATE.clicked_key = (derived, event)
+            STATE.repeat_count = 0
+            STATE.last_progress_ts = time.monotonic()
+            STATE.idle_warned = False
         else:
             _collect(question, attrs, option_texts, image)
             # 未知事件（通常是选项 OCR 截断或新事件）一律不点击：
@@ -1009,6 +1223,15 @@ class AdventureRead(CustomRecognition):
             return None
 
         box = boxes[index]
+        # 先自己点一次，pipeline 的 Click 随后还会点一次：
+        # 第 1 题（刚进答题界面）和转场后的那一题，游戏常把第一次点击吞掉，
+        # 只点一次就会「跳过 8 次 → 重新决策 → 又贴一条面板」。
+        try:
+            _cx = int(box[0]) + int(box[2]) // 2
+            _cy = int(box[1]) + int(box[3]) // 2
+            context.tasker.controller.post_click(_cx, _cy).wait()
+        except Exception as _exc:            # noqa: BLE001
+            _log(f"补点失败（{type(_exc).__name__}: {_exc}），交给 pipeline 点")
         # AnalyzeResult.detail 必须是 dict：binding 内部会自己 json.dumps
         # 见 source/binding/Python/maa/custom_recognition.py
         return CustomRecognition.AnalyzeResult(
