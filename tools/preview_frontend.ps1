@@ -82,6 +82,7 @@ $previewInterface = Get-Content -LiteralPath $previewInterfacePath -Raw -Encodin
 $previewInterface.label = [string]$previewInterface.label + ' [Script Studio Preview]'
 [IO.File]::WriteAllText($previewInterfacePath, (($previewInterface | ConvertTo-Json -Depth 100) + "`n"), (New-Object Text.UTF8Encoding($false)))
 Copy-PreviewTree (Join-Path $projectRoot 'assets/resource') 'resource'
+Copy-PreviewTree (Join-Path $projectRoot 'assets/recordings') 'assets/recordings'
 $publicDataFiles = @(& git -C $projectRoot ls-files -- assets/data)
 if ($LASTEXITCODE -ne 0) { throw 'Cannot determine the public data file list.' }
 foreach ($relative in $publicDataFiles) {

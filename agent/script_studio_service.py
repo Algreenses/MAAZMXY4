@@ -22,6 +22,8 @@ from script_studio.model import RecordingDocument
 from script_library import (bind_task_recording, unbind_task_recording, library_recording_path,
                             read_task_bindings, resolve_task_recording)
 from task_catalog import task_catalog, execution_plan
+from recording_store import (ensure_default_recordings, default_recordings,
+                             duplicate_recording, delete_recording)
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -66,6 +68,7 @@ class StudioService:
     def __init__(self, root, capture_factory=None):
         self.root = Path(root).resolve()
         self.directory = self.root / "recordings"
+        ensure_default_recordings(self.root)
         self.document = None
         self.file = None
         self.revision = None
@@ -178,19 +181,24 @@ class StudioService:
 
     def list(self):
         items = []
+        defaults = default_recordings(self.directory)
         if self.directory.exists():
             for path in sorted(self.directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
                 if path.name.startswith("."):
                     continue
                 try:
-                    data, _ = read_json(self.path(path.name))
+                    data, revision = read_json(self.path(path.name))
                     snap = RecordingDocument.from_dict(data).snapshot()
                     items.append(dict(file=path.name, name=snap["name"], duration_ms=snap["duration_ms"],
                                       event_count=len(snap["events"]), modified=path.stat().st_mtime,
-                                      error="；".join(snap["diagnostics"])))
+                                      revision=revision, is_default=path.name in defaults,
+                                      default_id=defaults.get(path.name),
+                                      can_bind=bool(data.get('actions')) and not snap['diagnostics'] and min(snap['base']) == 720,
+                                      description=data.get('description', ''), error="；".join(snap["diagnostics"])))
                 except Exception as error:
                     items.append(dict(file=path.name, name=path.stem, duration_ms=0, event_count=0,
-                                      modified=path.stat().st_mtime, error=str(error)))
+                                      modified=path.stat().st_mtime, revision=hashlib.sha256(path.read_bytes()).hexdigest(),
+                                      is_default=path.name in defaults, can_bind=False, error=str(error)))
         selected = None
         try:
             value = read_json(self.directory / ".selected.json")[0]
@@ -209,6 +217,9 @@ class StudioService:
                     binding_errors[task_id] = str(error)
             for task in tasks:
                 task['binding_error'] = binding_errors.get(task['id'])
+            for item in items:
+                item['bindings'] = [dict(id=task['id'], label=task['label'], mode=task['binding']['mode'])
+                                    for task in tasks if (task.get('binding') or {}).get('file') == item['file']]
         except (OSError, ValueError) as error:
             binding_errors = {'catalog': str(error)}
         return dict(items=items, selected_file=selected, root=str(self.directory),
@@ -225,6 +236,34 @@ class StudioService:
         if method == 'unbind_task':
             self.require_idle()
             return unbind_task_recording(self.directory, params.get('task_id'), expected_file=params.get('expected_file'))
+        if method in ('delete_file', 'duplicate_file'):
+            self.require_idle()
+            filename = params.get('file')
+            if filename == self.file: self.require_clean()
+            if method == 'duplicate_file':
+                return duplicate_recording(self.directory, filename, params.get('name'), params.get('revision'))
+            result = delete_recording(self.directory, filename, params.get('revision'))
+            if self.file == filename:
+                self.document = None
+                self.file, self.revision, self.dirty = None, None, False
+                self._clear_history()
+            result['document'] = self.snapshot() if self.document is not None else dict(empty=True)
+            return result
+        if method == 'bind_file':
+            self.require_idle()
+            filename = params.get('file')
+            if filename == self.file: self.require_clean()
+            task = next((item for item in task_catalog(self.root) if item['id'] == params.get('task_id')), None)
+            if task is None: raise ValueError('请选择当前工程中的任务。')
+            mode = params.get('mode', 'pipeline')
+            if mode not in task['modes']: raise ValueError('该任务没有战斗回放节点；如需替代整个任务，请明确选择此方式。')
+            saved, revision = read_json(self.path(filename))
+            if revision != params.get('revision'): raise ValueError('脚本已被其他窗口修改，请刷新后重试。')
+            document = RecordingDocument.from_dict(saved)
+            document.to_dict(strict=True)
+            if not saved.get('actions') or document.diagnostics or min(document.base) != 720:
+                raise ValueError('请先保存有完整操作的720基准脚本。')
+            return bind_task_recording(self.directory, task['id'], filename, expected_revision=revision, mode=mode)
         if method == 'capture_cancel':
             if self.capture is None or self.capture.snapshot()['state'] != 'countdown':
                 raise ValueError('仅录制开始前可以取消准备。')

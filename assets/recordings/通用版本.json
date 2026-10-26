@@ -1,0 +1,488 @@
+{
+  "version": 1,
+  "name": "通用版本",
+  "base": [
+    1148,
+    720
+  ],
+  "actions": [
+    {
+      "t": 640,
+      "op": "down",
+      "x": 870,
+      "y": 465,
+      "button": "left"
+    },
+    {
+      "t": 74,
+      "op": "up",
+      "x": 870,
+      "y": 465,
+      "button": "left"
+    },
+    {
+      "t": 1120,
+      "op": "down",
+      "x": 848,
+      "y": 359,
+      "button": "left"
+    },
+    {
+      "t": 62,
+      "op": "up",
+      "x": 848,
+      "y": 359,
+      "button": "left"
+    },
+    {
+      "t": 847,
+      "op": "down",
+      "x": 296,
+      "y": 641,
+      "button": "left"
+    },
+    {
+      "t": 27,
+      "op": "move",
+      "x": 298,
+      "y": 641
+    },
+    {
+      "t": 54,
+      "op": "up",
+      "x": 298,
+      "y": 641,
+      "button": "left"
+    },
+    {
+      "t": 11304,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 92,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 92,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 2468,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 320,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 129,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 139,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 113,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 915,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 149,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1023,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1209,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 267,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 1472,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 92,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1129,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 131,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1112,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1232,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 260,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 188,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1372,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 112,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1220,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 120,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1144,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 332,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 544,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 96,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 32,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 88,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1032,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 124,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 72,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 28,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 932,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 180,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 24,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 138,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 614,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 400,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 12,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 136,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 752,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 240,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 80,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 692,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 140,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 119,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 65,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 88,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 72,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 12,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 88,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 84,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 168,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 88,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 552,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 57,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 79,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 84,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 40,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 608,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 112,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 316,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 1656,
+      "op": "down",
+      "x": 711,
+      "y": 697,
+      "button": "left"
+    },
+    {
+      "t": 22,
+      "op": "move",
+      "x": 711,
+      "y": 697
+    },
+    {
+      "t": 28,
+      "op": "move",
+      "x": 711,
+      "y": 697
+    },
+    {
+      "t": 16,
+      "op": "up",
+      "x": 711,
+      "y": 697,
+      "button": "left"
+    },
+    {
+      "t": 892,
+      "op": "down",
+      "x": 576,
+      "y": 260,
+      "button": "left"
+    },
+    {
+      "t": 6,
+      "op": "move",
+      "x": 576,
+      "y": 261
+    },
+    {
+      "t": 22,
+      "op": "move",
+      "x": 577,
+      "y": 262
+    },
+    {
+      "t": 55,
+      "op": "up",
+      "x": 577,
+      "y": 262,
+      "button": "left"
+    }
+  ],
+  "duration_ms": 48289,
+  "editor": {
+    "markers": [
+      {
+        "id": "93bf0f5c-720c-5e0f-a500-18937849c0be",
+        "at_ms": 48289,
+        "label": "暂停：目标窗口失焦或拖动离开客户区"
+      },
+      {
+        "id": "63d3cfdb-4b87-552f-8107-d60f9b25d371",
+        "at_ms": 48289,
+        "label": "录制停止"
+      }
+    ]
+  },
+  "notes": "",
+  "description": "",
+  "builtin_id": "2cdbf199-c62d-444c-a8f6-f70fa1c20cdd"
+}

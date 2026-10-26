@@ -1,0 +1,451 @@
+{
+  "version": 1,
+  "name": "守卫宝烛_雷 · 任务片段",
+  "base": [
+    1148,
+    720
+  ],
+  "actions": [
+    {
+      "t": 0,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 88,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 76,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 2428,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 144,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 144,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1176,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 104,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1148,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 104,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1672,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 880,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 16,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1248,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 136,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1120,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 748,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 664,
+      "op": "keydown",
+      "key": 72
+    },
+    {
+      "t": 120,
+      "op": "keyup",
+      "key": 72
+    },
+    {
+      "t": 1292,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 592,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 368,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1148,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 156,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 992,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 144,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1060,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 260,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 0,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 160,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 61,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 63,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1352,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 132,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 992,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 160,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 884,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 492,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 160,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 112,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1172,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 164,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 312,
+      "op": "keydown",
+      "key": 32
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 32
+    },
+    {
+      "t": 664,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 176,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 1200,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 232,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 24,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 108,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 728,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 392,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 116,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 140,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1036,
+      "op": "keydown",
+      "key": 76
+    },
+    {
+      "t": 132,
+      "op": "keyup",
+      "key": 76
+    },
+    {
+      "t": 646,
+      "op": "keydown",
+      "key": 65
+    },
+    {
+      "t": 378,
+      "op": "keyup",
+      "key": 65
+    },
+    {
+      "t": 16,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 140,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 92,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 56,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1008,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 200,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 4,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 120,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 760,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 152,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 680,
+      "op": "keydown",
+      "key": 73
+    },
+    {
+      "t": 156,
+      "op": "keyup",
+      "key": 73
+    },
+    {
+      "t": 1180,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 124,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 936,
+      "op": "keydown",
+      "key": 74
+    },
+    {
+      "t": 128,
+      "op": "keyup",
+      "key": 74
+    },
+    {
+      "t": 496,
+      "op": "keydown",
+      "key": 68
+    },
+    {
+      "t": 1545,
+      "op": "keyup",
+      "key": 68
+    },
+    {
+      "t": 71,
+      "op": "down",
+      "x": 703,
+      "y": 674,
+      "button": "left"
+    },
+    {
+      "t": 4,
+      "op": "move",
+      "x": 703,
+      "y": 674
+    },
+    {
+      "t": 66,
+      "op": "up",
+      "x": 704,
+      "y": 674,
+      "button": "left"
+    },
+    {
+      "t": 782,
+      "op": "down",
+      "x": 589,
+      "y": 283,
+      "button": "left"
+    },
+    {
+      "t": 78,
+      "op": "up",
+      "x": 589,
+      "y": 283,
+      "button": "left"
+    }
+  ],
+  "duration_ms": 39498,
+  "editor": {
+    "markers": []
+  },
+  "notes": "源录制：守卫宝烛_雷 (1916fd0b-589f-4612-818f-e68e692b463d)；区间 412～39910 ms。从第一个 D 键到用户指定的返回地图点击，保留相对时序和按键配对。原录制未修改。",
+  "description": "源录制：守卫宝烛_雷 (1916fd0b-589f-4612-818f-e68e692b463d)；区间 412～39910 ms。从第一个 D 键到用户指定的返回地图点击，保留相对时序和按键配对。原录制未修改。",
+  "builtin_id": "c70d40bf-a1f5-5174-9094-2dce4c32cef7"
+}
