@@ -1,0 +1,12 @@
+{
+  "version": "2.2",
+  "file": "update-v2.2.zip",
+  "sha256": "5f7161edef25aa39bcb8fa9a1425ec2651b068228fe7309dfd086971b0645992",
+  "size": 28201462,
+  "urls": [
+    "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2/update-v2.2.zip",
+    "https://pub-2b261f42e9e445f7ba82f6ad70309148.r2.dev/maa/update-v2.2.zip"
+  ],
+  "url": "https://github.com/Inkyu-Zero/MAAZMXY4/releases/download/v2.2/update-v2.2.zip",
+  "note": "修复生存大冒险答完不收工；副本节点超时与点击节奏优化；去掉固定刷取次数限制"
+}

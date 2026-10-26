@@ -15,6 +15,7 @@
     },
     "生存大冒险_答题循环": {
         "next": [
+            "生存大冒险_结算",
             "生存大冒险_继续冒险",
             "生存大冒险_界面检查"
         ],
@@ -70,6 +71,9 @@
         },
         "next": [
             "生存大冒险_截图"
+        ],
+        "on_error": [
+            "生存大冒险_答题循环"
         ]
     },
     "生存大冒险_截图": {
@@ -82,9 +86,9 @@
         "next": [
             "生存大冒险_读题"
         ],
-        "timeout": 3000,
+        "timeout": 8000,
         "on_error": [
-            "生存大冒险_结束"
+            "生存大冒险_答题循环"
         ]
     },
     "生存大冒险_读题": {
@@ -101,15 +105,21 @@
             "生存大冒险_答题循环"
         ],
         "on_error": [
-            "生存大冒险_结束"
+            "生存大冒险_答题循环"
         ],
         "timeout": 240000,
         "post_wait_freezes": {
-            "time": 300,
+            "time": 600,
             "timeout": 5000,
             "rate_limit": 200
         },
-        "post_delay": 500
+        "post_delay": 500,
+        "focus": {
+            "Node.Action.Succeeded": {
+                "content": "./debug/adventure/panel.md",
+                "display": "log"
+            }
+        }
     },
     "生存大冒险_结束": {
         "action": {
@@ -292,5 +302,70 @@
                 ]
             }
         }
+    },
+    "生存大冒险_结算": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "adventure_result",
+                "custom_recognition_param": {
+                    "phase": "click"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "生存大冒险_结算确认"
+        ],
+        "on_error": [
+            "生存大冒险_结算确认"
+        ],
+        "pre_delay": 0,
+        "post_delay": 0
+    },
+    "生存大冒险_结算识别": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [],
+                "roi": [
+                    300,
+                    150,
+                    700,
+                    540
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        }
+    },
+    "生存大冒险_结算确认": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "adventure_result",
+                "custom_recognition_param": {
+                    "phase": "check"
+                }
+            }
+        },
+        "action": {
+            "type": "StopTask"
+        },
+        "next": [],
+        "on_error": [
+            "生存大冒险_结束"
+        ],
+        "focus": {
+            "Node.Action.Succeeded": {
+                "content": "./debug/adventure/panel.md",
+                "display": "log"
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0
     }
 }

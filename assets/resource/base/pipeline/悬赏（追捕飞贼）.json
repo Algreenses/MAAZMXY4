@@ -1,7 +1,6 @@
 {
   "悬赏（追捕飞贼）-刷取次数": {
-    "max_hit": 1,
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "悬赏（追捕飞贼）-点击任务"
     ],
@@ -9,6 +8,21 @@
       "position": {
         "x": 960,
         "y": 58
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "悬赏（追捕飞贼）"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/loop/panel.md",
+        "display": "log"
       }
     }
   },
@@ -29,7 +43,7 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "悬赏（追捕飞贼）-点击设置"
     ],
@@ -49,8 +63,8 @@
         ]
       }
     },
-    "post_delay": 20,
-    "timeout": 20000,
+    "post_delay": 1000,
+    "timeout": 60000,
     "next": [
       "悬赏（追捕飞贼）-回放战斗"
     ],
@@ -75,7 +89,7 @@
       "type": "Click"
     },
     "post_delay": 1000,
-    "timeout": 20000,
+    "timeout": 30000,
     "next": [
       "悬赏（追捕飞贼）-点击悬赏任务"
     ],
@@ -84,7 +98,10 @@
         "x": 1280,
         "y": 0
       }
-    }
+    },
+    "on_error": [
+      "悬赏（追捕飞贼）-刷取次数"
+    ]
   },
   "悬赏（追捕飞贼）-点击前往副本": {
     "recognition": {
@@ -99,7 +116,7 @@
       "type": "Click"
     },
     "post_delay": 1000,
-    "timeout": 20000,
+    "timeout": 60000,
     "next": [
       "悬赏（追捕飞贼）-成功进入追捕飞贼关卡"
     ],
@@ -122,8 +139,8 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 500,
-    "timeout": 20000,
+    "post_delay": 1000,
+    "timeout": 30000,
     "next": [
       "悬赏（追捕飞贼）-点击前往副本"
     ],
@@ -147,7 +164,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 8000,
     "next": [
       "悬赏（追捕飞贼）-返回地图"
     ],
@@ -156,7 +173,8 @@
         "x": 320,
         "y": 58
       }
-    }
+    },
+    "post_delay": 1000
   },
   "悬赏（追捕飞贼）-返回地图": {
     "recognition": {
@@ -170,7 +188,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 10000,
     "next": [
       "悬赏（追捕飞贼）-刷取次数",
       "停止运行"
@@ -180,7 +198,8 @@
         "x": 640,
         "y": 100
       }
-    }
+    },
+    "post_delay": 1000
   },
   "悬赏（追捕飞贼）-脚本返回确认": {
     "recognition": {

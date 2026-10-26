@@ -1,7 +1,6 @@
 {
   "摩多（幕山）-刷取次数": {
-    "max_hit": 1,
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "摩多（幕山）-点击幕山"
     ],
@@ -9,6 +8,21 @@
       "position": {
         "x": 0,
         "y": 0
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "摩多（幕山）"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/loop/panel.md",
+        "display": "log"
       }
     }
   },
@@ -29,7 +43,7 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "摩多（幕山）-点击设置"
     ],
@@ -53,7 +67,7 @@
         ]
       }
     },
-    "post_delay": 150,
+    "post_delay": 1000,
     "next": [
       "摩多（幕山）-点击幕山"
     ],
@@ -77,8 +91,8 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 0,
-    "timeout": 2000,
+    "post_delay": 1000,
+    "timeout": 10000,
     "next": [
       "摩多（幕山）-识别幕山场景"
     ],
@@ -105,7 +119,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 8000,
     "next": [
       "摩多（幕山）-返回地图"
     ],
@@ -114,7 +128,8 @@
         "x": 640,
         "y": 93
       }
-    }
+    },
+    "post_delay": 1000
   },
   "摩多（幕山）-识别幕山场景": {
     "recognition": {
@@ -126,8 +141,8 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 0,
-    "timeout": 600,
+    "post_delay": 1000,
+    "timeout": 10000,
     "next": [
       "摩多（幕山）-回放战斗"
     ],
@@ -153,7 +168,7 @@
     "action": {
       "type": "Click"
     },
-    "timeout": 3000,
+    "timeout": 10000,
     "next": [
       "摩多（幕山）-刷取次数",
       "停止运行"
@@ -163,7 +178,8 @@
         "x": 960,
         "y": 135
       }
-    }
+    },
+    "post_delay": 1000
   },
   "摩多（幕山）-脚本返回确认": {
     "recognition": {

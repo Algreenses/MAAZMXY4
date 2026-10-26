@@ -10,8 +10,8 @@
       }
     },
     "pre_delay": 80,
-    "post_delay": 0,
-    "timeout": 2000,
+    "post_delay": 1000,
+    "timeout": 10000,
     "action": {
       "type": "Click"
     },
@@ -24,7 +24,7 @@
   },
   "伽岚（万世冥阁）-点击场外": {
     "pre_delay": 0,
-    "post_delay": 150,
+    "post_delay": 1000,
     "action": {
       "type": "Click",
       "param": {
@@ -50,8 +50,8 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 0,
-    "timeout": 600,
+    "post_delay": 1000,
+    "timeout": 10000,
     "next": [
       "伽岚（万世冥阁）-回放战斗"
     ],
@@ -61,7 +61,7 @@
   },
   "伽岚（万世冥阁）-回放战斗": {
     "pre_delay": 0,
-    "post_delay": 0,
+    "post_delay": 1000,
     "action": {
       "type": "Custom",
       "param": {
@@ -91,13 +91,14 @@
       }
     },
     "pre_delay": 2000,
-    "timeout": 3000,
+    "timeout": 8000,
     "action": {
       "type": "Click"
     },
     "next": [
       "伽岚（万世冥阁）-返回地图"
-    ]
+    ],
+    "post_delay": 1000
   },
   "伽岚（万世冥阁）-返回地图": {
     "recognition": {
@@ -108,14 +109,15 @@
         ]
       }
     },
-    "timeout": 3000,
+    "timeout": 10000,
     "action": {
       "type": "Click"
     },
     "next": [
       "伽岚（万世冥阁）-刷取次数",
       "停止运行"
-    ]
+    ],
+    "post_delay": 1000
   },
   "伽岚（万世冥阁）-刷取次数": {
     "recognition": {
@@ -124,8 +126,22 @@
     "next": [
       "伽岚（万世冥阁）-点击万世冥阁"
     ],
-    "max_hit": 1,
-    "post_delay": 0
+    "post_delay": 1000,
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "loop_count",
+        "custom_action_param": {
+          "label": "伽岚（万世冥阁）"
+        }
+      }
+    },
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/loop/panel.md",
+        "display": "log"
+      }
+    }
   },
   "伽岚（万世冥阁）-脚本返回确认": {
     "recognition": {

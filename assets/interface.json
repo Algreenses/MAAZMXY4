@@ -3,7 +3,7 @@
     "name": "MAA造梦西游4",
     "label": "MAAZMXY4",
     "github": "https://github.com/Inkyu-Zero/MAAZMXY4",
-    "version": "2.0",
+    "version": "2.2",
     "license": "本项目基于 MaaFramework 开发，作者 InkyuZero（GitHub: Inkyu-Zero/MAAZMXY4）。采用 PolyForm Noncommercial 1.0.0 许可：完全免费，允许个人使用与免费分享，禁止任何形式的售卖与商业用途。",
     "resource": [
         {
@@ -339,11 +339,11 @@
     },
     "controller": [
         {
-            "name": "Win32-造梦盒子",
+            "name": "Win32-游戏窗口",
             "type": "Win32",
             "win32": {
-                "class_regex": "ApolloRuntimeContentWindow",
-                "window_regex": "造梦盒子",
+                "class_regex": "[\\s\\S]*",
+                "window_regex": "[\\s\\S]*",
                 "screencap": "FramePool",
                 "mouse": "SendMessage",
                 "keyboard": "SendMessage"
