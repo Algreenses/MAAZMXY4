@@ -1,7 +1,6 @@
-"""Install the canonical native candle task into a local runtime, with backup.
+"""Sync selected native task definitions and their resource dependencies, with atomic backup.
 
-Only the candle task, its dedicated options/Pipeline/images and matching saved
-task entries are updated. The default invocation is a read-only plan.
+Defaults to a read-only plan for all canonical tasks. Use --task to select tasks.
 """
 from __future__ import annotations
 
@@ -16,10 +15,6 @@ import sys
 import tempfile
 from uuid import uuid4
 
-TASK_NAME = '悬赏（守卫宝烛）'
-ENTRY = TASK_NAME + '-初始化'
-OLD_ENTRY = TASK_NAME + '-刷取次数'
-PIPELINE_FILE = TASK_NAME + '.json'
 SEPARATOR = '<|||>'
 MAX_JSON_BYTES = 16 * 1024 * 1024
 
@@ -89,7 +84,7 @@ def _publish(path, raw, expected):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.native-candle-', suffix='.tmp', delete=False) as stream:
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.task-assets-', suffix='.tmp', delete=False) as stream:
             temporary = Path(stream.name)
             stream.write(raw)
             stream.flush()
@@ -124,19 +119,6 @@ def _templates(value):
             yield from _templates(item)
 
 
-def _image_files(root, directory):
-    pending = [directory] if directory.exists() else []
-    while pending:
-        current = pending.pop()
-        _safe(root, current.relative_to(root).as_posix())
-        for child in sorted(current.iterdir()):
-            _safe(root, child.relative_to(root).as_posix())
-            if child.is_dir():
-                pending.append(child)
-            elif child.is_file():
-                yield child
-
-
 def _default_options(task, options):
     result = []
     for name in task.get('option', []):
@@ -146,7 +128,7 @@ def _default_options(task, options):
         selected = dict(name=name)
         if schema.get('type', 'select') == 'select':
             cases = schema.get('cases', [])
-            default = '关闭' if name == '宝烛自动恢复' else schema.get('default_case')
+            default = schema.get('default_case', cases[0].get('name') if cases else None)
             indices = [index for index, case in enumerate(cases) if case.get('name') == default]
             if not indices:
                 raise ValueError('任务选项缺少有效默认项：' + name)
@@ -173,71 +155,88 @@ def _old_count(item, default):
         return default
 
 
-def _is_candle(item):
-    return isinstance(item, dict) and (item.get('name') == TASK_NAME or item.get('entry') in {OLD_ENTRY, ENTRY})
-
-
-def _history_key(value):
-    if not isinstance(value, str):
-        return False
-    name, separator, entry = value.partition(SEPARATOR)
-    return bool(separator and (name == TASK_NAME or entry in {OLD_ENTRY, ENTRY}))
-
-
-def _merge_instance(before, task, defaults):
+def _merge_instance(before, task, defaults, old_options, new_options):
     after = deepcopy(before)
-    items = after.get('TaskItems', [])
-    history = after.get('CurrentTasks', [])
+    name, entry = task['name'], task['entry']
+    items, history = after.get('TaskItems', []), after.get('CurrentTasks', [])
     if not isinstance(items, list) or not isinstance(history, list):
         raise ValueError('实例任务列表格式无效。')
-    matching = [item for item in items if _is_candle(item)]
-    if matching:
-        preferred = next((item for item in matching if item.get('entry') == ENTRY), matching[0])
-        native = preferred.get('entry') == ENTRY
+    matches = [item for item in items if isinstance(item, dict) and item.get('name') == name]
+    if matches:
+        preferred = next((item for item in matches if item.get('entry') == entry), matches[0])
         updated = deepcopy(preferred)
         for key, value in task.items():
             if key not in {'option', 'repeat_count', 'default_check', 'label'}:
                 updated[key] = deepcopy(value)
-        updated['entry'] = ENTRY
-        updated['name'] = TASK_NAME
-        updated['repeat_count'] = preferred.get('repeat_count', task.get('repeat_count', 1)) if native else _old_count(preferred, task.get('repeat_count', 1))
+        updated['repeat_count'] = _old_count(preferred, task.get('repeat_count', 1))
         updated['default_check'] = preferred.get('default_check', task.get('default_check', False))
-        if native:
-            choices = deepcopy(preferred.get('option', []))
-            if not isinstance(choices, list):
-                raise ValueError('原生任务选项格式无效。')
-            known = {item.get('name') for item in choices if isinstance(item, dict)}
-            choices += [deepcopy(item) for item in defaults if item['name'] not in known]
-            updated['option'] = choices
-        else:
-            updated['option'] = deepcopy(defaults)
-        replaced = []
-        inserted = False
+        choices = preferred.get('option', [])
+        if not isinstance(choices, list): raise ValueError('原生任务选项格式无效。')
+        def migrate(choice):
+            previous = old_options.get(choice.get('name'), {})
+            target = choice.get('name') if choice.get('name') in new_options else None
+            if target is None and previous.get('label'):
+                candidates = [key for key, value in new_options.items()
+                              if value.get('label') == previous['label'] and value.get('type', 'select') == previous.get('type', 'select')]
+                if len(candidates) == 1: target = candidates[0]
+            if target is None: return None
+            result = deepcopy(choice)
+            result['name'] = target
+            if isinstance(result.get('data'), dict):
+                prior_inputs = {value['name']: value for value in previous.get('inputs', [])}
+                inputs = new_options[target].get('inputs', [])
+                data = {}
+                for key, value in result['data'].items():
+                    destinations = [field['name'] for field in inputs if field['name'] == key or
+                                    prior_inputs.get(key, {}).get('label') and field.get('label') == prior_inputs[key]['label']]
+                    if len(destinations) == 1: data[destinations[0]] = value
+                result['data'] = data
+            for field in ('children', 'option', 'sub_options'):
+                if isinstance(result.get(field), list): result[field] = [v for item in result[field] if (v := migrate(item)) is not None]
+            return result
+        migrated = [value for choice in choices if isinstance(choice, dict) and (value := migrate(choice)) is not None]
+        known = {value['name'] for value in migrated}
+        updated['option'] = migrated + [deepcopy(value) for value in defaults if value['name'] not in known]
+        replaced, inserted = [], False
         for item in items:
-            if _is_candle(item):
-                if not inserted:
-                    replaced.append(updated)
-                    inserted = True
-            else:
-                replaced.append(item)
+            if isinstance(item, dict) and item.get('name') == name:
+                if not inserted: replaced.append(updated); inserted = True
+            else: replaced.append(item)
         after['TaskItems'] = replaced
-    if matching or any(_history_key(value) for value in history):
-        canonical_key = TASK_NAME + SEPARATOR + ENTRY
-        updated_history, inserted = [], False
+    def matching(value): return isinstance(value, str) and value.partition(SEPARATOR)[0] == name and SEPARATOR in value
+    if matches or any(matching(value) for value in history):
+        updated, inserted = [], False
         for value in history:
-            if _history_key(value):
-                if not inserted:
-                    updated_history.append(canonical_key)
-                    inserted = True
-            else:
-                updated_history.append(value)
-        if not inserted:
-            updated_history.append(canonical_key)
-        after['CurrentTasks'] = updated_history
+            if matching(value):
+                if not inserted: updated.append(name + SEPARATOR + entry); inserted = True
+            else: updated.append(value)
+        if not inserted: updated.append(name + SEPARATOR + entry)
+        after['CurrentTasks'] = updated
     return after
 
 
-def sync_native_candle(source_root, target_root, dry_run=True):
+def _strings(value):
+    if isinstance(value, str): yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            yield key
+            yield from _strings(item)
+    elif isinstance(value, list):
+        for item in value: yield from _strings(item)
+
+
+def _options_for(tasks, options):
+    result, pending = {}, [name for task in tasks for name in task.get('option', [])]
+    while pending:
+        name = pending.pop()
+        if name in result: continue
+        if name not in options: raise ValueError('任务选项缺失：' + name)
+        result[name] = deepcopy(options[name])
+        pending += [value for value in _strings(options[name]) if value in options and value not in result]
+    return result
+
+
+def sync_task_assets(source_root, target_root, dry_run=True, task_names=None):
     source_root, target_root = Path(source_root).resolve(), Path(target_root).resolve()
     source_inputs, target_inputs, plans = {}, {}, {}
     source_interface_path = _safe(source_root, 'assets/interface.json')
@@ -246,24 +245,39 @@ def sync_native_candle(source_root, target_root, dry_run=True):
             or not isinstance(source_interface.get('option'), dict)
             or any(not isinstance(item, dict) for item in source_interface['task'])):
         raise ValueError('源任务定义格式无效。')
-    tasks = [task for task in source_interface.get('task', []) if task.get('name') == TASK_NAME]
-    if len(tasks) != 1 or tasks[0].get('entry') != ENTRY:
-        raise ValueError('源工程缺少唯一的原生守卫宝烛任务定义。')
-    task = deepcopy(tasks[0])
-    options = {name: deepcopy(value) for name, value in source_interface.get('option', {}).items() if name.startswith('宝烛')}
-    defaults = _default_options(task, options)
-    pipeline_relative = 'assets/resource/base/pipeline/' + PIPELINE_FILE
-    pipeline_raw = _read(_safe(source_root, pipeline_relative), source_inputs)
-    pipeline = _json(pipeline_raw)
-    if not isinstance(pipeline, dict) or ENTRY not in pipeline:
-        raise ValueError('原生Pipeline缺少初始化入口。')
-    for node in pipeline.values():
-        if not isinstance(node, dict):
-            raise ValueError('原生Pipeline节点格式无效。')
-        for field in ('next', 'on_error'):
-            references = node.get(field, [])
-            if not isinstance(references, list) or any(not isinstance(key, str) or key not in pipeline for key in references):
-                raise ValueError('原生Pipeline包含缺失的后续节点。')
+    tasks = [task for task in source_interface['task'] if task_names is None or task.get('name') in task_names]
+    if not tasks or (task_names is not None and set(task_names) != {task['name'] for task in tasks}):
+        raise ValueError('请选择源工程中存在的任务。')
+    if len({task['name'] for task in tasks}) != len(tasks): raise ValueError('源任务名称重复。')
+    options = _options_for(tasks, source_interface['option'])
+    pipeline_files, node_files = {}, {}
+    base = _safe(source_root, 'assets/resource/base/pipeline')
+    for path in sorted(base.rglob('*.json')):
+        raw = _read(_safe(source_root, path.relative_to(source_root).as_posix()), source_inputs)
+        value = _json(raw)
+        if not isinstance(value, dict): raise ValueError('Pipeline必须是对象。')
+        pipeline_files[path] = (raw, value)
+        for node in value: node_files[node] = path
+    pending = [task['entry'] for task in tasks]
+    if any(entry not in node_files for entry in pending): raise ValueError('Pipeline缺少任务入口。')
+    pending += [text for text in _strings([tasks, options]) if text in node_files]
+    selected_files = set()
+    while pending:
+        node = pending.pop()
+        path = node_files[node]
+        if path in selected_files: continue
+        selected_files.add(path)
+        value = pipeline_files[path][1]
+        for definition in value.values():
+            if not isinstance(definition, dict): raise ValueError('Pipeline节点格式无效。')
+            for field in ('next', 'on_error'):
+                links = definition.get(field, [])
+                if isinstance(links, str): links = [links]
+                for link in links:
+                    if not isinstance(link, str): raise ValueError('Pipeline后续节点格式无效。')
+                    plain = link.split(']')[-1]
+                    if plain and plain not in node_files: raise ValueError('Pipeline包含缺失的后续节点：' + link)
+        pending += [text for text in _strings(value) if text in node_files]
 
     def plan_bytes(relative, raw):
         path = _safe(target_root, relative)
@@ -284,36 +298,24 @@ def sync_native_candle(source_root, target_root, dry_run=True):
             or not isinstance(before.get('option'), dict)):
         raise ValueError('目标任务或选项列表格式无效。')
     after = deepcopy(before)
-    after_tasks, installed = [], False
+    by_name = {task['name']: task for task in tasks}
+    after_tasks, installed = [], set()
     for item in after['task']:
-        if _is_candle(item):
-            if not installed:
-                after_tasks.append(deepcopy(task))
-                installed = True
-        else:
-            after_tasks.append(item)
-    if not installed:
-        after_tasks.append(deepcopy(task))
+        name = item.get('name')
+        if name in by_name:
+            if name not in installed: after_tasks.append(deepcopy(by_name[name])); installed.add(name)
+        else: after_tasks.append(item)
+    after_tasks += [deepcopy(task) for task in tasks if task['name'] not in installed]
     after['task'] = after_tasks
     after['option'].update(options)
     plan_json('interface.json', before, after)
-    plan_bytes('resource/base/pipeline/' + PIPELINE_FILE, pipeline_raw)
-    source_images = _safe(source_root, 'assets/resource/base/image/bounty-candle')
-    for path in _image_files(source_root, source_images):
-        relative = path.relative_to(source_root).as_posix()
-        raw = _read(_safe(source_root, relative), source_inputs)
-        plan_bytes(relative.replace('assets/resource/', 'resource/', 1), raw)
-    for template in set(_templates(pipeline)):
-        source_template = _safe(source_root, 'assets/resource/base/image/' + template)
-        target_template = _safe(target_root, 'resource/base/image/' + template)
-        if not source_template.is_file():
-            raise ValueError('原生Pipeline源模板不存在：' + template)
-        _read(source_template, source_inputs)
-        relative = target_template.relative_to(target_root).as_posix()
-        if relative not in plans and not target_template.is_file():
-            raise ValueError('目标缺少原生Pipeline通用模板：' + template)
-        if relative not in plans:
-            _read(target_template, target_inputs)
+    for path in sorted(selected_files):
+        raw, pipeline = pipeline_files[path]
+        plan_bytes(path.relative_to(source_root/'assets').as_posix(), raw)
+        for template in set(_templates(pipeline)):
+            source_template = _safe(source_root, 'assets/resource/base/image/' + template)
+            if not source_template.is_file(): raise ValueError('Pipeline源模板不存在：' + template)
+            plan_bytes('resource/base/image/' + template, _read(source_template, source_inputs))
     instances = _safe(target_root, 'config/instances')
     updated_instances = []
     if instances.exists():
@@ -323,7 +325,9 @@ def sync_native_candle(source_root, target_root, dry_run=True):
             original = _json(_read(path, target_inputs))
             if not isinstance(original, dict):
                 raise ValueError('实例配置必须是JSON对象。')
-            updated = _merge_instance(original, task, defaults)
+            updated = original
+            for task in tasks:
+                updated = _merge_instance(updated, task, _default_options(task, options), before['option'], options)
             if not _same_json(original, updated):
                 updated_instances.append(relative)
                 plan_json(relative, original, updated)
@@ -336,13 +340,13 @@ def sync_native_candle(source_root, target_root, dry_run=True):
     if not plans:
         report['applied'] = True
         return report
-    lock_path = _safe(target_root, '.native-candle-sync.lock')
+    lock_path = _safe(target_root, '.task-assets-sync.lock')
     lock_descriptor = None
     written = []
     try:
         lock_descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         _verify_inputs({**source_inputs, **target_inputs})
-        backup_relative = 'backup/native-candle-' + datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid4().hex[:8]
+        backup_relative = 'backup/task-assets-' + datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid4().hex[:8]
         backup = _safe(target_root, backup_relative)
         backup.mkdir(parents=True, exist_ok=False)
         report['backup'] = backup_relative
@@ -392,8 +396,9 @@ def main():
     parser.add_argument('--source', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--target', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--apply', action='store_true', help='Write the plan after the runtime frontend is closed.')
+    parser.add_argument('--task', action='append', help='Task name; repeat for several tasks. Default: all tasks.')
     args = parser.parse_args()
-    print(json.dumps(sync_native_candle(args.source, args.target, dry_run=not args.apply), ensure_ascii=False, indent=2))
+    print(json.dumps(sync_task_assets(args.source, args.target, dry_run=not args.apply, task_names=args.task), ensure_ascii=False, indent=2))
 
 
 if __name__ == '__main__':

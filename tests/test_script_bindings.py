@@ -25,6 +25,10 @@ class ScriptBindingTests(unittest.TestCase):
         self.directory.mkdir()
         self.path = self.directory / '战斗.json'
         self.write(self.path, recording())
+        self.write(self.root/'interface.json', dict(task=[dict(name='测试任务',entry='Start')], resource=[dict(path=['resource/base'])]))
+        pipeline = self.root/'resource/base/pipeline'
+        pipeline.mkdir(parents=True)
+        self.write(pipeline/'task.json', {'Start': {'action': {'type':'Custom','param': {'custom_action':'battle_play','custom_action_param': {'execution': {'binding_id':'bounty-candle'}}}}}})
         self.service = StudioService(self.root)
 
     def tearDown(self):
@@ -93,7 +97,7 @@ class ScriptBindingTests(unittest.TestCase):
         index = self.directory / '.bindings.json'
         index.write_bytes(b'not json')
         listing = self.service.dispatch('list')
-        self.assertIn('bounty-candle', listing['binding_errors'])
+        self.assertIn('catalog', listing['binding_errors'])
         self.assertEqual(len(listing['items']), 1)
         with self.assertRaisesRegex(ValueError, '绑定'):
             self.service.dispatch('bind_task', dict(task_id='bounty-candle'))

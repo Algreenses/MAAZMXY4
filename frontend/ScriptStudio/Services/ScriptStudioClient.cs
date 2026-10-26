@@ -40,10 +40,12 @@ public sealed class ScriptStudioClient : IDisposable
     private string _lastError = "";
     private long _sequence;
     private bool _disconnected;
+    private readonly bool _releaseCaptureOnDisconnect;
     public string ProjectRoot { get; }
     public bool IsDisconnected => _disconnected;
 
-    public ScriptStudioClient() { ProjectRoot = FindRoot(); }
+    public ScriptStudioClient(string? projectRoot = null, bool releaseCaptureOnDisconnect = true)
+    { ProjectRoot = projectRoot ?? FindRoot(); _releaseCaptureOnDisconnect = releaseCaptureOnDisconnect; }
 
     private static string FindRoot()
     {
@@ -75,14 +77,14 @@ public sealed class ScriptStudioClient : IDisposable
             info.ArgumentList.Add(argument);
         _process = new Process { StartInfo = info, EnableRaisingEvents = true };
         _process.ErrorDataReceived += (_, e) => { if (e.Data != null) _lastError = e.Data; };
-        _process.Exited += (_, _) => ScriptStudioGuard.EndCapture();
+        _process.Exited += (_, _) => { if (_releaseCaptureOnDisconnect) ScriptStudioGuard.EndCapture(); };
         _process.Start();
         _process.BeginErrorReadLine();
     }
 
-    public async Task<JsonNode> CallAsync(string method, JsonObject? parameters = null)
+    public async Task<JsonNode> CallAsync(string method, JsonObject? parameters = null, CancellationToken cancellationToken = default)
     {
-        await _gate.WaitAsync();
+        await _gate.WaitAsync(cancellationToken);
         try
         {
             EnsureStarted();
@@ -91,11 +93,13 @@ public sealed class ScriptStudioClient : IDisposable
             await _process!.StandardInput.WriteLineAsync(request.ToJsonString());
             await _process.StandardInput.FlushAsync();
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, cancellationToken);
             string? line;
-            try { line = await _process.StandardOutput.ReadLineAsync(timeout.Token); }
+            try { line = await _process.StandardOutput.ReadLineAsync(linked.Token); }
             catch (OperationCanceledException)
             {
                 _disconnected = true; Dispose();
+                cancellationToken.ThrowIfCancellationRequested();
                 throw new IOException("脚本工具响应超时，连接已关闭。请重新打开前端，在脚本库查找恢复草稿。");
             }
             if (line == null) throw new IOException("脚本工具连接已结束。" + _lastError);
@@ -129,6 +133,6 @@ public sealed class ScriptStudioClient : IDisposable
         }
         catch (InvalidOperationException) { }
         catch (IOException) { }
-        finally { process.Dispose(); ScriptStudioGuard.EndCapture(); }
+        finally { process.Dispose(); if (_releaseCaptureOnDisconnect) ScriptStudioGuard.EndCapture(); }
     }
 }

@@ -8,7 +8,7 @@ on:
       - 'tests/**'
       - 'tools/build_frontend.ps1'
       - 'tools/migrate_zaomeng_scripts.py'
-      - 'tools/sync_native_candle.py'
+      - 'tools/sync_task_assets.py'
       - '.github/workflows/script-studio.yml'
   workflow_dispatch:
 jobs:

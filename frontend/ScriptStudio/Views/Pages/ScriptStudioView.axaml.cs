@@ -30,7 +30,11 @@ public sealed class ScriptStudioView : UserControl
     private readonly TextBox _search = new() { Watermark = "搜索脚本名称" };
     private readonly TextBox _name = new() { Watermark = "为脚本起个名字" };
     private readonly TextBlock _summary = new(), _status = new(), _captureState = new(), _selection = new();
-    private readonly TextBlock _candleBinding = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _taskBinding = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+    private readonly TextBlock _bindingHint = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = .7 };
+    private readonly TextBlock _captureHint = new() { TextWrapping = TextWrapping.Wrap, Opacity = .7 };
+    private readonly ComboBox _tasks = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly ComboBox _bindingMode = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly TextBlock _diagnostics = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _windows = new() { HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 200 };
     private readonly NumericUpDown _countdown = Number(3, 0, 30, "0");
@@ -45,7 +49,8 @@ public sealed class ScriptStudioView : UserControl
     private readonly TextBox _keyCapture = new() { Watermark = "点此后按一个键", IsReadOnly = true };
     private readonly StackPanel _inspector = new() { Spacing = 8 };
     private Control? _keyFields, _mouseFields, _scrollFields;
-    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo, _use, _editPage, _bindCandle;
+    private readonly Button _save, _record, _pause, _stop, _apply, _undo, _redo, _use, _editPage, _bindTask, _unbindTask;
+    private Button? _refreshWindows, _mark;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private JsonArray _files = new();
     private StudioOperation? _selected;
@@ -70,15 +75,18 @@ public sealed class ScriptStudioView : UserControl
         _vm = viewModel; DataContext = viewModel;
         _save = Button("保存脚本", SaveAsync, true);
         _record = Button("开始录制", StartRecordingAsync, true);
-        _pause = Button("暂停", async () => await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause"));
+        _pause = Button("暂停", async () => RenderCapture(await _vm.Client.CallAsync(_state == "paused" ? "capture_resume" : "capture_pause")));
         _stop = Button("停止并编辑", FinishRecordingAsync);
         _apply = Button("应用操作", ApplyInspectorAsync, true);
         _undo = Button("撤销", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("undo"); });
         _redo = Button("重做", async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync("redo"); });
         _use = Button("设为通用回放", SelectForTasksAsync);
-        _bindCandle = Button("绑定守卫宝烛", BindCandleAsync, true);
+        _bindTask = Button("绑定脚本", BindTaskAsync, true);
+        _unbindTask = Button("解除绑定", UnbindTaskAsync);
         _editPage = Button("打开时间轴编辑 →", async () => { if (_vm.Document != null) _tabs.SelectedIndex = 1; await Task.CompletedTask; });
         BuildPage();
+        _tasks.SelectionChanged += (_, _) => RefreshBinding();
+        _bindingMode.SelectionChanged += (_, _) => UpdateBindingHint();
         _vm.Changed += RenderDocument;
         _poll.Tick += async (_, _) => await PollCaptureAsync();
         _search.TextChanged += (_, _) => FilterLibrary();
@@ -164,10 +172,10 @@ public sealed class ScriptStudioView : UserControl
     private Control BuildLibraryTab()
     {
         var layout = new Grid { ColumnDefinitions = new ColumnDefinitions("*,14,*"), Margin = new Thickness(0, 14, 0, 0) };
-        var library = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto"), RowSpacing = 12 };
+        var library = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto,Auto"), RowSpacing = 10 };
         library.Children.Add(new TextBlock { Text = "脚本库", FontSize = 18, FontWeight = FontWeight.SemiBold });
         Grid.SetRow(_search, 1); library.Children.Add(_search);
-        _library.MinHeight = 200;
+        _library.MinHeight = 0; _library.ClipToBounds = true;
         _library.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) =>
         {
             if (item == null) return new TextBlock();
@@ -179,23 +187,44 @@ public sealed class ScriptStudioView : UserControl
         });
         Grid.SetRow(_library, 2); library.Children.Add(_library);
         var actions = Wrap(Button("导入", ImportAsync), Button("导出", ExportAsync), Button("刷新", RefreshLibraryAsync));
-        Grid.SetRow(actions, 3); library.Children.Add(actions); layout.Children.Add(Card(library));
+        Grid.SetRow(actions, 3); library.Children.Add(actions);
+        _tasks.ItemTemplate = new FuncDataTemplate<JsonNode>((item, _) => new TextBlock { Text = item?["label"]?.GetValue<string>(), TextTrimming = TextTrimming.CharacterEllipsis });
+        var bindings = new StackPanel { Spacing = 8 };
+        var bindingChoices = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), ColumnSpacing = 8 };
+        bindingChoices.Children.Add(_tasks); Grid.SetColumn(_bindingMode, 1); bindingChoices.Children.Add(_bindingMode);
+        bindings.Children.Add(bindingChoices);
+        bindings.Children.Add(_taskBinding); bindings.Children.Add(_bindingHint);
+        bindings.Children.Add(Wrap(_bindTask, _unbindTask));
+        var bindingSection = new Expander { Header = "绑定到任务", Content = bindings, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var bindingNarrow = false;
+        bindingChoices.SizeChanged += (_, _) =>
+        {
+            var narrow = bindingChoices.Bounds.Width < 400;
+            if (narrow == bindingNarrow) return;
+            bindingNarrow = narrow;
+            bindingChoices.ColumnDefinitions = new ColumnDefinitions(narrow ? "*" : "*,*");
+            bindingChoices.RowDefinitions = new RowDefinitions(narrow ? "Auto,Auto" : "Auto");
+            bindingChoices.RowSpacing = narrow ? 8 : 0;
+            Grid.SetColumn(_bindingMode, narrow ? 0 : 1); Grid.SetRow(_bindingMode, narrow ? 1 : 0);
+        };
+        Grid.SetRow(bindingSection, 4); library.Children.Add(bindingSection); layout.Children.Add(Card(library));
         var recording = new StackPanel { Spacing = 10 };
         recording.Children.Add(new TextBlock { Text = "录制战斗", FontSize = 18, FontWeight = FontWeight.SemiBold });
-        recording.Children.Add(new TextBlock { Text = "选择游戏窗口，倒计时结束后切回游戏开始操作。", TextWrapping = TextWrapping.Wrap, Opacity = .7 });
+        recording.Children.Add(new TextBlock { Text = "选择游戏窗口，在倒计时结束前切回游戏。", TextWrapping = TextWrapping.Wrap, Opacity = .7 });
         var targetRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), ColumnSpacing = 8 };
         targetRow.Children.Add(_windows);
-        var refresh = Button("刷新", async () => { RefreshWindows(); await Task.CompletedTask; }); Grid.SetColumn(refresh, 1); targetRow.Children.Add(refresh);
+        _refreshWindows = Button("刷新", async () => { RefreshWindows(); await Task.CompletedTask; }); Grid.SetColumn(_refreshWindows, 1); targetRow.Children.Add(_refreshWindows);
         recording.Children.Add(Field("目标游戏窗口", targetRow));
         var ready = new Grid { ColumnDefinitions = new ColumnDefinitions("140,*"), ColumnSpacing = 20 };
         ready.Children.Add(Field("倒计时（秒）", _countdown));
         _captureState.FontSize = 22; _captureState.FontWeight = FontWeight.SemiBold; _captureState.Text = "准备就绪";
         _captureState.VerticalAlignment = VerticalAlignment.Center; _captureState.TextWrapping = TextWrapping.Wrap;
         Grid.SetColumn(_captureState, 1); ready.Children.Add(_captureState); recording.Children.Add(ready);
-        recording.Children.Add(Wrap(_record, _pause, _stop, Button("添加标记", async () => await _vm.Client.CallAsync("capture_mark", new JsonObject { ["label"] = "阶段标记" }))));
-        recording.Children.Add(new TextBlock { Text = "F8 暂停 / 继续    F9 停录    F10 停录并保存\n切出游戏会暂停，回到游戏后按 F8 继续。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
-        recording.Children.Add(new Separator()); recording.Children.Add(_candleBinding);
-        recording.Children.Add(Wrap(_bindCandle, _editPage));
+        _mark = Button("添加标记", async () => await _vm.Client.CallAsync("capture_mark", new JsonObject { ["label"] = "阶段标记" }));
+        recording.Children.Add(Wrap(_record, _pause, _stop, _mark));
+        recording.Children.Add(_captureHint);
+        recording.Children.Add(new TextBlock { Text = "F8 暂停 / 继续    F9 停录    F10 停录并保存\n切出游戏会自动暂停。单击继续后有3秒切回游戏，也可在游戏中按 F8 立即继续。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
+        recording.Children.Add(new Separator()); recording.Children.Add(_editPage);
         recording.Children.Add(new TextBlock { Text = "绑定读取脚本库中的同一文件，编辑保存后下轮生效；另存为新文件后请重新绑定。", TextWrapping = TextWrapping.Wrap, Opacity = .65, FontSize = 12 });
         _selection.TextWrapping = TextWrapping.Wrap;
         recording.Children.Add(_selection);
@@ -342,10 +371,12 @@ public sealed class ScriptStudioView : UserControl
         var result = await _vm.Client.CallAsync("list"); _files = result["items"]!.AsArray();
         var selected = result["selected_file"]?.GetValue<string>();
         _selection.Text = selected == null ? "通用回放：尚未指定，普通任务默认使用最新录制。" : "通用回放：" + selected;
-        var candle = result["task_bindings"]?["bounty-candle"]?.GetValue<string>();
-        var bindingError = result["binding_errors"]?["bounty-candle"]?.GetValue<string>();
-        _candleBinding.Text = bindingError != null ? "守卫宝烛绑定需要处理：" + bindingError
-            : candle == null ? "守卫宝烛：尚未绑定，请选择并保存脚本后绑定。" : "守卫宝烛已绑定：" + candle;
+        var selectedTask = (_tasks.SelectedItem as JsonNode)?["id"]?.GetValue<string>();
+        var tasks = (result["tasks"]?.AsArray() ?? new JsonArray()).Where(n => n != null).ToList();
+        _tasks.ItemsSource = tasks;
+        _tasks.SelectedItem = tasks.FirstOrDefault(t => t?["id"]?.GetValue<string>() == selectedTask) ?? tasks.FirstOrDefault();
+        RefreshBinding();
+        if (result["binding_errors"]?["catalog"] is JsonNode error) _status.Text = error.GetValue<string>();
         FilterLibrary();
     }
     private void FilterLibrary()
@@ -530,14 +561,39 @@ public sealed class ScriptStudioView : UserControl
     {
         if (!await EnsureSavedAsync() || _vm.File == null) return;
         await _vm.Client.CallAsync("select"); await RefreshLibraryAsync();
-        _status.Text = "已设为通用回放。普通任务选择「脚本工具所选」时读取这份脚本；守卫宝烛使用独立绑定。";
+        _status.Text = "已设为通用回放。任务选择「脚本工具所选」时读取这份脚本；任务独立绑定优先生效。";
     }
-    private async Task BindCandleAsync()
+    private void RefreshBinding()
     {
+        var task = _tasks.SelectedItem as JsonNode;
+        var modes = task?["modes"]?.AsArray().Select(n => n!.GetValue<string>()).ToArray() ?? Array.Empty<string>();
+        _bindingMode.ItemsSource = modes.Select(m => m == "pipeline" ? "替换任务内的回放脚本" : "用脚本执行整个任务").ToArray();
+        var boundMode = task?["binding"]?["mode"]?.GetValue<string>();
+        _bindingMode.SelectedIndex = Math.Max(0, Array.IndexOf(modes, boundMode));
+        var file = task?["binding"]?["file"]?.GetValue<string>();
+        var error = task?["binding_error"]?.GetValue<string>();
+        _taskBinding.Text = error != null ? error : task == null ? "没有可绑定的任务，请先在任务页添加任务。" : file == null ? "尚未绑定，选择脚本后可绑定到此任务。" : "当前绑定：" + file;
+        ToolTip.SetTip(_tasks, task?["entry"]?.GetValue<string>());
+        UpdateBindingHint(); UpdateControls();
+    }
+    private string SelectedBindingMode => (_tasks.SelectedItem as JsonNode)?["modes"]?.AsArray().ElementAtOrDefault(_bindingMode.SelectedIndex)?.GetValue<string>() ?? "replace";
+    private void UpdateBindingHint() => _bindingHint.Text = SelectedBindingMode == "pipeline"
+        ? "保留任务流程，替换其中的回放脚本。保存修改后下轮生效。"
+        : "仅执行绑定脚本，跳过原任务流程。请在开始任务前进入脚本所需的游戏场景。";
+    private async Task BindTaskAsync()
+    {
+        if (_tasks.SelectedItem is not JsonNode task) return;
+        var id = task["id"]!.GetValue<string>(); var mode = SelectedBindingMode;
         if (!await EnsureSavedAsync() || _vm.File == null) return;
-        await _vm.Client.CallAsync("bind_task", new JsonObject { ["task_id"] = "bounty-candle" });
+        await _vm.Client.CallAsync("bind_task", new JsonObject { ["task_id"] = id, ["mode"] = mode });
         await RefreshLibraryAsync();
-        _status.Text = "守卫宝烛已绑定「" + _vm.File + "」。编辑保存后下一轮直接读取新版，无需重新导入。";
+        _status.Text = "已将「" + _vm.File + "」绑定到「" + task["label"] + "」。保存修改后下轮生效。";
+    }
+    private async Task UnbindTaskAsync()
+    {
+        if (_tasks.SelectedItem is not JsonNode task || task["binding"]?["file"] is not JsonNode file) return;
+        await _vm.Client.CallAsync("unbind_task", new JsonObject { ["task_id"] = task["id"]!.GetValue<string>(), ["expected_file"] = file.GetValue<string>() });
+        await RefreshLibraryAsync(); _status.Text = "已解除绑定，任务恢复使用自身配置。";
     }
     private async Task StartRecordingAsync()
     {
@@ -548,10 +604,17 @@ public sealed class ScriptStudioView : UserControl
         try
         {
             var snapshot = await _vm.Client.CallAsync("capture_start", new JsonObject { ["hwnd"] = (long)window.Handle, ["countdown_seconds"] = (int)(_countdown.Value ?? 3) });
-            _vm.Capturing = true; _state = snapshot["state"]?.GetValue<string>() ?? "countdown";
+            _vm.Capturing = true; RenderCapture(snapshot);
             _status.Text = "请切回游戏。F8 暂停 / 继续，F9 停止，F10 停止并保存。"; _poll.Start();
         }
         catch { ScriptStudioGuard.EndCapture(); throw; }
+    }
+    private void RenderCapture(JsonNode snapshot)
+    {
+        _state = snapshot["state"]?.GetValue<string>() ?? "idle";
+        _captureState.Text = StudioCapturePresentation.Title(snapshot.AsObject());
+        _captureHint.Text = snapshot["message"]?.GetValue<string>() ?? "";
+        UpdateControls();
     }
     private async Task PollCaptureAsync()
     {
@@ -560,10 +623,7 @@ public sealed class ScriptStudioView : UserControl
         _polling = true;
         try
         {
-            var snapshot = await _vm.Client.CallAsync("capture_status"); _state = snapshot["state"]?.GetValue<string>() ?? "idle";
-            var seconds = (snapshot["elapsed_ms"]?.GetValue<double>() ?? 0) / 1000;
-            var state = _state switch { "countdown" => "即将开始", "recording" => "正在录制", "paused" => "已暂停", "stopping" => "正在停止", _ => "录制结束" };
-            _captureState.Text = $"{state}  {seconds:0.0}s · {snapshot["event_count"]} 个事件";
+            var snapshot = await _vm.Client.CallAsync("capture_status"); RenderCapture(snapshot);
             if (_state is "stopped" or "failed" or "closed")
             {
                 await FinishRecordingAsync();
@@ -582,7 +642,13 @@ public sealed class ScriptStudioView : UserControl
     {
         if (!_vm.Capturing) return;
         if (_vm.Client.IsDisconnected) { _vm.Capturing = false; _state = "failed"; ScriptStudioGuard.EndCapture(); return; }
+        if (_state == "countdown")
+        {
+            await _vm.Client.CallAsync("capture_cancel"); _vm.Capturing = false; _state = "idle";
+            ScriptStudioGuard.EndCapture(); _captureState.Text = "准备就绪"; _captureHint.Text = "已取消倒计时，当前脚本保持原样。"; return;
+        }
         await _vm.ChangeAsync("capture_stop"); _vm.Capturing = false; ScriptStudioGuard.EndCapture();
+        _state = "stopped"; _captureState.Text = "录制完成"; _captureHint.Text = "草稿已送到时间轴，可检查后保存。";
         await _vm.ChangeAsync("rename", new JsonObject { ["name"] = _recordingName });
         _tabs.SelectedIndex = 1; _timeline.Fit(_timelineScroll.Bounds.Width);
         _status.Text = "录制已停止，内容保留为草稿。可以编辑、检查后保存。";
@@ -609,9 +675,13 @@ public sealed class ScriptStudioView : UserControl
         var editable = !_busy && !_vm.Capturing && !tasks;
         _save.IsEnabled = editable && _vm.Document != null;
         _record.IsEnabled = !_busy && !_vm.Capturing && !tasks;
-        _pause.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused";
-        _pause.Content = _state == "paused" ? "继续" : "暂停";
+        _pause.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused" or "resume_countdown";
+        _pause.Content = _state == "paused" ? "继续（3秒准备）" : _state == "resume_countdown" ? "取消继续" : "暂停";
         _stop.IsEnabled = !_busy && _vm.Capturing;
+        _stop.Content = _state == "countdown" ? "取消倒计时" : "停止并编辑";
+        _windows.IsEnabled = _countdown.IsEnabled = editable;
+        if (_refreshWindows != null) _refreshWindows.IsEnabled = editable;
+        if (_mark != null) _mark.IsEnabled = !_busy && _vm.Capturing && _state is "recording" or "paused";
         _library.IsEnabled = !_busy && !_vm.Capturing;
         _name.IsEnabled = editable && _vm.Document != null;
         _timeline.Editable = editable; _events.IsEnabled = editable;
@@ -620,15 +690,17 @@ public sealed class ScriptStudioView : UserControl
         _undo.IsEnabled = editable && _vm.Document?["can_undo"]?.GetValue<bool>() == true;
         _redo.IsEnabled = editable && _vm.Document?["can_redo"]?.GetValue<bool>() == true;
         _use.IsEnabled = editable && _vm.Document != null;
-        _bindCandle.IsEnabled = editable && _vm.Document != null;
+        _bindTask.IsEnabled = editable && _vm.Document != null && _tasks.SelectedItem != null;
+        _unbindTask.IsEnabled = editable && (_tasks.SelectedItem as JsonNode)?["binding"] != null;
+        _tasks.IsEnabled = _bindingMode.IsEnabled = editable;
         _editPage.IsEnabled = _vm.Document != null;
     }
     private async void OnShortcut(object? sender, KeyEventArgs e)
     {
         if (!e.KeyModifiers.HasFlag(KeyModifiers.Control) || _vm.Capturing) return;
         if (e.Key == Key.S) { e.Handled = true; await Run(SaveAsync); }
-        else if (e.Key == Key.Z && e.Source is not TextBox && !(e.Source is Control input && input.GetVisualAncestors().OfType<TextBox>().Any()))
-        { e.Handled = true; await Run(async () => await _vm.ChangeAsync(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "redo" : "undo")); }
+        else if (e.Key is Key.Z or Key.Y && e.Source is not TextBox && !(e.Source is Control input && input.GetVisualAncestors().OfType<TextBox>().Any()))
+        { e.Handled = true; await Run(async () => { if (await EnsureInspectorAsync()) await _vm.ChangeAsync(e.Key == Key.Y || e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "redo" : "undo"); }); }
     }
     private async Task<int> AskAsync(string title, string message, string primary, string secondary)
     {

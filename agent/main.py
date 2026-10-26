@@ -16,7 +16,7 @@ import adventure
 import battle_player
 import loop_counter
 import battle_record
-import bounty_candle
+import script_task
 
 
 def main():

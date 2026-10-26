@@ -25,7 +25,7 @@ def load_runtime():
         def custom_action(_name): return lambda implementation: implementation
     modules['maa.agent.agent_server'].AgentServer = Register
     modules['maa.custom_action'].CustomAction = object
-    spec = importlib.util.spec_from_file_location('isolated_bounty_candle', AGENT/'bounty_candle.py')
+    spec = importlib.util.spec_from_file_location('isolated_bounty_candle', AGENT/'script_task.py')
     runtime = importlib.util.module_from_spec(spec)
     with patch.dict(sys.modules, modules):
         spec.loader.exec_module(runtime)
@@ -60,13 +60,16 @@ class Context:
         return not self.reject
 
 
+PREFIX = '悬赏（守卫宝烛）-'
+PIPELINE = json.loads((AGENT.parent/'assets/resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
+
 class BountyCandleTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.recordings = self.root/'recordings'
         self.recordings.mkdir()
-        self.status = self.root/'debug/bounty-candle'
+        self.status = self.root/'debug/task-runs'
         self.patch = patch.multiple(runtime, ROOT=self.root, RECORDINGS=self.recordings, STATUS_DIRECTORY=self.status)
         self.patch.start()
         runtime._rounds.clear()
@@ -91,21 +94,35 @@ class BountyCandleTests(unittest.TestCase):
         return data
 
     def run_phase(self, phase, **parameters):
-        self.argv.custom_action_param = dict(phase=phase, run_id=self.ident, instance_id='default', **parameters)
+        defaults = PIPELINE[PREFIX + ('恢复登录' if phase == 'recovery_begin' else '初始化')]['action']['param']['custom_action_param']
+        self.argv.custom_action_param = dict(defaults, **dict(phase=phase, run_id=self.ident, instance_id='default', **parameters))
         with redirect_stdout(io.StringIO()):
-            return runtime.BountyCandleState().run(self.context, self.argv)
+            return runtime.ScriptTaskState().run(self.context, self.argv)
 
     def outcome(self):
         return json.loads((self.status/(self.ident+'.json')).read_text(encoding='utf8'))
 
+    def test_state_action_accepts_an_unrelated_task_route_and_playback_node(self):
+        self.assertTrue(self.run_phase('begin',file='one.json',playback_node='OtherPlayback',
+                        route_node='OtherRoute',exit_mode='finish',routes={'finish':['OtherExit']}))
+        patch = self.context.patches[0]
+        self.assertEqual(set(patch),{'OtherPlayback','OtherRoute'})
+        self.assertEqual(patch['OtherRoute']['next'],['OtherExit'])
+        self.assertEqual(Path(patch['OtherPlayback']['action']['param']['custom_action_param']['file']).name,'one.json')
+
+    def test_resume_slots_are_declared_by_the_task_instead_of_fixed_to_four(self):
+        self.assertTrue(self.run_phase('recovery_begin',save_slot=7,resume_choice_node='ChooseSlot',
+                        resume_guards=['Guard'],resume_slots={'7':'CustomSlot'}))
+        self.assertEqual(self.context.patches[0],{'ChooseSlot':{'next':['Guard','CustomSlot']}})
+
     def test_begin_pins_current_saved_file_and_hash_in_the_native_pipeline(self):
         self.assertTrue(self.run_phase('begin'))
-        playback = self.context.patches[0][runtime.PREFIX+'回放战斗']['action']['param']['custom_action_param']
+        playback = self.context.patches[0][PREFIX+'回放战斗']['action']['param']['custom_action_param']
         self.assertEqual(Path(playback['file']), self.recordings/'one.json')
         self.assertEqual(playback['expected_sha256'], hashlib.sha256((self.recordings/'one.json').read_bytes()).hexdigest())
         self.assertTrue(playback['strict_task'])
         self.assertEqual(playback['expected_base'], [1148,720])
-        self.assertEqual(self.context.patches[0][runtime.PREFIX+'回放后分流']['next'], [runtime.PREFIX+'阻断提示',runtime.PREFIX+'等待返回'])
+        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'], [PREFIX+'阻断提示',PREFIX+'等待返回'])
         self.assertEqual(self.outcome()['status'], 'running')
         self.assertEqual(self.outcome()['recording_sha256'],playback['expected_sha256'])
 
@@ -121,7 +138,7 @@ class BountyCandleTests(unittest.TestCase):
 
     def test_battle_only_mode_uses_native_exit_and_full_mode_does_not(self):
         self.assertTrue(self.run_phase('begin',exit_mode='battle_only'))
-        self.assertEqual(self.context.patches[0][runtime.PREFIX+'回放后分流']['next'], [runtime.PREFIX+'阻断提示',runtime.PREFIX+'点击设置'])
+        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'], [PREFIX+'阻断提示',PREFIX+'点击设置'])
 
     def test_missing_binding_is_fatal_without_latest_fallback_or_capture(self):
         (self.recordings/'.bindings.json').unlink()
@@ -179,7 +196,7 @@ class BountyCandleTests(unittest.TestCase):
 
     def test_recovery_selects_only_requested_existing_slot_and_reports_ready(self):
         self.assertTrue(self.run_phase('recovery_begin',save_slot=4))
-        self.assertEqual(self.context.patches[0][runtime.PREFIX+'恢复选择存档']['next'],[runtime.PREFIX+'阻断提示',runtime.PREFIX+'恢复存档4'])
+        self.assertEqual(self.context.patches[0][PREFIX+'恢复选择存档']['next'],[PREFIX+'阻断提示',PREFIX+'恢复存档4'])
         self.assertTrue(self.run_phase('ready'))
         self.assertEqual(self.outcome()['status'],'ready')
         self.assertFalse(runtime._rounds)
@@ -258,13 +275,13 @@ class NativePipelineStructureTests(unittest.TestCase):
             self.assertNotIn(forbidden,text)
 
     def test_native_entry_cannot_bypass_the_round_initializer_with_a_legacy_alias(self):
-        self.assertNotIn(runtime.PREFIX+'刷取次数',self.pipeline)
-        entry=self.pipeline[runtime.PREFIX+'初始化']
-        self.assertEqual(entry['action']['param']['custom_action'],'bounty_candle_state')
+        self.assertNotIn(PREFIX+'刷取次数',self.pipeline)
+        entry=self.pipeline[PREFIX+'初始化']
+        self.assertEqual(entry['action']['param']['custom_action'],'script_task_state')
         self.assertEqual(entry['action']['param']['custom_action_param']['phase'],'begin')
 
     def test_two_scene_checks_and_two_return_checks_precede_success(self):
-        p=runtime.PREFIX
+        p=PREFIX
         self.assertEqual(self.pipeline[p+'场内初检']['post_delay'],350)
         self.assertIn(p+'回放战斗',self.pipeline[p+'场内初检']['next'])
         self.assertEqual(self.pipeline[p+'回放战斗']['recognition'],self.pipeline[p+'场内初检']['recognition'])
@@ -273,7 +290,7 @@ class NativePipelineStructureTests(unittest.TestCase):
         self.assertEqual(self.pipeline[p+'返回复检']['next'],[p+'成功'])
 
     def test_card_target_and_guard_share_each_slot_before_click(self):
-        recognition=self.pipeline[runtime.PREFIX+'核对目标卡片']['recognition']
+        recognition=self.pipeline[PREFIX+'核对目标卡片']['recognition']
         slots=recognition['param']['all_of'][0]['recognition']['param']['any_of']
         self.assertEqual(len(slots),4)
         for slot in slots:
@@ -282,11 +299,11 @@ class NativePipelineStructureTests(unittest.TestCase):
 
     def test_empty_slots_have_no_click_fallback(self):
         for slot in range(1,5):
-            node=self.pipeline[runtime.PREFIX+'恢复存档'+str(slot)]
+            node=self.pipeline[PREFIX+'恢复存档'+str(slot)]
             text=json.dumps(node['recognition'],ensure_ascii=False)
             self.assertIn('[Ll][Vv]',text)
             self.assertIn('save-'+str(slot)+'.png',text)
-            self.assertEqual(node['on_error'],[runtime.PREFIX+'失败'])
+            self.assertEqual(node['on_error'],[PREFIX+'失败'])
 
 
 if __name__=='__main__':

@@ -13,38 +13,39 @@ using MFAAvalonia.Helper;
 
 namespace MFAAvalonia.Services;
 
-/// <summary>Recover a single native candle round without replacing the MFA queue or its progress.</summary>
-public static class BountyCandleRecovery
+/// <summary>Recover a single script task round without replacing the MFA queue or its progress.</summary>
+public static class TaskRecovery
 {
-    public const string Entry = "悬赏（守卫宝烛）-初始化";
-    public const string ResumeEntry = "悬赏（守卫宝烛）-恢复登录";
-    public static bool IsNativeTask(string? entry) => entry == Entry;
-
-    public static async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string? entry, string? overrides,
+    public static async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string entry, string? overrides, JsonObject profile,
         Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token)
     {
-        if (!IsNativeTask(entry)) return await execute(entry, overrides, token);
         try
         {
-            var pipeline = BountyCandleRecoveryPolicy.MergePipelineOverrides(overrides);
-            var parameters = InitializerParameters(pipeline, Entry);
-            var options = BountyCandleRecoveryOptions.Read(parameters);
-            BountyCandleRecoveryPolicy.CompleteParameters(parameters, options, false);
-            var session = new RecoverySession(processor, pipeline, options, execute);
+            var pipeline = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
+            var parameters = InitializerParameters(pipeline, entry);
+            var options = TaskRecoveryOptions.Read(parameters);
+            var resumeEntry = profile["resume_entry"]?.GetValue<string>();
+            if (options.Enabled && string.IsNullOrWhiteSpace(resumeEntry))
+                throw new InvalidDataException("该任务没有配置恢复入口。");
+            var slots = profile["resume_parameters"]?["resume_slots"] as JsonObject;
+            if (options.Enabled && slots != null && !slots.ContainsKey(options.SaveSlot.ToString()))
+                throw new InvalidDataException("该任务不支持所选存档。");
+            TaskRecoveryPolicy.CompleteParameters(parameters, options, false);
+            var session = new RecoverySession(processor, pipeline, options, execute, entry, resumeEntry, profile);
             if (options.Enabled) session.CaptureTarget();
-            var outcome = await BountyCandleRecoveryPolicy.RunRoundAsync(options,
-                ct => session.RunEntryAsync(Entry, false, ct), session.RecoverAsync, token);
-            if (outcome.Status == CandleAttemptStatus.Cancelled)
+            var outcome = await TaskRecoveryPolicy.RunRoundAsync(options,
+                ct => session.RunEntryAsync(entry, false, ct), session.RecoverAsync, token);
+            if (outcome.Status == TaskAttemptStatus.Cancelled)
                 throw new OperationCanceledException(outcome.Reason, token);
-            if (outcome.Status == CandleAttemptStatus.Success) return MaaJobStatus.Succeeded;
-            processor.AddLog("守卫宝烛已停止：" + outcome.Reason);
+            if (outcome.Status == TaskAttemptStatus.Success) return MaaJobStatus.Succeeded;
+            processor.AddLog("任务已停止：" + outcome.Reason);
             return MaaJobStatus.Failed;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception error)
         {
-            processor.AddLog("守卫宝烛恢复未执行：" + error.Message);
-            LoggerHelper.Warning("守卫宝烛原生恢复停止：" + error.Message);
+            processor.AddLog("任务恢复未执行：" + error.Message);
+            LoggerHelper.Warning("任务原生恢复停止：" + error.Message);
             return MaaJobStatus.Failed;
         }
     }
@@ -59,12 +60,12 @@ public static class BountyCandleRecovery
     }
 
     private sealed class RecoverySession(MaaProcessor processor, JsonObject pipeline,
-        BountyCandleRecoveryOptions options, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute) : ICandleRestartLifecycle
+        TaskRecoveryOptions options, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, string entryName, string? resumeEntry, JsonObject profile) : ITaskRestartLifecycle
     {
-        private CandleProcessIdentity? _target;
+        private TaskProcessIdentity? _target;
         private IntPtr _window;
-        private readonly CandleRecordingRevision _revision = new();
-        private CandleWindowSize _clientSize;
+        private readonly TaskRecordingRevision _revision = new();
+        private TaskWindowSize _clientSize;
 
         public void CaptureTarget()
         {
@@ -81,11 +82,11 @@ public static class BountyCandleRecovery
             _clientSize.Validate();
         }
 
-        public async Task<CandleAttempt> RunEntryAsync(string entry, bool resume, CancellationToken token)
+        public async Task<TaskAttempt> RunEntryAsync(string entry, bool resume, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             var runId = Guid.NewGuid().ToString();
-            var directory = Path.Combine(AppPaths.DataRoot, "debug", "bounty-candle");
+            var directory = Path.Combine(AppPaths.DataRoot, "debug", "task-runs");
             Directory.CreateDirectory(directory);
             var statusPath = Path.Combine(directory, runId + ".json");
             var copy = (JsonObject)pipeline.DeepClone();
@@ -93,13 +94,12 @@ public static class BountyCandleRecovery
             // Maa replaces custom_action_param as a complete value. Explicitly
             // carry the full phase configuration rather than relying on the
             // resource node's parameters being merged by the native runtime.
-            if (resume)
+            if (resume && profile["resume_parameters"] is JsonObject defaults)
             {
-                var roundParameters = InitializerParameters(copy, Entry);
-                foreach (var item in roundParameters)
-                    if (!parameters.ContainsKey(item.Key)) parameters[item.Key] = item.Value?.DeepClone();
+                var combined = TaskRecoveryPolicy.MergePipelineOverrides(new JsonArray(defaults.DeepClone(), parameters.DeepClone()).ToJsonString());
+                foreach (var item in combined) parameters[item.Key] = item.Value?.DeepClone();
             }
-            BountyCandleRecoveryPolicy.CompleteParameters(parameters, options, resume);
+            TaskRecoveryPolicy.CompleteParameters(parameters, options, resume);
             parameters["run_id"] = runId;
             parameters["instance_id"] = processor.InstanceId;
             parameters["status_path"] = statusPath;
@@ -110,34 +110,34 @@ public static class BountyCandleRecovery
             catch (Exception error)
             {
                 token.ThrowIfCancellationRequested();
-                return IsLostTarget() ? new(CandleAttemptStatus.Recoverable, "window_lost") : CandleAttempt.Fatal(error.Message);
+                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal(error.Message);
             }
             token.ThrowIfCancellationRequested();
             if (!File.Exists(statusPath))
-                return IsLostTarget() ? new(CandleAttemptStatus.Recoverable, "window_lost") : CandleAttempt.Fatal("缺少本轮确认状态。");
-            if (new FileInfo(statusPath).Length > 65536) return CandleAttempt.Fatal("本轮状态文件无效。");
+                return IsLostTarget() ? new(TaskAttemptStatus.Recoverable, "window_lost") : TaskAttempt.Fatal("缺少本轮确认状态。");
+            if (new FileInfo(statusPath).Length > 65536) return TaskAttempt.Fatal("本轮状态文件无效。");
             var checkpoint = JsonNode.Parse(await File.ReadAllTextAsync(statusPath, token)) as JsonObject;
-            if (checkpoint == null) return CandleAttempt.Fatal("本轮状态格式无效。");
-            var result = BountyCandleRecoveryPolicy.ReadCheckpoint(checkpoint, runId, processor.InstanceId, resume);
-            if (BountyCandleRecoveryPolicy.CheckpointBelongsTo(checkpoint, runId, processor.InstanceId))
+            if (checkpoint == null) return TaskAttempt.Fatal("本轮状态格式无效。");
+            var result = TaskRecoveryPolicy.ReadCheckpoint(checkpoint, runId, processor.InstanceId, resume);
+            if (TaskRecoveryPolicy.CheckpointBelongsTo(checkpoint, runId, processor.InstanceId))
                 _revision.Observe(checkpoint);
-            if ((result.Status is CandleAttemptStatus.Success or CandleAttemptStatus.Ready) && status != MaaJobStatus.Succeeded)
-                return CandleAttempt.Fatal("原生任务未成功结束，未计入完成次数。");
-            if (result.Status == CandleAttemptStatus.Recoverable && result.Reason == "window_lost" && !IsLostTarget())
-                return CandleAttempt.Fatal("目标窗口仍然有效，未确认窗口丢失。");
-            if (result.Status == CandleAttemptStatus.Fatal
-                && BountyCandleRecoveryPolicy.IsCaptureLossCandidate(checkpoint, runId, processor.InstanceId)
+            if ((result.Status is TaskAttemptStatus.Success or TaskAttemptStatus.Ready) && status != MaaJobStatus.Succeeded)
+                return TaskAttempt.Fatal("原生任务未成功结束，未计入完成次数。");
+            if (result.Status == TaskAttemptStatus.Recoverable && result.Reason == "window_lost" && !IsLostTarget())
+                return TaskAttempt.Fatal("目标窗口仍然有效，未确认窗口丢失。");
+            if (result.Status == TaskAttemptStatus.Fatal
+                && TaskRecoveryPolicy.IsCaptureLossCandidate(checkpoint, runId, processor.InstanceId)
                 && IsLostTarget())
-                return new(CandleAttemptStatus.Recoverable, "window_lost");
+                return new(TaskAttemptStatus.Recoverable, "window_lost");
             return result;
         }
 
-        public async Task<CandleAttempt> RecoverAsync(int slot, int attempt, CancellationToken token)
+        public async Task<TaskAttempt> RecoverAsync(int slot, int attempt, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            if (_target == null) return CandleAttempt.Fatal("没有经过校验的恢复目标。");
-            processor.AddLog($"守卫宝烛：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
-            return await BountyCandleRecoveryPolicy.RestartAsync(this, slot, token);
+            if (_target == null) return TaskAttempt.Fatal("没有经过校验的恢复目标。");
+            processor.AddLog($"任务：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
+            return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
         }
 
         public Task StopInputsAndAgentAsync(CancellationToken token) =>
@@ -193,7 +193,7 @@ public static class BountyCandleRecovery
             var current = ClientSize(window);
             if (current == _clientSize) return;
             if (!GetWindowRect(window, out var rectangle)) throw new InvalidOperationException("无法读取新游戏窗口边框尺寸。");
-            var outer = new CandleWindowSize(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);
+            var outer = new TaskWindowSize(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);
             var target = _clientSize.OuterSizeFor(current, outer);
             token.ThrowIfCancellationRequested();
             // Only resize the uniquely verified new game HWND. Keep position,
@@ -220,9 +220,9 @@ public static class BountyCandleRecovery
                 throw new InvalidOperationException("游戏窗口重新连接失败。");
         }
 
-        public Task<CandleAttempt> ResumeAsync(int slot, CancellationToken token) => RunEntryAsync(ResumeEntry, true, token);
+        public Task<TaskAttempt> ResumeAsync(int slot, CancellationToken token) => RunEntryAsync(resumeEntry!, true, token);
 
-        private async Task StopSelectedProcessAsync(CandleProcessIdentity expected, CancellationToken token)
+        private async Task StopSelectedProcessAsync(TaskProcessIdentity expected, CancellationToken token)
         {
             Process? selected;
             try { selected = Process.GetProcessById(expected.Pid); }
@@ -253,7 +253,7 @@ public static class BountyCandleRecovery
                 _target!.RequireSame(Identity(pid));
                 var windows = MaaProcessor.Toolkit.Desktop.Window.Find().Where(window =>
                     Matches(window.Name, profile.WindowRegex) && Matches(window.ClassName, profile.ClassRegex));
-                var candidate = BountyCandleRecoveryPolicy.SelectUniqueWindow(windows, window => WindowPid(window.Handle), pid);
+                var candidate = TaskRecoveryPolicy.SelectUniqueWindow(windows, window => WindowPid(window.Handle), pid);
                 if (candidate.Found) return candidate.Window;
                 await Task.Delay(250, token);
             }
@@ -262,7 +262,7 @@ public static class BountyCandleRecovery
 
         private void EnsureUnshared(int pid)
         {
-            BountyCandleRecoveryPolicy.RequireExclusivePid(pid, MaaProcessor.Processors
+            TaskRecoveryPolicy.RequireExclusivePid(pid, MaaProcessor.Processors
                 .Where(other => other != processor && other.IsTaskRunActive)
                 .Select(other => other.ViewModel?.CurrentDevice is DesktopWindowInfo device ? WindowPid(device.Handle) : 0));
         }
@@ -278,7 +278,7 @@ public static class BountyCandleRecovery
 
     private static bool Matches(string? value, string? pattern) => string.IsNullOrEmpty(pattern)
         || Regex.IsMatch(value ?? "", pattern, RegexOptions.None, TimeSpan.FromSeconds(1));
-    private static CandleProcessIdentity Identity(int pid)
+    private static TaskProcessIdentity Identity(int pid)
     {
         using var process = Process.GetProcessById(pid);
         if (process.HasExited) throw new ArgumentException("游戏进程已结束。");
@@ -291,7 +291,7 @@ public static class BountyCandleRecovery
         GetWindowThreadProcessId(window, out var pid);
         return unchecked((int)pid);
     }
-    private static CandleWindowSize ClientSize(IntPtr window)
+    private static TaskWindowSize ClientSize(IntPtr window)
     {
         if (!GetClientRect(window, out var rectangle)) throw new InvalidOperationException("无法读取游戏客户区尺寸。");
         return new(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);

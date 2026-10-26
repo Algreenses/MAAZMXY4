@@ -105,6 +105,54 @@ class CaptureTests(unittest.TestCase):
         self.session.start(42, 0)
         self.assertEqual(self.session.snapshot()["state"], "recording")
 
+    def test_ui_resume_has_three_seconds_to_return_focus_and_freezes_elapsed(self):
+        self.begin()
+        self.clock.advance(1)
+        self.windows.foreground = False
+        self.flush()
+        before = self.session.snapshot()['elapsed_ms']
+        self.session.resume(countdown_seconds=3)
+        self.assertEqual(self.session.snapshot()['state'], 'resume_countdown')
+        self.assertEqual(self.session.snapshot()['countdown_seconds'], 3)
+        self.clock.advance(2)
+        self.flush()
+        self.assertEqual(self.session.snapshot()['countdown_seconds'], 1)
+        self.assertEqual(self.session.snapshot()['elapsed_ms'], before)
+        self.windows.foreground = True
+        self.clock.advance(1)
+        self.flush()
+        self.assertEqual(self.session.snapshot()['state'], 'recording')
+        self.assertEqual(self.session.snapshot()['elapsed_ms'], before)
+        self.clock.advance(.4)
+        self.flush()
+        self.assertAlmostEqual(self.session.snapshot()['elapsed_ms'], before + 400, delta=1)
+
+    def test_resume_countdown_without_focus_stays_paused_and_can_retry(self):
+        self.begin()
+        self.windows.foreground = False
+        self.flush()
+        self.session.resume(countdown_seconds=3)
+        self.clock.advance(3)
+        self.flush()
+        self.assertEqual(self.session.snapshot()['state'], 'paused')
+        self.assertIn('前台', self.session.snapshot()['message'])
+        self.session.resume(countdown_seconds=3)
+        self.session.pause()
+        self.assertEqual(self.session.snapshot()['state'], 'paused')
+        self.clock.advance(4)
+        self.windows.foreground = True
+        self.flush()
+        self.assertEqual(self.session.snapshot()['state'], 'paused')
+
+    def test_stop_during_resume_countdown_keeps_only_recorded_time(self):
+        self.begin()
+        self.clock.advance(1)
+        self.session.pause()
+        self.session.resume(countdown_seconds=3)
+        self.clock.advance(2)
+        data = self.session.stop()
+        self.assertEqual(data['duration_ms'], 1000)
+
     def test_construction_is_inert_and_explicit_start_owns_hooks(self):
         self.assertEqual(self.hooks.calls, 0)
         self.assertEqual(self.session.snapshot()["state"], "idle")

@@ -57,8 +57,9 @@ class FakeCapture:
     def pause(self):
         self.state = "paused"
 
-    def resume(self):
-        self.state = "recording"
+    def resume(self, countdown_seconds=0):
+        self.countdown = countdown_seconds
+        self.state = "resume_countdown" if countdown_seconds else "recording"
 
     def mark(self, label):
         self.payload.setdefault("editor", {}).setdefault("markers", []).append(dict(at_ms=250, label=label))
@@ -307,7 +308,8 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "停止录制"):
             self.service.dispatch("rename", dict(name="不能修改"))
         self.assertEqual(self.service.dispatch("capture_pause")["state"], "paused")
-        self.assertEqual(self.service.dispatch("capture_resume")["state"], "recording")
+        self.assertEqual(self.service.dispatch("capture_resume")["state"], "resume_countdown")
+        self.assertEqual(capture.countdown, 3)
         self.service.dispatch("capture_mark", dict(label="阶段A"))
         stopped = self.service.dispatch("capture_stop")
         self.assertEqual(stopped["name"], "新录制")
@@ -315,6 +317,18 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(stopped["dirty"])
         self.service.dispatch("rename", dict(name="修改录制名"))
         self.assertEqual(self.service.dispatch("capture_stop")["name"], "修改录制名")
+        self.assertEqual(self.file.read_bytes(), self.original)
+
+    def test_cancel_initial_countdown_keeps_loaded_script(self):
+        capture = FakeCapture()
+        self.service.capture_factory = lambda: capture
+        self.load()
+        before = self.service.snapshot()
+        self.service.dispatch('capture_start', dict(hwnd=42,countdown_seconds=3))
+        capture.state = 'countdown'
+        result = self.service.dispatch('capture_cancel')
+        self.assertTrue(result['cancelled'])
+        self.assertEqual(self.service.snapshot(), before)
         self.assertEqual(self.file.read_bytes(), self.original)
 
     def test_close_recovers_unfinished_capture_and_releases_it(self):

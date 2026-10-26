@@ -101,7 +101,13 @@ foreach ($patchRelativePath in $manifest.patches) {
         continue
     }
     if ([regex]::Matches($text, [regex]::Escape($find)).Count -ne 1) {
-        throw "Patch anchor is absent or ambiguous: $patchRelativePath ($($patch.path)). The pinned source must match exactly."
+        $previousProperty = $patch.PSObject.Properties['previous_replacements']
+        $previous = @()
+        if ($previousProperty) {
+            $previous = @($previousProperty.Value | Where-Object { [regex]::Matches($text, [regex]::Escape($_.Replace("`r`n", "`n"))).Count -eq 1 })
+        }
+        if ($previous.Count -ne 1) { throw "Patch anchor is absent or ambiguous: $patchRelativePath ($($patch.path)). The pinned source must match exactly." }
+        $find = $previous[0].Replace("`r`n", "`n")
     }
     Write-Utf8 $targetPath ($text.Replace($find, $replacement))
     Write-Host "Applied: $($patch.description)"
@@ -109,6 +115,13 @@ foreach ($patchRelativePath in $manifest.patches) {
 
 $overlayRoot = Get-ContainedPath $projectRoot $manifest.overlay_directory
 $coreRoot = Get-ContainedPath $sourceRoot 'MFAAvalonia'
+$retiredProperty = $manifest.PSObject.Properties['retired_overlay_files']
+if ($retiredProperty) {
+    foreach ($relative in $retiredProperty.Value) {
+        $retired = Get-ContainedPath $coreRoot $relative
+        if (Test-Path -LiteralPath $retired -PathType Leaf) { Remove-Item -LiteralPath $retired }
+    }
+}
 if (Test-Path -LiteralPath $overlayRoot) {
     foreach ($file in Get-ChildItem -LiteralPath $overlayRoot -Recurse -File) {
         $relative = $file.FullName.Substring($overlayRoot.Length).TrimStart([IO.Path]::DirectorySeparatorChar)

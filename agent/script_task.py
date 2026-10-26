@@ -22,8 +22,7 @@ from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
-STATUS_DIRECTORY = ROOT / 'debug/bounty-candle'
-PREFIX = '悬赏（守卫宝烛）-'
+STATUS_DIRECTORY = ROOT / 'debug/task-runs'
 _rounds = {}
 _lock = threading.RLock()
 
@@ -45,7 +44,7 @@ def _parameters(argv):
     if isinstance(value, str):
         value = json.loads(value)
     if not isinstance(value, dict):
-        raise ValueError('宝烛任务参数必须是对象。')
+        raise ValueError('脚本任务参数必须是对象。')
     return value
 
 
@@ -64,17 +63,17 @@ def _check(context):
 def status_path(parameters):
     ident = parameters.get('run_id') or str(uuid4())
     if not isinstance(ident, str) or str(UUID(ident)) != ident:
-        raise ValueError('宝烛任务运行标识必须为标准 UUID。')
+        raise ValueError('脚本任务运行标识必须为标准 UUID。')
     expected = STATUS_DIRECTORY / (ident + '.json')
     if (expected.resolve().parent != STATUS_DIRECTORY.resolve()
             or not expected.resolve().is_relative_to(ROOT.resolve())):
-        raise ValueError('宝烛任务状态目录无效。')
+        raise ValueError('脚本任务状态目录无效。')
     supplied = parameters.get('status_path')
     if supplied is not None and Path(supplied).resolve() != expected.resolve():
-        raise ValueError('宝烛任务状态只能保存在本工程调试目录。')
+        raise ValueError('脚本任务状态只能保存在本工程调试目录。')
     instance = parameters.get('instance_id', '')
     if not isinstance(instance, str) or len(instance) > 128:
-        raise ValueError('宝烛任务实例标识无效。')
+        raise ValueError('脚本任务实例标识无效。')
     return ident, expected, instance
 
 
@@ -89,7 +88,7 @@ def write_status(state, status, reason='', **extra):
     payload.update(status=status, reason=reason, updated_at=time.time(), **extra)
     path = state['path']
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary = tempfile.mkstemp(prefix='.bounty-', suffix='.tmp', dir=path.parent)
+    descriptor, temporary = tempfile.mkstemp(prefix='.task-', suffix='.tmp', dir=path.parent)
     try:
         with os.fdopen(descriptor, 'w', encoding='utf8', newline='\n') as stream:
             json.dump(payload, stream, ensure_ascii=False, allow_nan=False)
@@ -101,7 +100,7 @@ def write_status(state, status, reason='', **extra):
         if os.path.exists(temporary):
             os.unlink(temporary)
     state.update(status=status, reason=reason)
-    print('[bounty_candle] %s: %s' % (status, reason or '已确认'), flush=True)
+    print('[script_task] %s: %s' % (status, reason or '已确认'), flush=True)
 
 
 def _stop_status(state, status, reason, **extra):
@@ -109,7 +108,7 @@ def _stop_status(state, status, reason, **extra):
         write_status(state, status, reason, **extra)
     except Exception as error:
         # Failure to report must still return False to Maa, never count a round.
-        print('[bounty_candle] 无法保存失败状态：' + str(error), flush=True)
+        print('[script_task] 无法保存失败状态：' + str(error), flush=True)
 
 
 def inspect_recording(reference):
@@ -126,7 +125,7 @@ def inspect_recording(reference):
     if not data['actions']:
         raise ValueError('绑定脚本没有可回放的操作。')
     if min(document.base) != 720:
-        raise ValueError('宝烛脚本必须使用新工程的720基准坐标。')
+        raise ValueError('任务脚本必须使用新工程的720基准坐标。')
     if any(action.get('op') == 'scroll' and ('x' in action or 'y' in action) for action in data['actions']):
         raise ValueError('带坐标滚轮尚不支持当前控制器回放。')
     return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), base=list(document.base),
@@ -181,7 +180,9 @@ def _override(context, patch):
 
 def begin_round(context, parameters, state):
     _check(context)
-    reference = parameters.get('file', '@task:bounty-candle')
+    reference = parameters.get('file', '@task')
+    if reference == '@task':
+        reference = '@task:' + parameters['task_binding_id']
     recording = inspect_recording(reference)
     filename = Path(recording['path']).name
     expected_file = parameters.get('expected_recording_file')
@@ -191,28 +192,42 @@ def begin_round(context, parameters, state):
             raise RecordingChanged('本轮绑定或脚本已修改，自动恢复不会切换到另一份录制。')
     state.update(recording=recording, reference=reference, recording_file=filename,
                  recording_sha256=recording['sha256'])
-    mode = parameters.get('exit_mode', 'recorded_return')
-    if mode not in ('recorded_return', 'battle_only'):
-        raise ValueError('请选择完整返回录制或仅战斗录制。')
+    routes = parameters.get('routes', {})
+    mode = parameters.get('exit_mode', next(iter(routes), None))
+    if routes and mode not in routes:
+        raise ValueError('请选择该任务支持的脚本完成方式。')
     frame = capture(context)
     height, width = frame.shape[:2]
     if min(height, width) != 720 or any(abs(a-b) > 2 for a,b in zip(recording['base'], (width,height))):
         raise ValueError('脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。')
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
                     strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1)
-    destination = PREFIX + ('等待返回' if mode == 'recorded_return' else '点击设置')
-    _override(context, {PREFIX+'回放战斗': {'action': {'param': {'custom_action_param': playback}}},
-                        PREFIX+'回放后分流': {'next': [PREFIX+'阻断提示', destination]}})
+    playback_node = parameters.get('playback_node')
+    if not isinstance(playback_node, str) or not playback_node:
+        raise ValueError('任务缺少脚本回放节点配置。')
+    patch = {playback_node: {'action': {'param': {'custom_action_param': playback}}}}
+    if routes:
+        route_node = parameters.get('route_node')
+        targets = routes[mode]
+        if not isinstance(route_node, str) or not isinstance(targets, list) or not all(isinstance(n, str) for n in targets):
+            raise ValueError('任务完成路线配置无效。')
+        patch[route_node] = {'next': targets}
+    _override(context, patch)
     write_status(state, 'running', 'round_started', file=Path(recording['path']).name, exit_mode=mode)
 
 
 def begin_recovery(context, parameters, state):
     _check(context)
     slot = parameters.get('save_slot', 1)
-    if type(slot) is not int or not 1 <= slot <= 4:
-        raise ValueError('恢复存档必须为1至4号已有存档。')
+    slots = parameters.get('resume_slots', {})
+    if type(slot) is not int or str(slot) not in slots:
+        raise ValueError('请选择该任务支持的已有存档。')
     state['save_slot'] = slot
-    _override(context, {PREFIX+'恢复选择存档': {'next': [PREFIX+'阻断提示', PREFIX+'恢复存档'+str(slot)]}})
+    node = parameters.get('resume_choice_node')
+    guards = parameters.get('resume_guards', [])
+    if not isinstance(node, str) or not node or not isinstance(guards, list):
+        raise ValueError('任务恢复选项配置无效。')
+    _override(context, {node: {'next': [*guards, slots[str(slot)]]}})
     write_status(state, 'running', 'recovery_login', save_slot=slot)
 
 
@@ -231,8 +246,8 @@ def fail_round(context, state, reason):
     return False
 
 
-@AgentServer.custom_action('bounty_candle_state')
-class BountyCandleState(CustomAction):
+@AgentServer.custom_action('script_task_state')
+class ScriptTaskState(CustomAction):
     def run(self, context, argv):
         state, key = None, None
         terminal = False
@@ -263,7 +278,7 @@ class BountyCandleState(CustomAction):
                 return False
             if phase == 'failure':
                 return fail_round(context, state, str(parameters.get('reason') or 'unrecognized_screen'))
-            raise ValueError('未知宝烛任务检查点。')
+            raise ValueError('未知脚本任务检查点。')
         except Cancelled:
             terminal = True
             if state is not None:
@@ -277,7 +292,7 @@ class BountyCandleState(CustomAction):
             return False
         except Exception as error:
             terminal = True
-            print('[bounty_candle] 已停止：' + str(error), flush=True)
+            print('[script_task] 已停止：' + str(error), flush=True)
             if state is not None:
                 _stop_status(state, 'fatal', 'configuration_or_recording_error', message=str(error))
             return False

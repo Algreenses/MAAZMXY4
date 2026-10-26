@@ -225,6 +225,10 @@ class BattlePlayerStudioTests(unittest.TestCase):
         root = self.directory / "project"
         recordings = root / "recordings"
         recordings.mkdir(parents=True)
+        (root / 'interface.json').write_text(json.dumps(dict(task=[dict(name='战斗任务',entry='Fight')], resource=[dict(path=['resource/base'])])), encoding='utf8')
+        pipeline = root / 'resource/base/pipeline'
+        pipeline.mkdir(parents=True)
+        (pipeline/'fight.json').write_text(json.dumps({'Fight': {'action': {'type':'Custom','param': {'custom_action':'battle_play','custom_action_param': {'execution': {'binding_id':'bounty-candle'}}}}}}), encoding='utf8')
         saved = recordings / "战斗.json"
         saved.write_text(json.dumps(dict(version=1,name="战斗",base=[1148,720],
             actions=[dict(t=0,op="key",key=74)])), encoding="utf8")

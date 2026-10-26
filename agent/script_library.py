@@ -13,7 +13,6 @@ import tempfile
 
 INDEX_FILE = '.bindings.json'
 MAX_INDEX_BYTES = 64 * 1024
-TASK_LABELS = {'bounty-candle': '悬赏（守卫宝烛）'}
 _TASK_ID = re.compile(r'[a-z0-9][a-z0-9_-]{0,63}\Z')
 _RESERVED = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))}
 
@@ -64,17 +63,25 @@ def _bindings_state(directory):
     if not path.exists():
         return {}, None
     value, raw = _read_index(path)
-    if (not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1
+    if (not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] not in (1, 2)
             or not isinstance(value.get('tasks'), dict) or len(value['tasks']) > 256):
         raise ValueError('任务绑定索引格式无效。')
-    tasks = value['tasks']
-    for task_id, name in tasks.items():
+    tasks = {}
+    for task_id, binding in value['tasks'].items():
         _task_id(task_id)
-        library_recording_path(directory, name)
-    return dict(tasks), raw
+        binding = {'file': binding, 'mode': 'pipeline'} if isinstance(binding, str) else binding
+        if not isinstance(binding, dict) or binding.get('mode') not in ('pipeline', 'replace'):
+            raise ValueError('任务绑定的执行方式无效。')
+        library_recording_path(directory, binding.get('file'))
+        tasks[task_id] = dict(file=binding['file'], mode=binding['mode'])
+    return tasks, raw
 
 
 def read_task_bindings(directory):
+    return {key: value['file'] for key, value in read_binding_records(directory).items()}
+
+
+def read_binding_records(directory):
     return _bindings_state(directory)[0]
 
 
@@ -82,7 +89,7 @@ def resolve_task_recording(directory, task_id):
     task_id = _task_id(task_id)
     name = read_task_bindings(directory).get(task_id)
     if name is None:
-        raise ValueError(TASK_LABELS.get(task_id, task_id) + '尚未绑定脚本，请在脚本库保存脚本后绑定。')
+        raise ValueError('任务尚未绑定脚本，请在脚本库选择具体任务并绑定已保存文件。')
     return library_recording_path(directory, name, must_exist=True)
 
 
@@ -142,10 +149,12 @@ def _binding_lock(directory):
                 fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
-def bind_task_recording(directory, task_id, filename, *, expected_revision):
+def bind_task_recording(directory, task_id, filename, *, expected_revision, mode='pipeline'):
     """Publish a filename binding only while the loaded saved file still matches."""
     directory = Path(directory)
     task_id = _task_id(task_id)
+    if mode not in ('pipeline', 'replace'):
+        raise ValueError('请选择有效的任务绑定方式。')
     recording = library_recording_path(directory, filename, must_exist=True)
     directory.mkdir(parents=True, exist_ok=True)
     with _binding_lock(directory):
@@ -153,8 +162,8 @@ def bind_task_recording(directory, task_id, filename, *, expected_revision):
         path = _index_path(directory)
         if hashlib.sha256(recording.read_bytes()).hexdigest() != expected_revision:
             raise ValueError('文件已被其他程序修改，请重新加载后绑定。')
-        tasks[task_id] = filename
-        raw = (json.dumps(dict(version=1, tasks=tasks), ensure_ascii=False, indent=2) + '\n').encode('utf8')
+        tasks[task_id] = dict(file=filename, mode=mode)
+        raw = (json.dumps(dict(version=2, tasks=tasks), ensure_ascii=False, indent=2) + '\n').encode('utf8')
         if len(raw) > MAX_INDEX_BYTES:
             raise ValueError('任务绑定索引过大。')
         temporary = None
@@ -178,4 +187,31 @@ def bind_task_recording(directory, task_id, filename, *, expected_revision):
                     temporary.unlink()
                 except OSError:
                     pass  # Publication succeeded; cleanup cannot undo the binding.
-    return dict(task_id=task_id, file=filename)
+    return dict(task_id=task_id, file=filename, mode=mode)
+
+
+def unbind_task_recording(directory, task_id, *, expected_file):
+    directory = Path(directory)
+    with _binding_lock(directory):
+        tasks, original = _bindings_state(directory)
+        binding = tasks.get(_task_id(task_id))
+        if not binding: return dict(task_id=task_id, removed=False)
+        if binding['file'] != expected_file:
+            raise ValueError('任务绑定已被其他窗口修改，请刷新后再解除。')
+        del tasks[task_id]
+        raw = (json.dumps(dict(version=2, tasks=tasks), ensure_ascii=False, indent=2) + '\n').encode('utf8')
+        path = _index_path(directory)
+        with tempfile.NamedTemporaryFile(dir=directory, prefix='.binding-', suffix='.tmp', delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            if path.read_bytes() != original: raise ValueError('任务绑定已被其他程序修改，未覆盖。')
+            os.replace(temporary, path)
+        finally:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+    return dict(task_id=task_id, removed=True)

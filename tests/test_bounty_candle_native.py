@@ -136,7 +136,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             return module
         with patch.dict(sys.modules, {'maa.agent': ModuleType('maa.agent'), 'maa.agent.agent_server': registration}), \
                 patch.object(sys, 'path', [str(ROOT / 'agent'), *sys.path]):
-            state_actions = load('native_fixture_candle_actions', 'bounty_candle.py')
+            state_actions = load('native_fixture_candle_actions', 'script_task.py')
             playback = load('native_fixture_battle_player', 'battle_player.py')
             from script_library import bind_task_recording
 
@@ -176,7 +176,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory(prefix='native-candle-round-') as temporary:
             directory = Path(temporary)
-            library, checkpoints = directory / 'recordings', directory / 'debug/bounty-candle'
+            library, checkpoints = directory / 'recordings', directory / 'debug/task-runs'
             library.mkdir()
             checkpoints.mkdir(parents=True)
             filename = 'native-round.json'
@@ -193,11 +193,13 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             run_id = str(uuid4())
             parameters = dict(phase='begin', file='@task:bounty-candle', exit_mode='recorded_return',
                               run_id=run_id, instance_id='memory-test', status_path=str(checkpoints / (run_id + '.json')))
+            canonical = json.loads((ROOT/'assets/resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
+            parameters = {**canonical[PREFIX+'初始化']['action']['param']['custom_action_param'], **parameters}
             controller, resource, tasker = SimulatedGame(), Resource(), Tasker()
             self.assertTrue(controller.post_connection().wait().succeeded)
             self.assertTrue(controller.set_screenshot_use_raw_size(True))
             self.assertTrue(resource.post_bundle(ROOT / 'assets/resource/base').wait().succeeded)
-            self.assertTrue(resource.register_custom_action('bounty_candle_state', state_actions.BountyCandleState()))
+            self.assertTrue(resource.register_custom_action('script_task_state', state_actions.ScriptTaskState()))
             self.assertTrue(resource.register_custom_action('battle_play', playback.BattlePlay()))
             self.assertTrue(tasker.bind(resource, controller))
             overrides = {PREFIX + '初始化': {'action': {'param': {'custom_action_param': parameters}}}}
@@ -221,6 +223,7 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             events.clear()
             controller.stage = 'login'
             run_id = str(uuid4())
+            parameters.update(canonical[PREFIX+'恢复登录']['action']['param']['custom_action_param'])
             parameters.update(phase='recovery_begin', save_slot=4, run_id=run_id,
                               status_path=str(checkpoints / (run_id + '.json')))
             resume_overrides = {PREFIX + '恢复登录': {'action': {'param': {'custom_action_param': parameters}}}}

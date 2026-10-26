@@ -19,8 +19,9 @@ from uuid import uuid4
 from weakref import WeakKeyDictionary
 
 from script_studio.model import RecordingDocument
-from script_library import (TASK_LABELS, bind_task_recording, library_recording_path,
+from script_library import (bind_task_recording, unbind_task_recording, library_recording_path,
                             read_task_bindings, resolve_task_recording)
+from task_catalog import task_catalog, execution_plan
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -197,19 +198,21 @@ class StudioService:
                 selected = value["file"]
         except (OSError, ValueError, TypeError):
             pass
-        bindings, binding_errors = {}, {}
+        bindings, binding_errors, tasks = {}, {}, []
         try:
             bindings = read_task_bindings(self.directory)
-            for task_id in TASK_LABELS:
-                if task_id in bindings:
-                    try:
-                        resolve_task_recording(self.directory, task_id)
-                    except (OSError, ValueError) as error:
-                        binding_errors[task_id] = str(error)
+            tasks = task_catalog(self.root)
+            for task_id in bindings:
+                try:
+                    resolve_task_recording(self.directory, task_id)
+                except (OSError, ValueError) as error:
+                    binding_errors[task_id] = str(error)
+            for task in tasks:
+                task['binding_error'] = binding_errors.get(task['id'])
         except (OSError, ValueError) as error:
-            binding_errors = {task_id: str(error) for task_id in TASK_LABELS}
+            binding_errors = {'catalog': str(error)}
         return dict(items=items, selected_file=selected, root=str(self.directory),
-                    task_bindings=bindings, binding_errors=binding_errors)
+                    task_bindings=bindings, binding_errors=binding_errors, tasks=tasks)
 
     def dispatch(self, method, params=None):
         if self._closed:
@@ -217,6 +220,17 @@ class StudioService:
         params = params or {}
         if method == "list":
             return self.list()
+        if method == 'execution_plan':
+            return execution_plan(self.root, params.get('name'), params.get('entry'))
+        if method == 'unbind_task':
+            self.require_idle()
+            return unbind_task_recording(self.directory, params.get('task_id'), expected_file=params.get('expected_file'))
+        if method == 'capture_cancel':
+            if self.capture is None or self.capture.snapshot()['state'] != 'countdown':
+                raise ValueError('仅录制开始前可以取消准备。')
+            self.capture.stop()
+            self.capture_finished = True
+            return dict(cancelled=True, document=self.snapshot() if self.document else dict(empty=True))
         if method == "snapshot":
             return self.snapshot()
         if method == "capture_status":
@@ -238,7 +252,7 @@ class StudioService:
             if method == "capture_pause":
                 self.capture.pause()
             elif method == "capture_resume":
-                self.capture.resume()
+                self.capture.resume(countdown_seconds=3)
             else:
                 self.capture.mark(params.get("label") or "阶段标记")
             return self.capture.snapshot()
@@ -340,8 +354,12 @@ class StudioService:
             if not self.file or self.revision is None:
                 raise ValueError("请先保存脚本。")
             task_id = params.get("task_id")
-            if task_id not in TASK_LABELS:
-                raise ValueError("请选择支持脚本绑定的任务。")
+            task = next((item for item in task_catalog(self.root) if item['id'] == task_id), None)
+            if task is None:
+                raise ValueError("请选择当前工程中的具体任务。")
+            mode = params.get('mode', task['modes'][0])
+            if mode not in task['modes']:
+                raise ValueError('该任务没有脚本回放节点，请明确选择替代任务执行。')
             saved, revision = read_json(self.path(self.file))
             if revision != self.revision:
                 raise ValueError("文件已被其他程序修改，请重新加载后绑定。")
@@ -351,7 +369,7 @@ class StudioService:
                 raise ValueError("空白脚本不能绑定到任务。")
             if min(saved_document.base) != 720:
                 raise ValueError("任务脚本必须使用短边720坐标，请先通过脚本库导入转换。")
-            return bind_task_recording(self.directory, task_id, self.file, expected_revision=self.revision)
+            return bind_task_recording(self.directory, task_id, self.file, expected_revision=self.revision, mode=mode)
         if method == "split":
             left, right = document.split(params["at_ms"])
             paths = []

@@ -172,9 +172,9 @@ class CaptureSession:
     def _elapsed(self, now=None):
         if self._started is None:
             return 0
-        if self._state not in {"recording", "paused"}:
+        if self._state not in {"recording", "paused", "resume_countdown"}:
             return self._duration
-        current = self._paused_at if self._state == "paused" else (self._clock() if now is None else now)
+        current = self._paused_at if self._state in {"paused", "resume_countdown"} else (self._clock() if now is None else now)
         return min(MAX_DURATION_MS, max(self._last_time, 0, round((current - self._started - self._paused_total) * 1000)))
 
     def snapshot(self):
@@ -183,7 +183,7 @@ class CaptureSession:
                         hwnd=self._hwnd, error=self._error, message=self._message,
                         save_requested=self._save_requested, exit_requested=self._exit_requested,
                         marker_count=len(self._markers), closed=self._closed,
-                        countdown_seconds=max(0, math.ceil(self._deadline - self._clock())) if self._state == "countdown" else 0)
+                        countdown_seconds=max(0, math.ceil(self._deadline - self._clock())) if self._state in {"countdown", "resume_countdown"} else 0)
 
     def _notify(self, force=False):
         now = self._clock()
@@ -282,8 +282,10 @@ class CaptureSession:
         self._command("pause")
         return self.snapshot()
 
-    def resume(self):
-        self._command("resume")
+    def resume(self, countdown_seconds=0):
+        if type(countdown_seconds) is not int or not 0 <= countdown_seconds <= 60:
+            raise ValueError('继续录制倒计时必须为0～60秒的整数。')
+        self._command("resume", countdown_seconds)
         return self.snapshot()
 
     def mark(self, label):
@@ -346,6 +348,10 @@ class CaptureSession:
         self._notify(True)
 
     def _pause(self, now, message="录制已暂停，请切回游戏后手动继续。"):
+        if self._state == 'resume_countdown':
+            self._state, self._message = 'paused', '已取消继续倒计时，录制保持暂停。'
+            self._notify(True)
+            return
         if self._state != "recording":
             return
         timestamp = self._elapsed(now)
@@ -355,7 +361,7 @@ class CaptureSession:
         self._notify(True)
 
     def _resume(self, now):
-        if self._state != "paused":
+        if self._state not in {"paused", "resume_countdown"}:
             return
         self._check_target(now)
         if self._ending:
@@ -401,6 +407,13 @@ class CaptureSession:
         self._check_target(now)
         if not self._ending and self._state == "countdown" and now >= self._deadline:
             self._begin(self._deadline)
+        elif not self._ending and self._state == 'resume_countdown' and now >= self._deadline:
+            if self._api.is_foreground(self._hwnd):
+                self._resume(now)
+            else:
+                self._state = 'paused'
+                self._message = '目标窗口尚未回到前台，录制保持暂停；点击继续后有3秒切回游戏。'
+                self._notify(True)
         if self._state == "recording" and self._elapsed(now) >= MAX_DURATION_MS:
             self._finish(now, "录制已达到7天时长上限。")
         for listener in self._listeners:
@@ -419,7 +432,7 @@ class CaptureSession:
                     return
                 self._control_down.add(vk)
                 if vk == 0x77:
-                    if self._state == "paused":
+                    if self._state in {"paused", "resume_countdown"}:
                         try:
                             self._resume(at)
                         except RuntimeError as exc:
@@ -514,7 +527,13 @@ class CaptureSession:
                         elif kind == "pause":
                             self._pause(at)
                         elif kind == "resume":
-                            self._resume(at)
+                            if data and self._state == 'paused':
+                                self._deadline = self._clock() + data
+                                self._state = 'resume_countdown'
+                                self._message = f'将在{data}秒后继续，请切回目标游戏窗口。'
+                                self._notify(True)
+                            else:
+                                self._resume(at)
                         elif kind == "mark":
                             if self._state not in {"recording", "paused"}:
                                 raise RuntimeError("开始录制后才能添加标记。")

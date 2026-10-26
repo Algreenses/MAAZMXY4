@@ -6,16 +6,34 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "begin",
-          "file": "@task:bounty-candle",
+          "file": "@task",
           "exit_mode": "recorded_return",
           "recovery": {
             "enabled": false,
             "max_retries": 3,
             "save_slot": 1,
             "exe_path": ""
+          },
+          "task_binding_id": "bounty-candle",
+          "playback_node": "悬赏（守卫宝烛）-回放战斗",
+          "route_node": "悬赏（守卫宝烛）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "悬赏（守卫宝烛）-阻断提示",
+              "悬赏（守卫宝烛）-等待返回"
+            ],
+            "battle_only": [
+              "悬赏（守卫宝烛）-阻断提示",
+              "悬赏（守卫宝烛）-点击设置"
+            ]
+          },
+          "execution": {
+            "binding_id": "bounty-candle",
+            "resume_entry": "悬赏（守卫宝烛）-恢复登录",
+            "settings_node": "脚本任务设置"
           }
         }
       }
@@ -71,7 +89,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "fatal",
           "reason": "blocked_dialog"
@@ -293,7 +311,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "fatal",
           "reason": "unexpected_pause"
@@ -751,7 +769,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "fatal",
           "reason": "unaccepted_or_wrong_bounty"
@@ -1507,7 +1525,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "fatal",
           "reason": "unexpected_pause"
@@ -1886,7 +1904,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "fatal",
           "reason": "unexpected_pause"
@@ -2064,7 +2082,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "success"
         }
@@ -2081,7 +2099,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "failure",
           "reason": "recognition_or_action_failed"
@@ -2099,10 +2117,20 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "recovery_begin",
-          "save_slot": 1
+          "save_slot": 1,
+          "resume_choice_node": "悬赏（守卫宝烛）-恢复选择存档",
+          "resume_guards": [
+            "悬赏（守卫宝烛）-阻断提示"
+          ],
+          "resume_slots": {
+            "1": "悬赏（守卫宝烛）-恢复存档1",
+            "2": "悬赏（守卫宝烛）-恢复存档2",
+            "3": "悬赏（守卫宝烛）-恢复存档3",
+            "4": "悬赏（守卫宝烛）-恢复存档4"
+          }
         }
       }
     },
@@ -3342,7 +3370,7 @@
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "bounty_candle_state",
+        "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "ready"
         }
