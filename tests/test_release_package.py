@@ -95,6 +95,8 @@ class ReleasePackageTests(unittest.TestCase):
 
     def test_full_client_collects_canonical_resources_and_crlf_setup_without_preview_data(self):
         frontend, runtime, launcher = self.client_fixture()
+        self.write('frontend/libs/AGENTS.md', b'local frontend instructions')
+        self.write('python/Lib/Agents.MD', b'local runtime instructions')
         for name in ['recordings/private.json','config/instances/private.json','logs/test.log','appsettings.json',
                      'resource/base/pipeline/old.json','interface.json']:
             self.write('frontend/'+name,b'private or stale preview data')
@@ -107,11 +109,23 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertEqual(files['resource/base/pipeline/烛时（钟晷极地）.json'],ROOT/'assets/resource/base/pipeline/烛时（钟晷极地）.json')
         self.assertFalse(any(name.startswith(('recordings/','config/','logs/')) or '__pycache__' in name for name in files))
         self.assertNotIn('appsettings.json',files)
+        self.assertFalse(any(Path(name).name.casefold() == 'agents.md' for name in files))
         batch=files['DependencySetup_依赖库安装_win.bat'].read_bytes()
         self.assertIn(b'\r\n',batch)
         self.assertNotIn(b'\n',batch.replace(b'\r\n',b''))
         self.assertIn(b'VC_ARG=/install',batch)
         self.assertIn(b'DOTNET_ARG=/install',batch)
+
+    def test_resource_package_excludes_nested_local_instructions(self):
+        for name in ('agent/AGENTS.md', 'assets/resource/base/Agents.MD'):
+            self.write('sample/'+name, b'local instructions')
+        self.write('sample/agent/main.py', b'# public code')
+        self.write('sample/assets/resource/base/public.json', b'{}')
+        self.write('sample/assets/interface.json', b'{}')
+        names = [relative for _, relative in collect(str(self.root/'sample'))]
+        self.assertIn('agent/main.py', names)
+        self.assertIn('resource/base/public.json', names)
+        self.assertFalse(any(Path(name).name.casefold() == 'agents.md' for name in names))
 
     def test_client_rejects_unverified_launcher_and_incomplete_gui_runtime(self):
         frontend, runtime, launcher = self.client_fixture()

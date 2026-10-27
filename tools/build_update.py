@@ -43,8 +43,13 @@ EXCLUDE_NAMES = {
 EXCLUDE_DIRS = {"__pycache__", ".git"}
 
 
+def is_local_instructions(name):
+    """Local agent instructions are never distributed as client data."""
+    return name.casefold() == "agents.md"
+
+
 def _skip(name):
-    if name in EXCLUDE_NAMES:
+    if name in EXCLUDE_NAMES or is_local_instructions(name):
         return True
     if ".bak" in name or name.endswith(".pyc") or name.endswith(".pyo"):
         return True

@@ -26,7 +26,7 @@ import os
 from pathlib import Path
 import zipfile
 
-from build_update import collect
+from build_update import collect, is_local_instructions
 from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -117,6 +117,8 @@ def client_files(root, frontend, python_runtime, launcher):
     for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md'):
         files.append((root / name, name))
+    files = [(source, relative) for source, relative in files
+             if not is_local_instructions(Path(relative).name)]
     batch = (root / 'DependencySetup_依赖库安装_win.bat').read_bytes()
     if b'\n' in batch.replace(b'\r\n', b''):
         raise ValueError('依赖安装批处理必须使用 CRLF 换行。')
