@@ -303,16 +303,28 @@
           },
           {
             "recognition": {
-              "type": "OCR",
+              "type": "Or",
               "param": {
-                "expected": [
-                  "^已接受$"
-                ],
-                "roi": [
-                  200,
-                  195,
-                  320,
-                  85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": ["^已接受$"],
+                        "roi": [200, 195, 320, 85]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": ["^已[接搜]受$"],
+                        "roi": [420, 220, 66, 40],
+                        "only_rec": true
+                      }
+                    }
+                  }
                 ]
               }
             }

@@ -36,6 +36,9 @@ def evaluate_config(recognition, observations):
         if any(result is None for result in results):
             return None
         return results[recognition['param']['box_index']]
+    if recognition['type'] == 'Or':
+        return next((result for item in recognition['param']['any_of']
+                     if (result := evaluate_config(item['recognition'], observations)) is not None), None)
     if recognition['type'] != 'OCR':
         raise AssertionError('unexpected recognition type')
     params = recognition['param']
@@ -85,6 +88,22 @@ class BountyTargetGuardTests(unittest.TestCase):
             with self.subTest(task=task):
                 frame = frame_for(task + '奖励')
                 self.assertIsNone(evaluate_config(self.recognition(task), frame))
+
+    def test_cached_ocr_fallback_recognizes_only_the_observed_status_variant(self):
+        for task in TASKS:
+            with self.subTest(task=task):
+                checks = self.recognition(task)['param']['all_of']
+                status = checks[2]['recognition']
+                self.assertEqual(status['type'], 'Or')
+                original, fallback = [item['recognition'] for item in status['param']['any_of']]
+                self.assertEqual(original['param']['expected'], ['^已接受$'])
+                self.assertTrue(fallback['param']['only_rec'])
+                self.assertEqual(fallback['param']['roi'], [420, 220, 66, 40])
+                frame = tuple(('已搜受' if text == '已接受' else text, box)
+                              for text, box in frame_for(task))
+                self.assertEqual(evaluate_config(self.recognition(task), frame), (587, 593, 94, 29))
+                unrelated = tuple(('未接受' if text == '已搜受' else text, box) for text, box in frame)
+                self.assertIsNone(evaluate_config(self.recognition(task), unrelated))
 
     def test_ocr_traditional_variant_of_thief_name_matches(self):
         frame = tuple(('遁地大盜' if text == '守卫宝烛' and box[0] == 665 else text, box)

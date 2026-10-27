@@ -110,7 +110,10 @@
         "all_of": [
           { "recognition": { "type": "OCR", "param": { "expected": ["^前往副本$"], "roi": [480, 550, 350, 100] } } },
           { "recognition": { "type": "OCR", "param": { "expected": ["^追捕飞贼$"], "roi": [500, 165, 430, 75] } } },
-          { "recognition": { "type": "OCR", "param": { "expected": ["^已接受$"], "roi": [200, 195, 320, 85] } } }
+          { "recognition": { "type": "Or", "param": { "any_of": [
+            { "recognition": { "type": "OCR", "param": { "expected": ["^已接受$"], "roi": [200, 195, 320, 85] } } },
+            { "recognition": { "type": "OCR", "param": { "expected": ["^已[接搜]受$"], "roi": [420, 220, 66, 40], "only_rec": true } } }
+          ] } } }
         ],
         "box_index": 0
       }

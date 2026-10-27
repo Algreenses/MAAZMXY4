@@ -50,6 +50,9 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 wrong = frames['quest-candle'].copy()
                 wrong[165:240, 500:930] = 0
                 check('button without the correct detail title', hit('点击前往副本', wrong), False)
+                unaccepted = frames['quest-candle'].copy()
+                unaccepted[215:265, 410:520] = unaccepted[200, 400]
+                check('matching detail without an accepted status', hit('点击前往副本', unaccepted), False)
                 for name in ('bounty', 'world', 'map-a', 'map-b', 'candle-board',
                              'candle-board-refreshed', 'candle-loading', 'saves'):
                     check(name + ': no quest-panel entry', hit('点击前往副本', frames[name]), False)
@@ -142,6 +145,12 @@ class NativeCandleRecognitionTests(unittest.TestCase):
         frames = {name: read_png_bgr(ROOT / 'tests/fixtures/bounty-candle' / (name + '.png'))
                   for name in ('quest-map', 'quest-tab', 'quest-candle', 'candle-battle-ready', 'candle-battle-settings',
                                'login', 'saves-slot4', 'world')}
+        # Use the real, tilted status badge on an otherwise synthetic panel.
+        # The actual route first scans the whole frame for blocking dialogs;
+        # that OCR cache can miss the small badge and must not prevent entry.
+        panel = frames['quest-candle']
+        panel[215:265, 410:520] = panel[200, 400]
+        panel[220:260, 420:486] = read_png_bgr(ROOT / 'tests/fixtures/bounty-candle/accepted-badge.png')
         events = []
 
         class SimulatedGame(CustomController):

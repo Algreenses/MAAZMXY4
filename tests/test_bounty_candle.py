@@ -293,10 +293,12 @@ class NativePipelineStructureTests(unittest.TestCase):
         recognition=self.pipeline[PREFIX+'点击前往副本']['recognition']
         self.assertEqual(recognition['type'],'And')
         self.assertEqual(recognition['param']['box_index'],0)
-        checks=[item['recognition']['param'] for item in recognition['param']['all_of']]
-        self.assertEqual([item['expected'] for item in checks],
-                         [['^前往副本$'],['^守卫宝烛$'],['^已接受$']])
-        self.assertNotEqual(checks[0]['roi'],checks[1]['roi'])
+        checks=[item['recognition'] for item in recognition['param']['all_of']]
+        self.assertEqual([item['param']['expected'] for item in checks[:2]],
+                         [['^前往副本$'],['^守卫宝烛$']])
+        self.assertEqual(checks[2]['type'],'Or')
+        self.assertEqual(checks[2]['param']['any_of'][0]['recognition']['param']['expected'],['^已接受$'])
+        self.assertNotEqual(checks[0]['param']['roi'],checks[1]['param']['roi'])
 
     def test_empty_slots_have_no_click_fallback(self):
         for slot in range(1,5):
