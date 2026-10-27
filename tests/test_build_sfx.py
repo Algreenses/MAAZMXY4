@@ -35,12 +35,14 @@ class BuildSfxTests(unittest.TestCase):
         return target
 
     def test_valid_archive_preserves_unicode_contents(self):
-        archive = self.archive('ok.zip', [('agent/code.py', b'ok'), ('资源/脚本.json', b'{}')])
+        archive = self.archive('ok.zip', [('agent/code.py', b'ok'), ('资源/脚本.json', b'{}'),
+                                          ('runtimes/win-x64/native/plugins/', b'')])
         destination = self.root/'extracted'
         destination.mkdir()
         build_sfx.extract_client(archive, destination)
         self.assertEqual((destination/'资源/脚本.json').read_bytes(), b'{}')
         self.assertEqual((destination/'agent/code.py').read_bytes(), b'ok')
+        self.assertTrue((destination/'runtimes/win-x64/native/plugins').is_dir())
 
     def test_rejects_unsafe_and_private_paths_before_extracting_anything(self):
         invalid = [

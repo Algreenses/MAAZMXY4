@@ -77,6 +77,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 for current, frame, expected in (
                     ('等待场内', 'candle-battle-paused', '场内恢复'),
                     ('场内初检', 'candle-battle-paused', '场内暂停中止'),
+                    ('等待场内', 'candle-battle-settings', '场内设置中止'),
+                    ('场内初检', 'candle-battle-settings', '场内设置中止'),
                     ('定位', 'quest-map-paused', '暂停地图'),
                     ('地图恢复核对', 'quest-map-paused', '地图暂停中止'),
                     ('等待返回', 'quest-map-paused', '返回恢复'),
@@ -87,6 +89,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                     check(current + ': pause priority', first == PREFIX + expected, True)
                 check('black frame cannot complete', hit('返回复检', np.zeros_like(frames['world'])), False)
                 check('ready cave can start playback', hit('回放战斗', frames['candle-battle-ready']), True)
+                check('settings menu must not be treated as clear', hit('场内设置中止', frames['candle-battle-settings']), True)
+                check('clear cave must not be blocked', hit('场内设置中止', frames['candle-battle-ready']), False)
                 check('normal task map can finish return', hit('返回复检', frames['quest-map']), True)
                 return True
 
@@ -136,12 +140,13 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             from script_library import bind_task_recording
 
         frames = {name: read_png_bgr(ROOT / 'tests/fixtures/bounty-candle' / (name + '.png'))
-                  for name in ('quest-map', 'quest-tab', 'quest-candle', 'candle-battle-ready',
+                  for name in ('quest-map', 'quest-tab', 'quest-candle', 'candle-battle-ready', 'candle-battle-settings',
                                'login', 'saves-slot4', 'world')}
         events = []
 
         class SimulatedGame(CustomController):
             stage = 'quest-map'
+            open_settings_on_entry = False
             def connect(self): return True
             def request_uuid(self): return 'native-candle-round-simulation'
             def screencap(self): return frames[self.stage].copy()
@@ -154,7 +159,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
                 events.append(('mouse_up', contact))
                 if self.stage == 'quest-map': self.stage = 'quest-tab'
                 elif self.stage == 'quest-tab': self.stage = 'quest-candle'
-                elif self.stage == 'quest-candle': self.stage = 'candle-battle-ready'
+                elif self.stage == 'quest-candle':
+                    self.stage = 'candle-battle-settings' if self.open_settings_on_entry else 'candle-battle-ready'
                 elif self.stage == 'login': self.stage = 'saves-slot4'
                 elif self.stage == 'saves-slot4':
                     x, y = self.last_down
@@ -247,6 +253,24 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             self.assertIn('主线地图', checkpoint['reason'])
             self.assertEqual(controller.stage, 'world')
             self.assertEqual(events, [])
+            # The scene template is still visible behind the settings menu.
+            # Even so, the real pipeline must stop without replaying a key.
+            events.clear()
+            controller.stage = 'quest-map'
+            controller.open_settings_on_entry = True
+            run_id = str(uuid4())
+            blocked_parameters = dict(canonical[PREFIX+'初始化']['action']['param']['custom_action_param'])
+            blocked_parameters.update(phase='begin', file='@task:bounty-candle', exit_mode='recorded_return',
+                                      run_id=run_id, instance_id='memory-test',
+                                      status_path=str(checkpoints / (run_id + '.json')))
+            settings_overrides = {PREFIX + '初始化': {'action': {'param': {'custom_action_param': blocked_parameters}}}}
+            blocked_job = tasker.post_task(PREFIX + '初始化', settings_overrides).wait()
+            checkpoint = json.loads((checkpoints / (run_id + '.json')).read_text(encoding='utf8'))
+            self.assertFalse(blocked_job.succeeded)
+            self.assertEqual(checkpoint['status'], 'fatal')
+            self.assertIn('设置菜单', checkpoint['reason'])
+            self.assertEqual(controller.stage, 'candle-battle-settings')
+            self.assertEqual([event for event in events if event[0].startswith('key_')], [])
 
 
 if __name__ == '__main__':

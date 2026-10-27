@@ -68,6 +68,16 @@ class CandleTaskEntryTests(unittest.TestCase):
         self.assertFalse(any(node.get('action', {}).get('param', {}).get('custom_action') == 'loop_count'
                              for node in self.nodes.values()))
 
+    def test_open_settings_menu_stops_before_scene_confirmation_or_playback(self):
+        p = PREFIX
+        blocker = p + '场内设置中止'
+        for branch in ('场内恢复', '场内初检'):
+            self.assertLess(self.nodes[p + '等待场内']['next'].index(blocker),
+                            self.nodes[p + '等待场内']['next'].index(p + branch))
+        self.assertLess(self.nodes[p + '场内初检']['next'].index(blocker),
+                        self.nodes[p + '场内初检']['next'].index(p + '回放战斗'))
+        self.assertEqual(custom_parameters(self.nodes[blocker])['phase'], 'fatal')
+
     def test_existing_install_keeps_binding_and_options_when_the_route_is_replaced(self):
         interface = json.loads((ROOT / 'assets/interface.json').read_text(encoding='utf8'))
         name = '悬赏（守卫宝烛）'

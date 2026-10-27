@@ -38,6 +38,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 完整客户端的标准入口为 `MAA造梦西游4.exe`：启动器调用 `runtimes/python/pythonw.exe` 运行 `updater.py`，再启动 MFA 前端。`MFAAvalonia.exe` 是直接启动前端的入口，不能用它启动成功代替标准入口验证。本轮首个候选整包曾漏掉官方启动器，包内服务及直接启动前端的检查没有发现此问题；最终包必须重新检查完整启动链路。
 
+完整包保留空的 `runtimes/win-x64/native/plugins/` 目录，供 MaaFramework 按其原有机制查找可选插件；该目录可以为空，不需要添加假插件。缺少目录时框架可能把目录路径当作动态库并输出加载错误。
+
 启动器从[官方 v2.3.1 发布包](https://github.com/Inkyu-Zero/MAAZMXY4/releases/tag/v2.3.1)提取。原始发布文件 `MAAZMXY4.v2.3.1.exe` 的 SHA-256 为 `cf59d9470dd71cb2f0a4ad21cddcede25b55ca3fafde6d653f6475fdcf22a351`；其中 `MAA造梦西游4.exe` 的固定 SHA-256 为 `a0367870662916dc6abcaadf76b8321e3979a82b7c894d9d2004e3eb90197e46`。完整包通过 `--launcher` 显式指定这份启动器，不从个人运行目录猜测来源。
 
 完整客户端还应包含 `script-studio-build.json`、`LICENSE-MFAAvalonia.txt`、`agent/recordings/` 和 `agent/task_asset_sync.py`，不得夹带发布者的 `recordings/`、`config/`、个人绑定、日志或缓存。根目录 `recordings/` 是用户库，与 `agent/recordings/` 发布模板分开；默认模板首次入库后不覆盖用户编辑，不恢复用户删除。

@@ -117,6 +117,18 @@ class ReleasePackageTests(unittest.TestCase):
         self.assertIn(b'VC_ARG=/install',batch)
         self.assertIn(b'DOTNET_ARG=/install',batch)
 
+    def test_full_package_keeps_empty_native_plugin_directory(self):
+        frontend, runtime, launcher = self.client_fixture()
+        output = self.root/'full.zip'
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            build_release.build_client(ROOT, frontend, runtime, output, launcher)
+        with zipfile.ZipFile(output) as archive:
+            name = 'runtimes/win-x64/native/plugins/'
+            self.assertIn(name, archive.namelist())
+            self.assertTrue(archive.getinfo(name).is_dir())
+            archive.extractall(self.root/'extracted')
+        self.assertTrue((self.root/'extracted'/name).is_dir())
+
     def test_resource_package_excludes_nested_local_instructions(self):
         for name in ('agent/AGENTS.md', 'assets/resource/base/Agents.MD'):
             self.write('sample/'+name, b'local instructions')

@@ -9,3 +9,5 @@ The world/continent maps and old bounty-card images are retained as regression i
 Tests must load only this directory and the target project's resources; the source project and retired migration backup are unnecessary.
 
 `quest-map`, `quest-tab` and `quest-candle` are synthetic 1148×720 frames. They contain only a copy of the existing task icon and rendered labels in the normal quest-panel regions; they contain no captured player data. The native engine follows the three-click entry route against these frames and checks that recovery refuses a world-map state. They are not real-game acceptance evidence.
+
+`candle-battle-settings` adds a synthetic settings menu over the existing anonymized battle fixture. It verifies that a visible scene template does not cause script playback while the menu is open.

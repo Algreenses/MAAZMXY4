@@ -343,6 +343,7 @@
     },
     "next": [
       "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-场内设置中止",
       "悬赏（守卫宝烛）-场内恢复",
       "悬赏（守卫宝烛）-场内初检"
     ],
@@ -429,6 +430,7 @@
       "type": "DoNothing"
     },
     "next": [
+      "悬赏（守卫宝烛）-场内设置中止",
       "悬赏（守卫宝烛）-场内暂停中止",
       "悬赏（守卫宝烛）-回放战斗"
     ],
@@ -1418,6 +1420,49 @@
         "custom_action": "script_task_state",
         "custom_action_param": {
           "phase": "ready"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-场内设置中止": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^继续游戏$"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^返回地图$"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "fatal",
+          "reason": "检测到副本设置菜单，已停止回放；请关闭菜单后重新开始。"
         }
       }
     },

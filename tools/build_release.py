@@ -145,6 +145,10 @@ def build_client(root, frontend, python_runtime, destination, launcher):
         validate_client_resources(stage)
     with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
         for source, relative in files: archive.write(source, relative)
+        # MaaFramework probes this optional directory on load. If the directory
+        # is absent it treats the path as a library and emits a load error.
+        # A directory entry keeps it present without shipping a fake plugin.
+        archive.writestr('runtimes/win-x64/native/plugins/', b'')
     return destination
 
 # (仓库内源路径, 包内路径)
