@@ -20,7 +20,7 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -48,6 +48,53 @@ internal static class Program
     private static void Close(Window window, ScriptStudioViewModel model)
     {
         MaaProcessor.Processors.Clear(); model.Apply(new JsonObject { ["empty"] = true }); window.Close(); Dispatcher.UIThread.RunJobs();
+    }
+    private static void RenameCancelCollisionAndSave()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"User recording","duration_ms":1000,"operations":[],"dirty":false}""")!);
+            Dispatcher.UIThread.RunJobs();
+            Click(Find(window,"重命名…"));
+            var dialog=window.OwnedWindows.Single();
+            dialog.GetVisualDescendants().OfType<TextBox>().Single().Text="Cancelled";
+            Click(Find(dialog,"取消"));
+            Check(!model.Client.Calls.Contains("rename_file") && model.File=="user.json", "cancel must preserve the saved file");
+            Click(Find(window,"重命名…"));
+            dialog=window.OwnedWindows.Single();
+            var input=dialog.GetVisualDescendants().OfType<TextBox>().Single();
+            input.Text="default";
+            Click(Find(dialog,"保存"));
+            Check(dialog.IsVisible && !model.Client.Calls.Contains("rename_file"),"collision must keep the name dialog open");
+            input.Text="Renamed script";
+            Click(Find(dialog,"保存"));
+            Check(model.File=="Renamed script.json" && model.Name=="Renamed script", "renaming must update the loaded document path and name");
+            Check(model.Client.Calls.Count(x=>x=="rename_file")==1, "one confirmation must perform one rename");
+            var selected=Field<ListBox>(view,"_library").SelectedItem as JsonNode;
+            Check(selected?["file"]?.GetValue<string>()==model.File, "library selection must follow the renamed document");
+        }
+        finally { Close(window,model); }
+    }
+    private static void RenameOtherFileKeepsEditorState()
+    {
+        var (window,view,model)=Open(false);
+        try
+        {
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"User recording","duration_ms":1000,"operations":[],"dirty":true}""")!);
+            Dispatcher.UIThread.RunJobs();
+            var changes=0;
+            model.Changed+=()=>changes++;
+            var other=Field<JsonArray>(view,"_files")[1]!;
+            var rename=(Task)view.GetType().GetMethod("RenameLibraryFileAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(view,new object[]{other})!;
+            Dispatcher.UIThread.RunJobs();
+            var dialog=window.OwnedWindows.Single();
+            dialog.GetVisualDescendants().OfType<TextBox>().Single().Text="Other renamed";
+            Click(Find(dialog,"保存"));
+            Check(rename.IsCompletedSuccessfully && model.File=="user.json" && model.Dirty && changes==0,
+                "renaming another row must not rerender or discard the current unsaved inspector");
+        }
+        finally { Close(window,model); }
     }
     private static void FirstOpenDuringTask()
     {
@@ -142,14 +189,27 @@ namespace MFAAvalonia.Services
     {
         public List<string> Calls { get; } = new();
         public int FailLists;
+        private string? _renamed, _renamedFile;
         public bool IsDisconnected => false;
         public Task<JsonNode> CallAsync(string method, JsonObject? parameters = null)
         {
             Calls.Add(method);
             if (method == "list" && FailLists-- > 0) throw new IOException("Fixture transient list failure");
+            if (method == "rename_file")
+            {
+                _renamed=parameters!["name"]!.GetValue<string>();
+                _renamedFile=parameters["file"]!.GetValue<string>();
+                return Task.FromResult<JsonNode>(new JsonObject { ["document"]=new JsonObject
+                { ["file"]=_renamed+".json", ["name"]=_renamed, ["duration_ms"]=1000.0, ["operations"]=new JsonArray(), ["dirty"]=false } });
+            }
             JsonNode result = method == "list"
-                ? JsonNode.Parse("""{"items":[{"name":"User recording","file":"user.json","duration_ms":1000,"event_count":2},{"name":"Default recording","file":"default.json","duration_ms":1000,"event_count":2,"is_default":true}],"tasks":[],"binding_revision":"fixture"}""")!
+                ? JsonNode.Parse("""{"items":[{"name":"User recording","file":"user.json","revision":"fixture","duration_ms":1000,"event_count":2},{"name":"Default recording","file":"default.json","revision":"fixture","duration_ms":1000,"event_count":2,"is_default":true}],"tasks":[],"binding_revision":"fixture"}""")!
                 : JsonNode.Parse("""{"name":"New recording","duration_ms":0,"operations":[],"dirty":false}""")!;
+            if (method=="list" && _renamed!=null)
+            {
+                var item=result["items"]!.AsArray().First(value=>value!["file"]!.GetValue<string>()==_renamedFile)!;
+                item["name"]=_renamed; item["file"]=_renamed+".json";
+            }
             return Task.FromResult(result);
         }
         public void Dispose() { }

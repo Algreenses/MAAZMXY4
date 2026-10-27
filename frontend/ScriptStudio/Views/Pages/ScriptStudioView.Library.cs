@@ -77,7 +77,9 @@ public sealed partial class ScriptStudioView
         else
         {
             _deleteFile = Button("删除", async () => { if (CurrentLibraryItem is JsonNode item) await DeleteLibraryFileAsync(item); });
-            var tools = Wrap(Button("新建", NewScriptAsync), Button("导入…", ImportAsync), _deleteFile, Button("刷新", RefreshLibraryAsync, allowDuringTask: true), _libraryCount);
+            var rename = Button("重命名…", async () => { if (CurrentLibraryItem is JsonNode item) await RenameLibraryFileAsync(item); });
+            _documentActions.Add(rename);
+            var tools = Wrap(Button("新建", NewScriptAsync), Button("导入…", ImportAsync), rename, _deleteFile, Button("刷新", RefreshLibraryAsync, allowDuringTask: true), _libraryCount);
             foreach (var button in tools.Children.OfType<Button>()) { button.Padding = new Thickness(10, 6); button.MinHeight = 32; }
             _libraryCount.VerticalAlignment = VerticalAlignment.Center; _libraryCount.Opacity = .6; _libraryCount.FontSize = 12;
             pane.Children.Add(tools);
@@ -116,6 +118,7 @@ public sealed partial class ScriptStudioView
         ToolTip.SetTip(more, "更多操作");
         var menu = new MenuFlyout();
         foreach (var action in new (string Label, Func<Task> Run)[] {
+            ("重命名…", () => RenameLibraryFileAsync(item)),
             ("复制脚本…", () => DuplicateLibraryFileAsync(item)),
             ("导出…", async () => { if (await OpenLibraryFileAsync(item, false)) await ExportAsync(); }),
             ("删除…", () => DeleteLibraryFileAsync(item)) })
@@ -238,6 +241,19 @@ public sealed partial class ScriptStudioView
         var fresh = _files.First(value => value?["file"]?.GetValue<string>() == item["file"]!.GetValue<string>())!;
         await _vm.Client.CallAsync("duplicate_file", new JsonObject { ["file"] = fresh["file"]!.DeepClone(), ["revision"] = fresh["revision"]!.DeepClone(), ["name"] = name });
         await RefreshLibraryAsync(); _status.Text = "已创建“" + name + "”的独立副本。";
+    }
+
+    private async Task RenameLibraryFileAsync(JsonNode item)
+    {
+        var filename = item["file"]!.GetValue<string>();
+        if (_vm.File == filename && !await EnsureSavedAsync()) return;
+        var name = await AskNameAsync("重命名脚本", item["name"]!.GetValue<string>(), filename);
+        if (name == null) return;
+        var fresh = _files.First(value => value?["file"]?.GetValue<string>() == filename)!;
+        var result = await _vm.Client.CallAsync("rename_file", new JsonObject { ["file"] = filename,
+            ["revision"] = fresh["revision"]!.DeepClone(), ["name"] = name });
+        if (_vm.File == filename) _vm.Apply(result["document"]!);
+        await RefreshLibraryAsync(); _status.Text = "已重命名为“" + name + "”，原有任务绑定已保留。";
     }
 
     private async Task DeleteLibraryFileAsync(JsonNode item)

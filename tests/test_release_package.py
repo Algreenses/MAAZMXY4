@@ -1,4 +1,5 @@
 """Exercise the real three-item package and updater in isolated installation roots."""
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -13,7 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT/'tools'))
 from build_update import collect
+import build_release
+from build_release import client_files, validate_client, validate_client_resources
 import updater
+import setup_runtime
 
 
 class ReleasePackageTests(unittest.TestCase):
@@ -62,6 +66,97 @@ class ReleasePackageTests(unittest.TestCase):
                     self.assertEqual(parameters['file'],'@task:'+task['id'])
         help_result=subprocess.run([sys.executable,str(self.root/'agent/task_asset_sync.py'),'--help'],capture_output=True,timeout=20)
         self.assertEqual(help_result.returncode,0,help_result.stderr)
+
+    def test_packaged_tasks_have_all_recorded_return_routes_and_reject_stale_resources(self):
+        with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
+        checked = validate_client_resources(self.root)
+        self.assertIn('烛时（钟晷极地）', checked)
+        self.assertEqual(len(checked), 10)
+        path = self.root/'resource/base/pipeline/烛时（钟晷极地）.json'
+        data = json.loads(path.read_text(encoding='utf8'))
+        del data['烛时（钟晷极地）-回放战斗']['action']['param']['custom_action_param']['script_binding']
+        path.write_text(json.dumps(data),encoding='utf8')
+        with self.assertRaisesRegex(ValueError, '缺少录制返回确认'):
+            validate_client_resources(self.root)
+
+    def client_fixture(self):
+        frontend = self.root/'frontend'
+        for name in build_release.FRONTEND_REQUIRED: self.write('frontend/'+name,b'fixture binary')
+        for name in build_release.PYTHON_REQUIRED:
+            if name in ('DLLs', 'Lib/site-packages/MaaAgentBinary'):
+                (self.root/'python'/name).mkdir(parents=True, exist_ok=True)
+            else:
+                self.write('python/'+name,b'fixture interpreter')
+        self.write('python/Lib/site-packages/MaaAgentBinary/fixture.dll', b'fixture binary')
+        launcher = self.root/build_release.LAUNCHER_NAME
+        self.write(build_release.LAUNCHER_NAME, b'fixture launcher; never executed')
+        self.launcher_hash = hashlib.sha256(launcher.read_bytes()).hexdigest()
+        return frontend, self.root/'python', launcher
+
+    def test_full_client_collects_canonical_resources_and_crlf_setup_without_preview_data(self):
+        frontend, runtime, launcher = self.client_fixture()
+        for name in ['recordings/private.json','config/instances/private.json','logs/test.log','appsettings.json',
+                     'resource/base/pipeline/old.json','interface.json']:
+            self.write('frontend/'+name,b'private or stale preview data')
+        self.write('python/Lib/__pycache__/ignored.pyc',b'cache')
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            files = dict((relative,Path(source)) for source,relative in client_files(ROOT,frontend,runtime,launcher))
+        self.assertIn('MAA造梦西游4.exe', files)
+        self.assertIn('runtimes/python/pythonw.exe', files)
+        self.assertEqual(files['interface.json'],ROOT/'assets/interface.json')
+        self.assertEqual(files['resource/base/pipeline/烛时（钟晷极地）.json'],ROOT/'assets/resource/base/pipeline/烛时（钟晷极地）.json')
+        self.assertFalse(any(name.startswith(('recordings/','config/','logs/')) or '__pycache__' in name for name in files))
+        self.assertNotIn('appsettings.json',files)
+        batch=files['DependencySetup_依赖库安装_win.bat'].read_bytes()
+        self.assertIn(b'\r\n',batch)
+        self.assertNotIn(b'\n',batch.replace(b'\r\n',b''))
+        self.assertIn(b'VC_ARG=/install',batch)
+        self.assertIn(b'DOTNET_ARG=/install',batch)
+
+    def test_client_rejects_unverified_launcher_and_incomplete_gui_runtime(self):
+        frontend, runtime, launcher = self.client_fixture()
+        with self.assertRaisesRegex(ValueError, 'SHA-256 不匹配'):
+            client_files(ROOT, frontend, runtime, launcher)
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            launcher.unlink()
+            with self.assertRaisesRegex(ValueError, '缺少官方启动器'):
+                client_files(ROOT, frontend, runtime, launcher)
+            self.write(build_release.LAUNCHER_NAME, b'fixture launcher; never executed')
+            for name in ('pythonw.exe', 'tcl/tcl8.6/init.tcl', 'Lib/tkinter/__init__.py'):
+                raw = (runtime/name).read_bytes()
+                (runtime/name).unlink()
+                with self.assertRaisesRegex(ValueError, name.replace('.', r'\.')):
+                    client_files(ROOT, frontend, runtime, launcher)
+                (runtime/name).write_bytes(raw)
+
+    def test_extracted_client_validation_checks_startup_files_as_well_as_resources(self):
+        frontend, runtime, launcher = self.client_fixture()
+        stage = self.root/'assembled'
+        with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
+            for source, relative in client_files(ROOT, frontend, runtime, launcher):
+                destination = stage/relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, destination)
+            self.assertEqual(len(validate_client(stage)), 10)
+            (stage/'runtimes/python/pythonw.exe').unlink()
+            with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
+                validate_client(stage)
+            (stage/'runtimes/python/pythonw.exe').mkdir()
+            with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
+                validate_client(stage)
+
+    def test_runtime_rebuild_retains_updater_and_recording_dependencies(self):
+        source = self.root/'system-python'
+        required = ('Lib/tkinter/__init__.py', 'DLLs/_tkinter.pyd', 'DLLs/tcl86t.dll',
+                    'DLLs/tk86t.dll', 'tcl/tcl8.6/init.tcl', 'tcl/tk8.6/tk.tcl',
+                    'Lib/site-packages/pynput/__init__.py', 'Lib/site-packages/six.py')
+        for name in required: self.write('system-python/'+name, b'tk dependency')
+        (source/'Lib/site-packages').mkdir(parents=True, exist_ok=True)
+        target = self.root/'rebuilt-python'
+        with patch.object(setup_runtime, 'PY_DIR', str(target)), patch('builtins.print'):
+            setup_runtime.build(str(source))
+        for name in required:
+            self.assertEqual((target/name).read_bytes(), b'tk dependency', name)
 
     def test_resource_update_preserves_user_files_and_does_not_claim_to_update_frontend(self):
         self.write('interface.json',b'{"version":"2.2"}')

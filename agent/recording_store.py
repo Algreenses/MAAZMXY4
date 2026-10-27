@@ -178,6 +178,69 @@ def duplicate_recording(directory, filename, name, expected_revision):
     return dict(file=destination.name)
 
 
+def rename_recording(directory, filename, name, expected_revision):
+    """Rename the saved document and every library-owned reference under one lock.
+
+    Keep the original until publication completes; failed index writes roll back
+    only our own revisions, never a concurrently modified file.
+    """
+    directory = Path(directory).resolve()
+    if not isinstance(name, str) or not name.strip(): raise ValueError('请输入脚本名称。')
+    name = name.strip()
+    destination = library_recording_path(directory, name + '.json')
+    with _binding_lock(directory):
+        source, original = _revision_file(directory, filename, expected_revision)
+        same_path = source == destination
+        if any(p.name.casefold() == destination.name.casefold() and p != source
+               for p in directory.glob('*.json')):
+            raise ValueError('同名脚本已存在，请使用其他名称。')
+        value = _json(original)
+        value['name'] = name
+        RecordingDocument.from_dict(value).to_dict(strict=False)
+        renamed = _encoded(value)
+        bindings, binding_raw = _bindings_state(directory)
+        registry, default_raw = _defaults(directory)
+        selected_path = _index_path(directory, '.selected.json')
+        selected_raw = _read(selected_path)
+        selected = _json(selected_raw) if selected_raw is not None else None
+        updates = []
+        if any(item['file'] == filename for item in bindings.values()):
+            for item in bindings.values():
+                if item['file'] == filename: item['file'] = destination.name
+            updates.append((_index_path(directory), binding_raw, _encoded(dict(version=2, tasks=bindings))))
+        for item in registry['items'].values():
+            if item['file'] == filename: item['file'] = destination.name
+        if default_raw is not None and _json(default_raw) != registry:
+            updates.append((_index_path(directory, DEFAULT_INDEX), default_raw, _encoded(registry)))
+        if isinstance(selected, dict) and selected.get('file') == filename:
+            selected['file'] = destination.name
+            updates.append((selected_path, selected_raw, _encoded(selected)))
+        published = []
+        file_published = False
+        try:
+            _publish(destination, renamed, original if same_path else None,
+                     verify=lambda: _revision_file(directory, filename, expected_revision))
+            file_published = True
+            for index, before, after in updates:
+                _publish(index, after, before)
+                published.append((index, before, after))
+            if same_path:
+                # Windows compares these paths case-insensitively; rename still
+                # updates the actual directory entry for a case-only edit.
+                if source.name != destination.name: os.rename(source, destination)
+            else:
+                _revision_file(directory, filename, expected_revision)
+                source.unlink()
+        except Exception:
+            for index, before, after in reversed(published):
+                if _read(index) == after: _publish(index, before, after)
+            if file_published and _read(destination) == renamed:
+                if same_path: _publish(source, original, renamed)
+                else: destination.unlink()
+            raise
+    return dict(file=destination.name, revision=hashlib.sha256(renamed).hexdigest())
+
+
 def delete_recording(directory, filename, expected_revision):
     """Remove a file and its bindings together; retain its bytes in a private trash."""
     directory = Path(directory).resolve()

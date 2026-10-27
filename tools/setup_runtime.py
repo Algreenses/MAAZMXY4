@@ -31,17 +31,17 @@ TOP_FILES = [
     "vcruntime140.dll", "vcruntime140_1.dll",
 ]
 
-# 标准库里不需要的部分（GUI、测试、文档、虚拟环境工具等）
+# 不裁剪 updater.py 使用的 tkinter；只跳过测试、文档和开发工具。
 LIB_EXCLUDE = {
-    "site-packages", "__pycache__", "test", "tests", "idlelib", "tkinter",
+    "site-packages", "__pycache__", "test", "tests", "idlelib",
     "turtledemo", "ensurepip", "venv", "pydoc_data", "lib2to3", "distutils",
 }
 
 # 必须一起带走的第三方包（maa 的运行时依赖）
 SITE_PACKAGES = [
-    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum",
+    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum", "pynput",
 ]
-SITE_FILES = ["typing_extensions.py"]
+SITE_FILES = ["typing_extensions.py", "six.py"]
 
 
 def find_system_python() -> str | None:
@@ -108,6 +108,9 @@ def build(prefix: str) -> int:
     print("2) DLLs")
     n = copy_tree(os.path.join(prefix, "DLLs"), os.path.join(PY_DIR, "DLLs"))
     print("   %d 个文件" % n)
+    # The standard launcher imports updater.py with pythonw, which needs Tk/Tcl.
+    n = copy_tree(os.path.join(prefix, "tcl"), os.path.join(PY_DIR, "tcl"))
+    print("   Tcl/Tk: %d 个文件" % n)
 
     print("3) 标准库（跳过 %s）" % "、".join(sorted(LIB_EXCLUDE)))
     n = copy_tree(os.path.join(prefix, "Lib"), os.path.join(PY_DIR, "Lib"), LIB_EXCLUDE)
@@ -131,7 +134,8 @@ def build(prefix: str) -> int:
     # dist-info 保留版本信息
     for name in os.listdir(sp_src):
         if name.endswith(".dist-info") and any(
-            name.startswith(p + "-") for p in ("maafw", "MaaAgentBinary", "numpy", "strenum")
+            name.lower().startswith(p.lower() + "-")
+            for p in ("maafw", "MaaAgentBinary", "numpy", "strenum", "pynput", "six")
         ):
             copy_tree(os.path.join(sp_src, name), os.path.join(sp_dst, name))
             print("   +", name)

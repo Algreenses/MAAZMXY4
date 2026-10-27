@@ -83,7 +83,7 @@ public static class TaskScriptPlan
                 {
                     var next = plan["playback_routes"]?[name]?["recorded_return_next"] as JsonArray;
                     if (next == null || next.Count == 0)
-                        throw new InvalidDataException("此任务未配置录制返回后的确认流程，请选择不包含返回地图的录制。");
+                        throw new InvalidDataException("任务资源缺少录制返回确认流程，请更新本项目完整客户端；自定义任务需配置 script_binding.recorded_return_next。");
                     pipeline[name]!["next"] = next.DeepClone();
                 }
             }

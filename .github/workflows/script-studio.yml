@@ -10,6 +10,8 @@ on:
       - 'tools/migrate_zaomeng_scripts.py'
       - 'tools/sync_task_assets.py'
       - 'tools/build_update.py'
+      - 'tools/build_release.py'
+      - 'DependencySetup_依赖库安装_win.bat'
       - 'tools/install.py'
       - 'updater.py'
       - '新图标.ico'

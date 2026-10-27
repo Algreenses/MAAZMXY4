@@ -36,11 +36,29 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 本次保留 `tools/build_update.py` / `updater.py` 的三项资源更新协议：`resource/`、`agent/`、`interface.json`。新增工作台必须使用本 PR 构建的前端，发布者需要把 `dist/script-studio` 中的前端与项目资源、Python 运行环境组合成完整客户端，通知旧用户重新下载后手动升级。CI 提供 `script-studio-frontend-win-x64` 构建附件，附件本身不含项目资源或 Python。
 
-完整客户端应包含 `script-studio-build.json`、`LICENSE-MFAAvalonia.txt`、`agent/recordings/` 和 `agent/task_asset_sync.py`，不得夹带发布者的 `recordings/`、`config/`、个人绑定、日志或缓存。根目录 `recordings/` 是用户库，与 `agent/recordings/` 发布模板分开；默认模板首次入库后不覆盖用户编辑，不恢复用户删除。
+完整客户端的标准入口为 `MAA造梦西游4.exe`：启动器调用 `runtimes/python/pythonw.exe` 运行 `updater.py`，再启动 MFA 前端。`MFAAvalonia.exe` 是直接启动前端的入口，不能用它启动成功代替标准入口验证。本轮首个候选整包曾漏掉官方启动器，包内服务及直接启动前端的检查没有发现此问题；最终包必须重新检查完整启动链路。
 
-设置中的“前端升级说明”复用现有版本检测命令，提示下载本项目完整客户端；内部“更新软件”调用也会提示，防止通用 MFAAvalonia 更新覆盖定制页面。资源更新继续沿用原入口，不具备前端升级能力；首次引入工作台的版本不能仅以三目录增量包作为完整升级方案。
+启动器从[官方 v2.3.1 发布包](https://github.com/Inkyu-Zero/MAAZMXY4/releases/tag/v2.3.1)提取。原始发布文件 `MAAZMXY4.v2.3.1.exe` 的 SHA-256 为 `cf59d9470dd71cb2f0a4ad21cddcede25b55ca3fafde6d653f6475fdcf22a351`；其中 `MAA造梦西游4.exe` 的固定 SHA-256 为 `a0367870662916dc6abcaadf76b8321e3979a82b7c894d9d2004e3eb90197e46`。完整包通过 `--launcher` 显式指定这份启动器，不从个人运行目录猜测来源。
 
-手动升级的迁移命令与文件覆盖顺序见[使用说明](../docs/zh_cn/脚本工具-使用说明.md#手动升级客户端)。发布 `version.json` 时只填写实际生成包的地址、体积和 SHA-256；本 PR 不把未发布的 2.2.1 当作已上线版本。
+完整客户端还应包含 `script-studio-build.json`、`LICENSE-MFAAvalonia.txt`、`agent/recordings/` 和 `agent/task_asset_sync.py`，不得夹带发布者的 `recordings/`、`config/`、个人绑定、日志或缓存。根目录 `recordings/` 是用户库，与 `agent/recordings/` 发布模板分开；默认模板首次入库后不覆盖用户编辑，不恢复用户删除。
+
+整包使用现有发布工具的新入口，统一从规范源码取资源，避免混入旧的根目录 `resource/`：
+
+```powershell
+./tools/build_frontend.ps1
+python tools/build_release.py --client --launcher "<官方解压目录>/MAA造梦西游4.exe" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>"
+python tools/build_release.py --verify-client <完整包解压目录>
+```
+
+输出 `dist/MAAZMXY4-v<资源版本>-win-x64.zip`；不会覆盖已有同名包。`--frontend` 可指定 CI 前端附件的解压目录。启动器、前端、完整内嵌 Python、项目资源、依赖安装 BAT、更新器均被显式收集；预览目录中的配置、录制和日志不会进入整包。`--verify-client` 核对解压后的启动器、必需依赖、公共任务、选项及全部普通刷关任务的录制返回确认节点；BAT 保持 v2.3.1 的 CRLF 和首次 `/install` 行为。文件校验不能代替实际启动与游戏验收。禁止直接压缩个人运行目录代替这一步。
+
+设置中的“前端升级说明”复用现有版本检测命令，提示下载本项目完整客户端；内部“更新软件”调用也会提示，防止通用 MFAAvalonia 更新覆盖定制页面。另须区分两条资源更新链路：外部 `updater.py` 只替换三项，不安装前端，也不执行旧脚本选择迁移；MFA 宿主内建资源更新通过 GitHub Release 选择资产，检测到核心程序文件后会尝试安装程序文件。后者没有被上述手动分发策略禁用，不能把它概括为“三项更新器”，也不能在尚未验证时宣称它已支持本次完整升级。首次引入工作台的版本按手动完整升级验收。
+
+手动升级的迁移命令与文件覆盖顺序见[使用说明](../docs/zh_cn/脚本工具-使用说明.md#手动升级客户端)。必须在替换旧 `interface.json` 前迁移，单纯保留 `config/` 和录制文件不等于保留旧任务的脚本选择。
+
+本轮交付顺序为：先安装本地完整客户端供用户手测；用户确认后发布 fork `Algreenses/MAAZMXY4` 的完整 2.3.2；重新下载该 Release 的实际资产，在独立目录检查首次安装、官方旧版手动升级、启动器及用户数据；通过后再向原仓库提交 PR。最终 ZIP 的哈希、实际安装和远端 CI 各自取证，不以先前候选包的测试结果代替。
+
+当前 `tools/build_update.py` 的默认 Release 仓库、`updater.py` 的版本源及公共 `interface.json.github` 仍指向原仓库。fork 发布前逐项核实下载地址；不能直接把默认生成的上游 URL 当作 fork 下载地址，也不要在 fork 试发布时更新上游或共享 R2 清单。发布 `version.json` 时只填写实际生成包的地址、体积和 SHA-256；本地测试版本不能写成已经上线的发布清单。MFA 内建更新可能选中完整 `win-x64` ZIP，其升级能力需要在发布后的独立验证中另行确认。
 
 ## 宿主接入
 

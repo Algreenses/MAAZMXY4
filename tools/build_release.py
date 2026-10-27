@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""构建「生存大冒险」发布包（CI 与本地共用）。
+"""构建发布包（CI 与本地共用）。
+
+完整客户端：
+    python tools/build_release.py --client --launcher <官方解压目录/MAA造梦西游4.exe>
+    python tools/build_release.py --verify-client <解压目录>
+
+完整包复用 build_update.collect 从 assets/resource、agent、assets/interface.json
+取资源，再合并明确指定的前端和 Python。不要压缩正在使用的客户端目录。
 
 用法：
     python tools/build_release.py --version 1.1 --out dist
@@ -7,22 +14,136 @@
 产物：
     dist/SurvivalAdventure-v{version}-slim.zip    纯脚本包（约 40 KB）
 
-为什么这里只做 slim：完整版要额外塞进 MAA 本体（libs/runtimes，约 200 MB）和仓库自带的
-Python 运行时（`runtimes/python/`，约 156 MB），体积大、也不适合放在 CI 里构建。
-完整版请本地打包（把 `runtimes/` 一并塞进去即可）。
-
-注意：`resource/` 与 `agent/` 在 .gitignore 里，其中 `agent/` 已用 `git add -f` 纳入版本控制
-（否则 Agent 代码进不了仓库），而公告文件不在仓库中，所以这里**内联生成**公告内容。
+完整包要求先构建前端和准备运行时；不下载、不修改系统依赖。
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+from pathlib import Path
 import zipfile
 
+from build_update import collect
+from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LAUNCHER_NAME = 'MAA造梦西游4.exe'
+# Reuse the project's v2.3.1 launcher, extracted from the official full release.
+LAUNCHER_SHA256 = 'a0367870662916dc6abcaadf76b8321e3979a82b7c894d9d2004e3eb90197e46'
+FRONTEND_ROOT_FILES = (
+    'MFAAvalonia.exe', 'MFAAvalonia.dll', 'MFAAvalonia.deps.json',
+    'MFAAvalonia.runtimeconfig.json', 'libloader.dll', 'script-studio-build.json',
+    'LICENSE-MFAAvalonia.txt',
+)
+FRONTEND_REQUIRED = FRONTEND_ROOT_FILES + (
+    'libs/MFAAvalonia.Core.dll', 'runtimes/win-x64/native/MaaFramework.dll',
+)
+PYTHON_REQUIRED = tuple(Path(name).as_posix() for name in AGENT_RUNTIME_REQUIRED)
+
+
+def require_paths(root, names, label):
+    for name in names:
+        path = Path(root) / name
+        is_directory = name in ('DLLs', 'Lib/site-packages/MaaAgentBinary')
+        if path.is_symlink() or not (path.is_dir() if is_directory else path.is_file()):
+            raise ValueError(label + '缺少：' + name)
+
+
+def validate_launcher(launcher):
+    path = Path(launcher)
+    if not path.is_file() or path.is_symlink():
+        raise ValueError('缺少官方启动器：' + str(path))
+    if hashlib.sha256(path.read_bytes()).hexdigest() != LAUNCHER_SHA256:
+        raise ValueError('官方启动器 SHA-256 不匹配，请使用已核实的 v2.3.1 完整包启动器。')
+
+
+def validate_client_resources(root):
+    """Reject mixed releases whose UI advertises routes absent from the bundle."""
+    import sys
+    sys.path.insert(0, str(Path(ROOT) / 'agent'))
+    from task_catalog import _configuration, task_catalog, node_links, read_document
+    interface, nodes = _configuration(Path(root).resolve())
+    canonical = read_document(Path(ROOT) / 'assets/interface.json')
+    tasks = {(t['name'], t['entry']): t for t in task_catalog(root, bindings={})}
+    checked = []
+    for definition in canonical.get('task', []):
+        if '战斗录制内容' not in definition.get('option', []): continue
+        task = tasks.get((definition['name'], definition['entry']))
+        if task is None: raise ValueError('发布任务入口与源码不一致：' + definition['name'])
+        if not task['playback_nodes']: raise ValueError('任务缺少回放节点：' + task['name'])
+        for playback in task['playback_nodes']:
+            route = task['playback_routes'][playback].get('recorded_return_next')
+            if not isinstance(route, list) or not route:
+                raise ValueError('发布资源缺少录制返回确认：' + playback + '；请使用 assets/resource 构建整包。')
+            targets = list(node_links(nodes, {'next': route}))
+            if not targets or any(target not in nodes or not nodes[target].get('recognition') for target in targets):
+                raise ValueError('录制返回确认节点不存在或缺少识别：' + playback)
+        checked.append(task['name'])
+    if interface.get('task') != canonical.get('task') or interface.get('option') != canonical.get('option'):
+        raise ValueError('发布任务或选项与 assets/interface.json 不一致，不能使用个人运行配置打包。')
+    if interface.get('version') != canonical.get('version'):
+        raise ValueError('发布资源版本与 assets/interface.json 不一致。')
+    return checked
+
+
+def validate_client(root):
+    """Check the extracted client, including the launcher's Python/Tk entry chain."""
+    root = Path(root)
+    validate_launcher(root / LAUNCHER_NAME)
+    require_paths(root, FRONTEND_REQUIRED + ('updater.py', 'agent/main.py'), '完整客户端')
+    require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
+    return validate_client_resources(root)
+
+
+def client_files(root, frontend, python_runtime, launcher):
+    """Assemble from canonical sources and explicit binaries, never a used client."""
+    root, frontend, python_runtime = map(Path, (root, frontend, python_runtime))
+    # The update and full packages share the exact same canonical resources.
+    files = [(Path(source), relative) for source, relative in collect(str(root))]
+    validate_launcher(launcher)
+    files.append((Path(launcher), LAUNCHER_NAME))
+    require_paths(frontend, FRONTEND_REQUIRED, '前端构建')
+    for name in FRONTEND_ROOT_FILES: files.append((frontend / name, name))
+    for folder in ('libs', 'runtimes/win-x64/native'):
+        files.extend((path, path.relative_to(frontend).as_posix())
+                     for path in (frontend / folder).rglob('*') if path.is_file())
+    require_paths(python_runtime, PYTHON_REQUIRED, '内嵌 Python')
+    files.extend((path, 'runtimes/python/' + path.relative_to(python_runtime).as_posix())
+                 for path in python_runtime.rglob('*')
+                 if path.is_file() and '__pycache__' not in path.parts and path.suffix not in ('.pyc', '.pyo'))
+    for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
+                 'docs/zh_cn/脚本工具-使用说明.md'):
+        files.append((root / name, name))
+    batch = (root / 'DependencySetup_依赖库安装_win.bat').read_bytes()
+    if b'\n' in batch.replace(b'\r\n', b''):
+        raise ValueError('依赖安装批处理必须使用 CRLF 换行。')
+    for source, _ in files:
+        if not source.is_file() or source.is_symlink(): raise ValueError('发布文件缺失或为链接：' + str(source))
+    return files
+
+
+def build_client(root, frontend, python_runtime, destination, launcher):
+    """Create a verified full client ZIP without overwriting any existing output."""
+    import tempfile
+    files = client_files(root, frontend, python_runtime, launcher)
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # Validate the exact assembled resources, not root's optional runtime copy.
+    with tempfile.TemporaryDirectory() as temporary:
+        stage = Path(temporary)
+        import shutil
+        for source, relative in files:
+            if relative == 'interface.json' or relative.startswith('resource/'):
+                target = stage / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+        validate_client_resources(stage)
+    with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
+        for source, relative in files: archive.write(source, relative)
+    return destination
 
 # (仓库内源路径, 包内路径)
 FILES = [
@@ -162,10 +283,31 @@ def _agent_for_patch(agent):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="构建生存大冒险发布包")
+    ap = argparse.ArgumentParser(description="构建项目完整客户端或生存大冒险脚本包")
     ap.add_argument("--version", default=None, help="版本号，例如 1.1；默认从 tag 或 interface.json 推断")
     ap.add_argument("--out", default="dist", help="输出目录（默认 dist）")
+    ap.add_argument("--client", action="store_true", help="构建含脚本工作台的完整 Windows 客户端")
+    ap.add_argument("--frontend", default="dist/script-studio", help="已编译的前端目录")
+    ap.add_argument("--python-runtime", default="runtimes/python", help="已准备好的内嵌 Python 目录")
+    ap.add_argument("--launcher", help="官方 v2.3.1 完整包中的 MAA造梦西游4.exe（校验固定 SHA-256）")
+    ap.add_argument("--verify-client", help="检查解压后的启动器、前端、Python 和任务资源")
     args = ap.parse_args()
+
+    if args.verify_client:
+        checked = validate_client(args.verify_client)
+        print(f'完整客户端入口与依赖齐备，已验证 {len(checked)} 个任务的录制返回确认流程。')
+        return 0
+
+    if args.client:
+        if not args.launcher:
+            ap.error('--client 必须显式指定 --launcher，不能遗漏标准启动入口。')
+        root = Path(ROOT)
+        version = args.version or json.loads((root/'assets/interface.json').read_text(encoding='utf8'))['version']
+        if not version or any(c not in '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-' for c in version):
+            raise ValueError('版本号只能包含数字、字母、点和连字符。')
+        destination = root / args.out / f'MAAZMXY4-v{version}-win-x64.zip'
+        print(build_client(root, root/args.frontend, root/args.python_runtime, destination, root/args.launcher))
+        return 0
 
     version = args.version
     if not version:

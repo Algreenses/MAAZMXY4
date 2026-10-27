@@ -23,7 +23,7 @@ from script_library import (bind_task_recording, unbind_task_recording, library_
                             read_task_bindings, resolve_task_recording)
 from task_catalog import task_catalog, execution_plan
 from recording_store import (ensure_default_recordings, default_recordings,
-                             duplicate_recording, delete_recording, binding_snapshot, set_file_bindings)
+                             duplicate_recording, rename_recording, delete_recording, binding_snapshot, set_file_bindings)
 
 MAX_BYTES = 16 * 1024 * 1024
 HISTORY_MAX_BYTES = 64 * 1024 * 1024
@@ -254,12 +254,19 @@ class StudioService:
         if method == 'unbind_task':
             self.require_idle()
             return unbind_task_recording(self.directory, params.get('task_id'), expected_file=params.get('expected_file'))
-        if method in ('delete_file', 'duplicate_file'):
+        if method in ('delete_file', 'duplicate_file', 'rename_file'):
             self.require_idle()
             filename = params.get('file')
             if filename == self.file: self.require_clean()
             if method == 'duplicate_file':
                 return duplicate_recording(self.directory, filename, params.get('name'), params.get('revision'))
+            if method == 'rename_file':
+                result = rename_recording(self.directory, filename, params.get('name'), params.get('revision'))
+                if self.file == filename:
+                    data, revision = read_json(self.path(result['file']))
+                    self.open_document(RecordingDocument.from_dict(data), file=result['file'], revision=revision)
+                result['document'] = self.snapshot() if self.document is not None else dict(empty=True)
+                return result
             result = delete_recording(self.directory, filename, params.get('revision'))
             if self.file == filename:
                 self.document = None

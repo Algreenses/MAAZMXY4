@@ -27,6 +27,8 @@ SP = os.path.join(PY_DIR, "Lib", "site-packages")
 # 缺一不可的文件/目录（相对 runtimes/python）
 REQUIRED = [
     "python.exe",
+    "pythonw.exe",
+    "python3.dll",
     "python312.dll",
     "vcruntime140.dll",
     "DLLs",
@@ -34,12 +36,21 @@ REQUIRED = [
     os.path.join("Lib", "site-packages", "maa", "__init__.py"),
     os.path.join("Lib", "site-packages", "numpy", "__init__.py"),
     os.path.join("Lib", "site-packages", "strenum", "__init__.py"),
+    os.path.join("Lib", "site-packages", "pynput", "__init__.py"),
+    os.path.join("Lib", "site-packages", "six.py"),
     os.path.join("Lib", "site-packages", "MaaAgentBinary"),
+    os.path.join("Lib", "tkinter", "__init__.py"),
+    os.path.join("DLLs", "_tkinter.pyd"),
+    os.path.join("DLLs", "tcl86t.dll"),
+    os.path.join("DLLs", "tk86t.dll"),
+    os.path.join("tcl", "tcl8.6", "init.tcl"),
+    os.path.join("tcl", "tk8.6", "tk.tcl"),
 ]
 
 # 导入检查（在子进程里跑，避免污染本进程）
 PROBE = (
-    "import sys, numpy\n"
+    "import sys, numpy, strenum, tkinter, pynput, six\n"
+    "tkinter.Tcl()\n"
     "from maa.agent.agent_server import AgentServer\n"
     "from maa.toolkit import Toolkit\n"
     "from maa.custom_action import CustomAction\n"

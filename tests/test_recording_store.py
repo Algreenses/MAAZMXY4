@@ -87,6 +87,90 @@ class RecordingStoreTests(unittest.TestCase):
         with self.assertRaises(ValueError): store.delete_recording(self.library,'默认战斗.json','stale')
         self.assertTrue((self.library/'默认战斗.json').exists())
 
+    def test_rename_preserves_all_bindings_selection_and_default_identity(self):
+        store.ensure_default_recordings(self.root)
+        bind_task_recording(self.library, 'task-one', '默认战斗.json', expected_revision=self.revision())
+        bind_task_recording(self.library, 'task-two', '默认战斗.json', expected_revision=self.revision(), mode='replace')
+        (self.library/'.selected.json').write_text(json.dumps({'file':'默认战斗.json'}), encoding='utf8')
+        result = store.rename_recording(self.library, '默认战斗.json', '新名称', self.revision())
+        self.assertEqual(result['file'], '新名称.json')
+        self.assertFalse((self.library/'默认战斗.json').exists())
+        renamed = json.loads((self.library/'新名称.json').read_text(encoding='utf8'))
+        self.assertEqual(renamed, {**self.value, 'name':'新名称'})
+        self.assertEqual(read_task_bindings(self.library), {'task-one':'新名称.json','task-two':'新名称.json'})
+        self.assertEqual(store.binding_snapshot(self.library)[0]['task-two']['mode'], 'replace')
+        self.assertEqual(json.loads((self.library/'.selected.json').read_text(encoding='utf8'))['file'], '新名称.json')
+        self.assertEqual(store.default_recordings(self.library), {'新名称.json':'default-1'})
+        self.assertEqual(store.ensure_default_recordings(self.root), [])
+
+    def test_rename_failure_rolls_back_earlier_index_writes_and_keeps_original(self):
+        store.ensure_default_recordings(self.root)
+        bind_task_recording(self.library, 'task-one', '默认战斗.json', expected_revision=self.revision())
+        before = {p.name:p.read_bytes() for p in self.library.glob('*.json')}
+        publish, hits = store._publish, []
+        def fail(path, raw, expected, verify=None):
+            if path.name == '.defaults.json':
+                hits.append(path.name)
+                raise OSError('injected index failure')
+            return publish(path, raw, expected, verify)
+        with patch.object(store, '_publish', side_effect=fail), self.assertRaises(OSError):
+            store.rename_recording(self.library, '默认战斗.json', '新名称', self.revision())
+        self.assertEqual(hits, ['.defaults.json'])
+        self.assertEqual({p.name:p.read_bytes() for p in self.library.glob('*.json')}, before)
+
+    def test_rename_rejects_collisions_stale_revision_and_unsafe_paths(self):
+        store.ensure_default_recordings(self.root)
+        (self.library/'other.json').write_bytes(self.raw)
+        for name, revision in [('other',self.revision()), ('OTHER',self.revision()),
+                               ('../outside',self.revision()), ('CON',self.revision()), ('新名称','stale')]:
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                store.rename_recording(self.library,'默认战斗.json',name,revision)
+        self.assertEqual((self.library/'默认战斗.json').read_bytes(),self.raw)
+        self.assertEqual((self.library/'other.json').read_bytes(),self.raw)
+
+    def test_rename_same_and_case_only_names(self):
+        (self.library/'Sample.json').write_bytes(self.raw)
+        store.rename_recording(self.library,'Sample.json','Sample',self.revision('Sample.json'))
+        store.rename_recording(self.library,'Sample.json','sample',self.revision('Sample.json'))
+        self.assertEqual([p.name for p in self.library.glob('*.json')], ['sample.json'])
+        self.assertEqual(json.loads((self.library/'sample.json').read_text(encoding='utf8'))['name'],'sample')
+
+    def test_rename_refreshes_open_document_so_next_save_uses_new_file(self):
+        service = StudioService(self.root)
+        try:
+            service.dispatch('load',dict(file='默认战斗.json'))
+            renamed = service.dispatch('rename_file',dict(file='默认战斗.json',name='新名称',revision=self.revision()))
+            self.assertEqual(renamed['document']['file'],'新名称.json')
+            self.assertEqual(renamed['document']['name'],'新名称')
+            service.dispatch('save')
+            self.assertFalse((self.library/'默认战斗.json').exists())
+        finally: service.close()
+
+    def test_rename_never_removes_concurrently_created_destination(self):
+        store.ensure_default_recordings(self.root)
+        publish, hits = store._publish, []
+        def race(path, raw, expected, verify=None):
+            if path.name == '新名称.json':
+                hits.append(path.name)
+                path.write_bytes(b'other writer')
+            return publish(path, raw, expected, verify)
+        with patch.object(store, '_publish', side_effect=race), self.assertRaises(ValueError):
+            store.rename_recording(self.library,'默认战斗.json','新名称',self.revision())
+        self.assertEqual(hits,['新名称.json'])
+        self.assertEqual((self.library/'新名称.json').read_bytes(),b'other writer')
+        self.assertEqual((self.library/'默认战斗.json').read_bytes(),self.raw)
+
+    def test_rename_preserves_another_open_dirty_document(self):
+        service=StudioService(self.root)
+        try:
+            service.dispatch('new')
+            before=service.snapshot()
+            result=service.dispatch('rename_file',dict(file='默认战斗.json',name='新名称',revision=self.revision()))
+            self.assertEqual(result['document'],before)
+        finally:
+            service.dirty=False
+            service.close()
+
     def test_failed_file_move_rolls_back_default_status_and_bindings(self):
         store.ensure_default_recordings(self.root)
         bind_task_recording(self.library,'task-one','默认战斗.json',expected_revision=self.revision())

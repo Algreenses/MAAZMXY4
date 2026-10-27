@@ -34,7 +34,7 @@ public sealed partial class ScriptStudioView
         return true;
     }
 
-    private async Task<string?> AskNameAsync(string title, string suggestion)
+    private async Task<string?> AskNameAsync(string title, string suggestion, string? currentFile = null)
     {
         if (TopLevel.GetTopLevel(this) is not Window owner) return null;
         var dialog = new Window { Title = title, Width = 430, CanResize = false, SizeToContent = SizeToContent.Height,
@@ -53,7 +53,8 @@ public sealed partial class ScriptStudioView
             if (value.Length == 0 || value.StartsWith('.') || value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             { error.Text = "请输入有效名称，不能包含 / \\ : * ? 等文件名符号。"; return; }
             if (value.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) value = value[..^5].Trim();
-            if (_files.Any(file => string.Equals(file?["file"]?.GetValue<string>(), value + ".json", StringComparison.OrdinalIgnoreCase)))
+            if (_files.Any(file => file?["file"]?.GetValue<string>() != currentFile &&
+                string.Equals(file?["file"]?.GetValue<string>(), value + ".json", StringComparison.OrdinalIgnoreCase)))
             { error.Text = "同名脚本已存在，请换一个名称。"; return; }
             dialog.Close(value);
         }
