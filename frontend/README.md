@@ -52,6 +52,14 @@ python tools/build_release.py --verify-client <完整包解压目录>
 
 输出 `dist/MAAZMXY4-v<资源版本>-win-x64.zip`；不会覆盖已有同名包。`--frontend` 可指定 CI 前端附件的解压目录。启动器、前端、完整内嵌 Python、项目资源、依赖安装 BAT、更新器均被显式收集；预览目录中的配置、录制和日志不会进入整包。`--verify-client` 核对解压后的启动器、必需依赖、公共任务、选项及全部普通刷关任务的录制返回确认节点；BAT 保持 v2.3.1 的 CRLF 和首次 `/install` 行为。文件校验不能代替实际启动与游戏验收。禁止直接压缩个人运行目录代替这一步。
 
+若发布单文件 EXE，可将上述完整 ZIP 包装成与官方 2.3.1 同类的 7-Zip 自解压包：
+
+```powershell
+python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx "<官方v2.3.1自解压包.exe>" --seven-zr "<已核实的7zr.exe>" --seven-zip-license "<官方7-Zip license.txt>" --lgpl-license "<LGPL-2.1全文.txt>" --out "<新输出.exe>"
+```
+
+工具核对官方自解压包、前缀与 7zr 的固定 SHA-256，检查 ZIP 中的客户端和路径，附带 7-Zip、LGPL 许可与来源声明，再生成不覆盖已有文件的 EXE。官方许可来源为 [7-Zip](https://www.7-zip.org/license.txt) 和 [GNU LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)。该 EXE 是自解压包，不创建卸载项或快捷方式；实际发行前仍须从发布地址重新下载并验证图形解压和运行。
+
 设置中的“前端升级说明”复用现有版本检测命令，提示下载本项目完整客户端；内部“更新软件”调用也会提示，防止通用 MFAAvalonia 更新覆盖定制页面。另须区分两条资源更新链路：外部 `updater.py` 只替换三项，不安装前端，也不执行旧脚本选择迁移；MFA 宿主内建资源更新通过 GitHub Release 选择资产，检测到核心程序文件后会尝试安装程序文件。后者没有被上述手动分发策略禁用，不能把它概括为“三项更新器”，也不能在尚未验证时宣称它已支持本次完整升级。首次引入工作台的版本按手动完整升级验收。
 
 手动升级的迁移命令与文件覆盖顺序见[使用说明](../docs/zh_cn/脚本工具-使用说明.md#手动升级客户端)。必须在替换旧 `interface.json` 前迁移，单纯保留 `config/` 和录制文件不等于保留旧任务的脚本选择。
