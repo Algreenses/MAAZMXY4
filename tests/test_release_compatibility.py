@@ -38,10 +38,11 @@ class ReleaseCompatibilityTests(unittest.TestCase):
         self.write('resource/base/pipeline/test.json', dict(Start=dict(next=links),
             Fight=dict(action=dict(type='Custom', param=dict(custom_action='battle_play', custom_action_param=dict(file='existing.json'))))))
 
-    def test_real_package_includes_all_eight_default_templates(self):
+    def test_real_package_includes_only_format_example(self):
         names = {name for _, name in collect(str(ROOT))}
         self.assertIn('agent/recordings/manifest.json', names)
-        self.assertEqual(len([p for p in names if p.startswith('agent/recordings/') and p.endswith('.json')]), 9)
+        self.assertEqual({p for p in names if p.startswith('agent/recordings/') and p.endswith('.json')},
+                         {'agent/recordings/manifest.json', 'agent/recordings/示例-移动与攻击.json'})
         self.assertFalse(any(p.startswith('recordings/') or p.startswith('config/') for p in names))
 
     def test_corrupt_filename_collision_does_not_disable_script_service(self):
@@ -54,7 +55,7 @@ class ReleaseCompatibilityTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(), b'{broken-user-script')
             rows = service.list()['items']
             self.assertTrue(any(row['file'] == target.name and row['error'] for row in rows))
-            self.assertEqual(sum(row['is_default'] for row in rows), 8)
+            self.assertEqual(sum(row['is_default'] for row in rows), 1)
         finally:
             service.close()
 

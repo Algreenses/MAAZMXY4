@@ -54,12 +54,13 @@ class ReleasePackageTests(unittest.TestCase):
         with patch.object(updater,'BASE',str(self.root)),patch.object(updater,'LOG_PATH',str(self.root/'temp/updater.log')):
             return updater.apply_update(str(self.package),{},lambda *_:None)
 
-    def test_clean_package_worker_loads_eight_defaults_without_assets(self):
+    def test_clean_package_worker_loads_only_unbound_example_without_assets(self):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
         self.assertFalse((self.root/'assets').exists())
         listing=self.list_from_installed_worker()
-        self.assertEqual(sum(row['is_default'] for row in listing['items']),8)
-        self.assertEqual(set(listing['task_bindings']),{'bounty-candle'})
+        self.assertEqual([row['file'] for row in listing['items']], ['示例-移动与攻击.json'])
+        self.assertTrue(listing['items'][0]['is_default'])
+        self.assertEqual(listing['task_bindings'], {})
         for task in listing['tasks']:
             for parameters in task['playback_parameters'].values():
                 if str(parameters.get('file','')).startswith('@task:'):
@@ -186,9 +187,32 @@ class ReleasePackageTests(unittest.TestCase):
         for name,raw in protected.items(): self.write(name,raw)
         self.assertTrue(self.apply()[0])
         listing=self.list_from_installed_worker()
-        self.assertEqual(len(listing['items']),9)
+        self.assertEqual(len(listing['items']),2)
         for name,raw in protected.items(): self.assertEqual((self.root/name).read_bytes(),raw,name)
         self.assertTrue((self.root/'agent/recordings/manifest.json').is_file())
+
+    def test_update_keeps_existing_retired_default_and_its_binding(self):
+        template = ROOT/'agent/recordings/示例-移动与攻击.json'
+        protected = {
+            'recordings/旧用户脚本.json': template.read_bytes(),
+            'recordings/.defaults.json': json.dumps({'version': 1, 'items': {
+                'retired-template': {'file': '旧用户脚本.json', 'state': 'present'}},
+                'bindings_initialized': True}).encode('utf8'),
+            'recordings/.bindings.json': json.dumps({'version': 2, 'tasks': {
+                'bounty-candle': {'file': '旧用户脚本.json', 'mode': 'pipeline'}}},
+                ensure_ascii=False).encode('utf8'),
+        }
+        for name, raw in protected.items(): self.write(name, raw)
+        self.assertTrue(self.apply()[0])
+        listing = self.list_from_installed_worker()
+        self.assertEqual({item['file'] for item in listing['items']},
+                         {'旧用户脚本.json', '示例-移动与攻击.json'})
+        for name, raw in protected.items():
+            if name.endswith('.defaults.json'):
+                self.assertEqual(json.loads((self.root/name).read_bytes())['items']['retired-template'],
+                                 json.loads(raw)['items']['retired-template'])
+            else:
+                self.assertEqual((self.root/name).read_bytes(), raw, name)
 
     def test_failed_resource_replacement_restores_the_old_installation(self):
         old={'interface.json':b'{"version":"2.2"}','agent/main.py':b'# old agent','resource/old.txt':b'old resource'}

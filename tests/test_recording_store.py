@@ -198,7 +198,8 @@ class RecordingStoreTests(unittest.TestCase):
     def test_real_bundled_recordings_all_load_without_old_project(self):
         actual=Path(__file__).resolve().parents[1]
         manifest=json.loads((actual/'agent/recordings/manifest.json').read_text(encoding='utf8'))
-        self.assertEqual(len(manifest['items']),8)
+        self.assertEqual([item['file'] for item in manifest['items']], ['示例-移动与攻击.json'])
+        self.assertEqual(manifest.get('initial_bindings'), [])
         for item in manifest['items']:
             path=actual/'agent/recordings'/item['file']
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),item['sha256'])

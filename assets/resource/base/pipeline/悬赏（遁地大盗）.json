@@ -105,11 +105,14 @@
   },
   "悬赏（遁地大盗）-点击前往副本": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "前往副本"
-        ]
+        "all_of": [
+          { "recognition": { "type": "OCR", "param": { "expected": ["^前往副本$"], "roi": [480, 550, 350, 100] } } },
+          { "recognition": { "type": "OCR", "param": { "expected": ["^遁地大[盗盜]$"], "roi": [500, 165, 430, 75] } } },
+          { "recognition": { "type": "OCR", "param": { "expected": ["^已接受$"], "roi": [200, 195, 320, 85] } } }
+        ],
+        "box_index": 0
       }
     },
     "action": {
