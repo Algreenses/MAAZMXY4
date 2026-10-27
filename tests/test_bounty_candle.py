@@ -289,13 +289,14 @@ class NativePipelineStructureTests(unittest.TestCase):
         self.assertIn(p+'返回复检',self.pipeline[p+'返回初检']['next'])
         self.assertEqual(self.pipeline[p+'返回复检']['next'],[p+'成功'])
 
-    def test_card_target_and_guard_share_each_slot_before_click(self):
-        recognition=self.pipeline[PREFIX+'核对目标卡片']['recognition']
-        slots=recognition['param']['all_of'][0]['recognition']['param']['any_of']
-        self.assertEqual(len(slots),4)
-        for slot in slots:
-            self.assertEqual(slot['recognition']['type'],'And')
-            self.assertEqual(len(slot['recognition']['param']['all_of']),2)
+    def test_task_detail_and_entry_button_are_checked_in_the_same_frame(self):
+        recognition=self.pipeline[PREFIX+'点击前往副本']['recognition']
+        self.assertEqual(recognition['type'],'And')
+        self.assertEqual(recognition['param']['box_index'],0)
+        checks=[item['recognition']['param'] for item in recognition['param']['all_of']]
+        self.assertEqual([item['expected'] for item in checks],
+                         [['^前往副本$'],['^守卫宝烛$'],['^已接受$']])
+        self.assertNotEqual(checks[0]['roi'],checks[1]['roi'])
 
     def test_empty_slots_have_no_click_fallback(self):
         for slot in range(1,5):

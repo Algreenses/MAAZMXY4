@@ -12,7 +12,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 PIPELINES = ROOT / 'assets/resource/base/pipeline'
-TASKS = ('守卫太宗', '追捕飞贼', '遁地大盗')
+TASKS = ('守卫太宗', '守卫宝烛', '追捕飞贼', '遁地大盗')
 
 # 720-pixel reference frame: accepted wrong bounty and its own detail panel.
 WRONG_BOUNTY_FRAME = (
@@ -21,6 +21,11 @@ WRONG_BOUNTY_FRAME = (
     ('守卫宝烛', (665, 185, 98, 30)),
     ('前往副本', (587, 593, 94, 29)),
 )
+
+
+def frame_for(task):
+    return tuple((task if text == '守卫宝烛' else text, box)
+                 for text, box in WRONG_BOUNTY_FRAME)
 
 
 def evaluate_config(recognition, observations):
@@ -56,21 +61,20 @@ class BountyTargetGuardTests(unittest.TestCase):
             with self.subTest(task=task):
                 # A matching left-hand list entry does not establish that it is
                 # the selected task whose button would be clicked.
-                frame = WRONG_BOUNTY_FRAME + ((task, (222, 270, 98, 29)),)
+                wrong = '守卫太宗' if task == '守卫宝烛' else '守卫宝烛'
+                frame = frame_for(wrong) + ((task, (222, 270, 98, 29)),)
                 self.assertIsNone(evaluate_config(self.recognition(task), frame))
 
     def test_correct_title_acceptance_and_button_return_button_box(self):
         for task in TASKS:
             with self.subTest(task=task):
-                frame = tuple((task if text == '守卫宝烛' and box[0] == 665 else text, box)
-                              for text, box in WRONG_BOUNTY_FRAME)
+                frame = frame_for(task)
                 self.assertEqual(evaluate_config(self.recognition(task), frame),
                                  (587, 593, 94, 29))
 
     def test_missing_title_acceptance_or_button_fails_closed(self):
         for task in TASKS:
-            frame = tuple((task if text == '守卫宝烛' and box[0] == 665 else text, box)
-                          for text, box in WRONG_BOUNTY_FRAME)
+            frame = frame_for(task)
             for omitted in ('已接受', task, '前往副本'):
                 with self.subTest(task=task, omitted=omitted):
                     self.assertIsNone(evaluate_config(self.recognition(task),
@@ -79,8 +83,7 @@ class BountyTargetGuardTests(unittest.TestCase):
     def test_partial_and_unrelated_labels_do_not_match(self):
         for task in TASKS:
             with self.subTest(task=task):
-                frame = tuple((task + '奖励' if text == '守卫宝烛' and box[0] == 665 else text, box)
-                              for text, box in WRONG_BOUNTY_FRAME)
+                frame = frame_for(task + '奖励')
                 self.assertIsNone(evaluate_config(self.recognition(task), frame))
 
     def test_ocr_traditional_variant_of_thief_name_matches(self):
