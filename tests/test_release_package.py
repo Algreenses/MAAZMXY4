@@ -160,10 +160,15 @@ class ReleasePackageTests(unittest.TestCase):
         frontend, runtime, launcher = self.client_fixture()
         stage = self.root/'assembled'
         with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
-            for source, relative in client_files(ROOT, frontend, runtime, launcher):
+            files = client_files(ROOT, frontend, runtime, launcher)
+            for source, relative in files:
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
+            from update_engine.packages import build_inventory, CLIENT_RECORD
+            version = json.loads((stage/'interface.json').read_text(encoding='utf8'))['version']
+            inventory = build_inventory(files, kind='client', client_version=version, resource_version=version)
+            (stage/CLIENT_RECORD).write_text(json.dumps(inventory.to_dict()), encoding='utf8')
             self.assertEqual(len(validate_client(stage)), 10)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):

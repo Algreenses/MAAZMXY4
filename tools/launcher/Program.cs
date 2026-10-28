@@ -1,10 +1,9 @@
-// MAA造梦西游4 启动器
-// 双击后先跑 updater.py（检查更新），等它结束后由 updater.py 拉起 MFA.exe。
-// 找不到 Python 运行时就直接启动 MFA.exe，保证永远能进游戏。
+// Stable bootstrap: recovery must not depend on the Python DLLs being replaced.
 
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 static class Program
@@ -12,36 +11,42 @@ static class Program
     [STAThread]
     static void Main()
     {
-        string dir = AppDomain.CurrentDomain.BaseDirectory;
-        string py = Path.Combine(dir, @"runtimes\python\pythonw.exe");
-        string script = Path.Combine(dir, "updater.py");
-        string mfa = Path.Combine(dir, "MFA.exe");
-
-        if (!File.Exists(py) || !File.Exists(script))
-        {
-            if (File.Exists(mfa))
-                Process.Start(new ProcessStartInfo(mfa) { WorkingDirectory = dir, UseShellExecute = true });
-            else
-                MessageBox.Show("找不到 MFA.exe，安装包可能不完整，请重新解压。",
-                                "MAA造梦西游4", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
-
+        string root = AppDomain.CurrentDomain.BaseDirectory;
+        string pointer = Path.Combine(root, @"temp\project-update\worker-ready.txt");
         try
         {
-            var psi = new ProcessStartInfo(py, "\"" + script + "\"")
+            if (File.Exists(pointer))
             {
-                WorkingDirectory = dir,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            Process p = Process.Start(psi);
-            p.WaitForExit();
+                string token = File.ReadAllText(pointer);
+                if (!Regex.IsMatch(token, @"\A[0-9a-f]{32}\z"))
+                    throw new InvalidDataException("更新恢复记录损坏，请保留 temp/project-update 后联系维护者。");
+                string worker = Path.Combine(root, @"temp\project-update\workers", token);
+                StartPython(Path.Combine(worker, @"runtimes\python\pythonw.exe"),
+                    "-E -s -u -X utf8 -m update_engine worker --recover", worker, false);
+                return;
+            }
+            string python = Path.Combine(root, @"runtimes\python\pythonw.exe");
+            string updater = Path.Combine(root, "updater.py");
+            if (!File.Exists(python) || !File.Exists(updater))
+                throw new FileNotFoundException("启动运行文件缺失，请使用完整客户端安装包修复。");
+            StartPython(python, "-E -s -X utf8 \"" + updater + "\"", root, true);
         }
-        catch
+        catch (Exception error)
         {
-            if (File.Exists(mfa))
-                Process.Start(new ProcessStartInfo(mfa) { WorkingDirectory = dir, UseShellExecute = true });
+            MessageBox.Show(error.Message, "MAA造梦西游4 · 启动未完成", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    static void StartPython(string python, string arguments, string directory, bool wait)
+    {
+        if (!File.Exists(python))
+            throw new FileNotFoundException("更新助手运行时缺失，请保留备份并重新安装完整客户端。");
+        Process process = Process.Start(new ProcessStartInfo(python, arguments)
+        {
+            WorkingDirectory = directory, UseShellExecute = false, CreateNoWindow = true
+        });
+        if (process == null) throw new InvalidOperationException("无法启动更新助手。");
+        if (wait) process.WaitForExit();
+        process.Dispose();
     }
 }

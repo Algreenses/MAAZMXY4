@@ -1,0 +1,174 @@
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from test_update_packages import fingerprint
+from update_engine.packages import CLIENT_RECORD, Inventory, PackageError
+from update_engine.storage import installation_lock, write_json
+from update_engine.transaction import (RecoveryRequired, confirm_startup, current_status,
+                                       install, installed_versions, recover)
+
+
+class SimulatedPowerLoss(BaseException):
+    pass
+
+
+class UpdateTransactionTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        self.root, self.stage = self.base / 'client', self.base / 'stage'
+        self.root.mkdir()
+        self.stage.mkdir()
+        self.old = self.put(self.root, '2.3.8', extras={'agent/retired.py': b'old'})
+        self.new = self.put(self.stage, '2.3.9')
+        for name, raw in {'recordings/user.json': b'private', 'config/instances/default.json': b'{"count":5}',
+                          'recordings/.bindings.json': b'{"version":2}', 'appsettings.json': b'{}',
+                          'AGENTS.md': b'local', 'user-note.txt': b'keep'}.items():
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+        self.prior = self.snapshot()
+
+    def put(self, directory, version, extras=None):
+        contents = {'interface.json': json.dumps({'version': version}).encode(),
+                    'MFAAvalonia.exe': ('frontend-' + version).encode(), 'MFAAvalonia.dll': version.encode(),
+                    'agent/main.py': ('agent-' + version).encode(), 'updater.py': ('update-' + version).encode(),
+                    'resource/base/data.json': version.encode()}
+        contents.update(extras or {})
+        for name, raw in contents.items():
+            path = directory / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+        inventory = Inventory('client', version, version, {n: fingerprint(raw) for n, raw in contents.items()})
+        write_json(directory / CLIENT_RECORD, inventory.to_dict())
+        return inventory
+
+    def snapshot(self):
+        return {p.relative_to(self.root).as_posix(): p.read_bytes() for p in self.root.rglob('*')
+                if p.is_file() and p.relative_to(self.root).parts[0] != 'temp'}
+
+    def test_full_install_preserves_user_files_and_deletes_only_owned_files(self):
+        state = install(self.root, self.stage, self.new)
+        self.assertEqual(state['state'], 'pending_health')
+        self.assertFalse((self.root / 'agent/retired.py').exists())
+        self.assertEqual(str(installed_versions(self.root).client_version), '2.3.9')
+        for name, raw in self.prior.items():
+            if name not in self.old.files and name != CLIENT_RECORD:
+                self.assertEqual((self.root / name).read_bytes(), raw)
+        confirm_startup(self.root, state['id'])
+        self.assertEqual(current_status(self.root)['state'], 'complete')
+        self.assertEqual(recover(self.root)['state'], 'complete')
+
+    def test_resource_install_never_replaces_frontend_or_client_version(self):
+        files = {n: f for n, f in self.new.files.items() if n.split('/')[0] in ('agent', 'resource', 'interface.json')}
+        resource = Inventory('resource', None, '2.3.9', files, '2.3.8')
+        state = install(self.root, self.stage, resource)
+        self.assertEqual((self.root / 'MFAAvalonia.exe').read_bytes(), self.prior['MFAAvalonia.exe'])
+        versions = installed_versions(self.root)
+        self.assertEqual(str(versions.client_version), '2.3.8')
+        self.assertEqual(str(versions.resource_version), '2.3.9')
+        confirm_startup(self.root, state['id'])
+
+    def test_unknown_file_conflict_refused_before_any_write(self):
+        (self.root / 'agent/new.py').write_bytes(b'user extension')
+        (self.stage / 'agent/new.py').write_bytes(b'new public code')
+        self.new.files['agent/new.py'] = fingerprint(b'new public code')
+        prior = self.snapshot()
+        with self.assertRaisesRegex(PackageError, '未知文件'):
+            install(self.root, self.stage, self.new)
+        self.assertEqual(self.snapshot(), prior)
+
+    def test_modified_managed_files_require_explicit_backup_consent(self):
+        (self.root / 'agent/main.py').write_bytes(b'custom')
+        with self.assertRaisesRegex(PackageError, '受管理文件被修改'):
+            install(self.root, self.stage, self.new)
+        state = install(self.root, self.stage, self.new, allow_modified=True)
+        self.assertIn('agent/main.py', state['modified_files'])
+        recover(self.root)
+        self.assertEqual((self.root / 'agent/main.py').read_bytes(), b'custom')
+
+    def test_failure_before_and_after_every_file_restores_prior_installation(self):
+        count = len(set(self.old.files) | set(self.new.files)) + 1
+        for step in ('before_replace', 'after_replace'):
+            for index in range(count):
+                with self.subTest(step=step, index=index):
+                    def fail(actual, position):
+                        if (actual, position) == (step, index):
+                            raise OSError('injected file lock')
+                    with self.assertRaises(OSError):
+                        install(self.root, self.stage, self.new, fault=fail)
+                    self.assertEqual(self.snapshot(), self.prior)
+                    self.assertEqual(current_status(self.root)['state'], 'rolled_back')
+
+    def test_process_death_restored_on_next_start(self):
+        def death(step, index):
+            if step == 'after_replace' and index == 2:
+                raise SimulatedPowerLoss()
+        with self.assertRaises(SimulatedPowerLoss):
+            install(self.root, self.stage, self.new, fault=death)
+        self.assertEqual(current_status(self.root)['state'], 'applying')
+        with self.assertRaises(RecoveryRequired):
+            install(self.root, self.stage, self.new)
+        self.assertEqual(recover(self.root)['state'], 'rolled_back')
+        self.assertEqual(self.snapshot(), self.prior)
+
+    def test_missing_startup_acceptance_restores_previous_version(self):
+        install(self.root, self.stage, self.new)
+        recover(self.root)
+        self.assertEqual(self.snapshot(), self.prior)
+
+    def test_wrong_health_token_cannot_commit(self):
+        install(self.root, self.stage, self.new)
+        with self.assertRaises(RecoveryRequired):
+            confirm_startup(self.root, 'wrong')
+        self.assertEqual(current_status(self.root)['state'], 'pending_health')
+
+    def test_rollback_conflict_preserves_new_user_edits_and_marks_failure(self):
+        state = install(self.root, self.stage, self.new)
+        (self.root / 'agent/main.py').write_bytes(b'external change after update')
+        with self.assertRaisesRegex(RecoveryRequired, '自动回滚未完成'):
+            recover(self.root)
+        self.assertEqual(current_status(self.root)['state'], 'recovery_required')
+        self.assertEqual((self.root / 'agent/main.py').read_bytes(), b'external change after update')
+        self.assertTrue((self.root / 'temp/project-update/transactions' / state['id'] / 'backup').is_dir())
+
+    def test_migration_and_program_install_share_one_rollback(self):
+        name = 'config/instances/default.json'
+        plans = {name: (b'{"count":5,"new_option":0}', self.prior[name]),
+                 'recordings/.bindings.json': (b'{"version":2,"migrated":true}', self.prior['recordings/.bindings.json'])}
+        state = install(self.root, self.stage, self.new, migration_plans=plans)
+        self.assertEqual((self.root / name).read_bytes(), plans[name][0])
+        recover(self.root)
+        self.assertEqual(self.snapshot(), self.prior)
+
+    def test_changed_configuration_invalidates_migration_before_install(self):
+        name = 'config/instances/default.json'
+        plans = {name: (b'new', self.prior[name])}
+        (self.root / name).write_bytes(b'changed while checking')
+        prior = self.snapshot()
+        with self.assertRaisesRegex(PackageError, '用户配置发生变化'):
+            install(self.root, self.stage, self.new, migration_plans=plans)
+        self.assertEqual(self.snapshot(), prior)
+
+    def test_os_lock_prevents_two_installers(self):
+        with installation_lock(self.root):
+            with self.assertRaisesRegex(PackageError, '已有更新操作'):
+                install(self.root, self.stage, self.new)
+
+    def test_version_mismatch_is_not_reported_as_latest(self):
+        (self.root / 'interface.json').write_text('{"version":"9.0.0"}')
+        with self.assertRaises(RecoveryRequired):
+            installed_versions(self.root)
+
+    def test_corrupt_stage_is_rejected_before_existing_files_change(self):
+        (self.stage / 'agent/main.py').write_bytes(b'corrupt')
+        with self.assertRaises(PackageError):
+            install(self.root, self.stage, self.new)
+        self.assertEqual(self.snapshot(), self.prior)
+
+
+if __name__ == '__main__':
+    unittest.main()

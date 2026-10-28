@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import sys
 import zipfile
 
 from build_update import collect, is_local_instructions
@@ -31,8 +32,8 @@ from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAUNCHER_NAME = 'MAA造梦西游4.exe'
-# Reuse the project's v2.3.1 launcher, extracted from the official full release.
-LAUNCHER_SHA256 = 'a0367870662916dc6abcaadf76b8321e3979a82b7c894d9d2004e3eb90197e46'
+# Tests may supply a fixture digest. Production requires a source/build receipt.
+LAUNCHER_SHA256 = None
 FRONTEND_ROOT_FILES = (
     'MFAAvalonia.exe', 'MFAAvalonia.dll', 'MFAAvalonia.deps.json',
     'MFAAvalonia.runtimeconfig.json', 'libloader.dll', 'script-studio-build.json',
@@ -56,8 +57,19 @@ def validate_launcher(launcher):
     path = Path(launcher)
     if not path.is_file() or path.is_symlink():
         raise ValueError('缺少官方启动器：' + str(path))
-    if hashlib.sha256(path.read_bytes()).hexdigest() != LAUNCHER_SHA256:
-        raise ValueError('官方启动器 SHA-256 不匹配，请使用已核实的 v2.3.1 完整包启动器。')
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if LAUNCHER_SHA256 is not None:
+        if actual != LAUNCHER_SHA256:
+            raise ValueError('官方启动器 SHA-256 不匹配。')
+        return
+    receipt_path = path.with_name('launcher-build.json')
+    if not receipt_path.is_file():
+        raise ValueError('启动器 SHA-256 不匹配或缺少构建记录，请运行 tools/build_launcher.ps1。')
+    receipt = json.loads(receipt_path.read_text(encoding='utf8'))
+    if (receipt.get('schema') != 1 or receipt.get('sha256') != actual
+            or receipt.get('source_sha256') != hashlib.sha256((Path(ROOT)/'tools/launcher/Program.cs').read_bytes()).hexdigest()
+            or receipt.get('icon_sha256') != hashlib.sha256((Path(ROOT)/'新图标.ico').read_bytes()).hexdigest()):
+        raise ValueError('启动器 SHA-256 不匹配或不是当前源码/图标构建。')
 
 
 def validate_client_resources(root):
@@ -95,6 +107,19 @@ def validate_client(root):
     validate_launcher(root / LAUNCHER_NAME)
     require_paths(root, FRONTEND_REQUIRED + ('updater.py', 'agent/main.py'), '完整客户端')
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
+    sys.path.insert(0, str(Path(ROOT)))
+    from update_engine.transaction import installed_inventory, fingerprint
+    from update_engine.validation import validate_stage
+    inventory = installed_inventory(root)
+    if inventory is None:
+        raise ValueError('完整客户端缺少 client-installation.json 安装清单。')
+    # Test fixtures deliberately substitute the launcher bytes; production
+    # packages always contain the real build receipt.
+    if LAUNCHER_SHA256 is None:
+        validate_stage(root, inventory)
+    for name, expected in inventory.files.items():
+        if fingerprint(root / name) != expected:
+            raise ValueError('客户端文件与安装清单不一致：' + name)
     return validate_client_resources(root)
 
 
@@ -105,6 +130,8 @@ def client_files(root, frontend, python_runtime, launcher):
     files = [(Path(source), relative) for source, relative in collect(str(root))]
     validate_launcher(launcher)
     files.append((Path(launcher), LAUNCHER_NAME))
+    if Path(launcher).with_name('launcher-build.json').is_file():
+        files.append((Path(launcher).with_name('launcher-build.json'), 'launcher-build.json'))
     require_paths(frontend, FRONTEND_REQUIRED, '前端构建')
     for name in FRONTEND_ROOT_FILES: files.append((frontend / name, name))
     for folder in ('libs', 'runtimes/win-x64/native'):
@@ -115,8 +142,9 @@ def client_files(root, frontend, python_runtime, launcher):
                  for path in python_runtime.rglob('*')
                  if path.is_file() and '__pycache__' not in path.parts and path.suffix not in ('.pyc', '.pyo'))
     for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
-                 'docs/zh_cn/脚本工具-使用说明.md'):
+                 'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md'):
         files.append((root / name, name))
+    files.extend((path, path.relative_to(root).as_posix()) for path in (root/'update_engine').glob('*.py'))
     files = [(source, relative) for source, relative in files
              if not is_local_instructions(Path(relative).name)]
     batch = (root / 'DependencySetup_依赖库安装_win.bat').read_bytes()
@@ -127,10 +155,26 @@ def client_files(root, frontend, python_runtime, launcher):
     return files
 
 
-def build_client(root, frontend, python_runtime, destination, launcher):
+def build_client(root, frontend, python_runtime, destination, launcher, *, client_version=None,
+                 repository='Inkyu-Zero/MAAZMXY4', channel='stable', manifest_urls=None):
     """Create a verified full client ZIP without overwriting any existing output."""
     import tempfile
     files = client_files(root, frontend, python_runtime, launcher)
+    sys.path.insert(0, str(Path(ROOT)))
+    from update_engine.packages import build_inventory, write_inventory_files, CLIENT_RECORD
+    from update_engine.protocol import Version, https_url
+    import re
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository) or channel not in ('stable', 'preview'):
+        raise ValueError('发布仓库或渠道无效。')
+    resource_version = json.loads((Path(root)/'assets/interface.json').read_text(encoding='utf8'))['version']
+    client_version = str(Version(client_version or resource_version))
+    if channel == 'stable' and Version(client_version).prerelease:
+        raise ValueError('候选客户端必须使用 preview 渠道。')
+    if channel == 'preview' and not manifest_urls:
+        raise ValueError('候选渠道必须显式配置独立的版本清单地址。')
+    manifest_urls = manifest_urls or [f'https://github.com/{repository}/releases/latest/download/client-version.json']
+    source_config = dict(schema=1, product='MAAZMXY4', repository=repository, default_channel=channel,
+                         channels={channel: [https_url(url) for url in manifest_urls]})
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Validate the exact assembled resources, not root's optional runtime copy.
@@ -143,12 +187,16 @@ def build_client(root, frontend, python_runtime, destination, launcher):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
         validate_client_resources(stage)
-    with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
-        for source, relative in files: archive.write(source, relative)
-        # MaaFramework probes this optional directory on load. If the directory
-        # is absent it treats the path as a library and emits a load error.
-        # A directory entry keeps it present without shipping a fake plugin.
-        archive.writestr('runtimes/win-x64/native/plugins/', b'')
+    with tempfile.TemporaryDirectory() as temporary:
+        config_path = Path(temporary)/'update-config.json'
+        config_path.write_text(json.dumps(source_config, ensure_ascii=False, indent=2), encoding='utf8')
+        files.append((config_path, 'update-config.json'))
+        inventory = build_inventory(files, kind='client', client_version=client_version, resource_version=resource_version)
+        with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
+            write_inventory_files(archive, files, inventory)
+            archive.writestr(CLIENT_RECORD, json.dumps(inventory.to_dict(), ensure_ascii=False, indent=2))
+            # MaaFramework requires the optional plugin directory to exist.
+            archive.writestr('runtimes/win-x64/native/plugins/', b'')
     return destination
 
 # (仓库内源路径, 包内路径)
@@ -295,7 +343,10 @@ def main() -> int:
     ap.add_argument("--client", action="store_true", help="构建含脚本工作台的完整 Windows 客户端")
     ap.add_argument("--frontend", default="dist/script-studio", help="已编译的前端目录")
     ap.add_argument("--python-runtime", default="runtimes/python", help="已准备好的内嵌 Python 目录")
-    ap.add_argument("--launcher", help="官方 v2.3.1 完整包中的 MAA造梦西游4.exe（校验固定 SHA-256）")
+    ap.add_argument("--launcher", help="build_launcher.ps1 生成的启动器，旁边须有 launcher-build.json")
+    ap.add_argument("--repository", default="Inkyu-Zero/MAAZMXY4", help="完整客户端更新仓库；fork 候选必须显式指定 fork")
+    ap.add_argument("--channel", choices=('stable', 'preview'), default='stable')
+    ap.add_argument("--manifest-url", action='append', help="此渠道实际版本清单地址，可多次指定")
     ap.add_argument("--verify-client", help="检查解压后的启动器、前端、Python 和任务资源")
     args = ap.parse_args()
 
@@ -312,7 +363,9 @@ def main() -> int:
         if not version or any(c not in '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-' for c in version):
             raise ValueError('版本号只能包含数字、字母、点和连字符。')
         destination = root / args.out / f'MAAZMXY4-v{version}-win-x64.zip'
-        print(build_client(root, root/args.frontend, root/args.python_runtime, destination, root/args.launcher))
+        print(build_client(root, root/args.frontend, root/args.python_runtime, destination, root/args.launcher,
+                           client_version=version, repository=args.repository, channel=args.channel,
+                           manifest_urls=args.manifest_url))
         return 0
 
     version = args.version

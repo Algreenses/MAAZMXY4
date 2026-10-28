@@ -20,6 +20,11 @@ on:
       - 'DependencySetup_依赖库安装_win.bat'
       - 'tools/install.py'
       - 'updater.py'
+      - 'update_engine/**'
+      - 'tools/launcher/**'
+      - 'tools/build_launcher.ps1'
+      - 'tools/build_update_manifest.py'
+      - 'docs/zh_cn/更新协议与发布规范.md'
       - '新图标.ico'
       - '.github/workflows/script-studio.yml'
   workflow_dispatch:
@@ -53,9 +58,15 @@ jobs:
       - name: Script worker disconnect and protocol fault injection
         shell: pwsh
         run: dotnet run --project frontend/tests/StudioClient/StudioClient.csproj -c Release
+      - name: Project update transport and installation guard regression
+        shell: pwsh
+        run: dotnet run --project frontend/tests/ProjectUpdate/ProjectUpdate.csproj -c Release
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Build project launcher with independent update recovery
+        shell: pwsh
+        run: ./tools/build_launcher.ps1
       - name: Save frontend for assembling the manually distributed client
         uses: actions/upload-artifact@v4
         with:

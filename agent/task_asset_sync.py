@@ -241,7 +241,12 @@ def _options_for(tasks, options):
     return result
 
 
-def sync_task_assets(source_root, target_root, dry_run=True, task_names=None, update_version=False):
+def prepare_task_assets(source_root, target_root, task_names=None, update_version=False):
+    """Plan the existing migration without writes, for installers with a journal.
+
+    The returned byte plans and input fingerprints are internal installation
+    data, not the JSON report exposed by the command-line interface.
+    """
     source_root, target_root = Path(source_root).resolve(), Path(target_root).resolve()
     source_inputs, target_inputs, plans = {}, {}, {}
     source_prefix = 'assets/' if _safe(source_root, 'assets/interface.json').is_file() else ''
@@ -427,10 +432,18 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None, up
                                                      prior_instances, old_bindings, old_nodes)
     if bindings != old_bindings:
         plan_bytes('recordings/.bindings.json', _encode(dict(version=2, tasks=bindings)))
-    report = dict(dry_run=dry_run, applied=False, backup=None, updated_instances=updated_instances,
+    report = dict(dry_run=True, applied=False, backup=None, updated_instances=updated_instances,
                   migrated_bindings=migrated_bindings,
                   changes=[dict(path=path, operation='create' if old is None else 'update', sha256=_sha(raw))
                            for path, (raw, old) in plans.items()])
+    return report, plans, source_inputs, target_inputs
+
+
+def sync_task_assets(source_root, target_root, dry_run=True, task_names=None, update_version=False):
+    target_root = Path(target_root).resolve()
+    report, plans, source_inputs, target_inputs = prepare_task_assets(
+        source_root, target_root, task_names, update_version)
+    report['dry_run'] = dry_run
     if dry_run:
         return report
     _verify_inputs({**source_inputs, **target_inputs})
