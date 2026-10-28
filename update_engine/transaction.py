@@ -5,6 +5,7 @@ caller must first release this installation's application processes. The
 worker runs outside the destination Python runtime so it can replace it.
 """
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,17 @@ def fingerprint(path):
     if not path.is_file():
         raise PackageError('目标不是常规文件：' + str(path))
     return dict(size=path.stat().st_size, sha256=digest_file(path))
+
+
+def _generated_bytecode(name, owned_files):
+    """Only caches of inventoried Python sources are disposable build output."""
+    if not name.startswith('agent/') or '/__pycache__/' not in name or not name.endswith('.pyc'):
+        return False
+    try:
+        source = importlib.util.source_from_cache(name).replace('\\', '/')
+    except (ValueError, NotImplementedError):
+        return False
+    return source in owned_files
 
 
 def installed_inventory(root):
@@ -236,7 +248,15 @@ def install(root, stage, inventory, *, migration_plans=None, allow_modified=Fals
                     for path in base.rglob('*'):
                         ensure_no_links(path)
                         if path.is_file():
-                            before_files.setdefault(path.relative_to(root).as_posix(), fingerprint(path))
+                            name = path.relative_to(root).as_posix()
+                            # MFA's DashboardCardGrid creates this layout in
+                            # resource/ on first launch. When it was not shipped
+                            # in the old inventory it belongs to the host/user,
+                            # not to the replaceable resource bundle.
+                            if (folder == 'resource' and path.name.casefold() == 'mfa_layout.json'
+                                    and name not in old.files):
+                                continue
+                            before_files.setdefault(name, fingerprint(path))
             before_files = {n: v for n, v in before_files.items() if n.split('/')[0] in RESOURCE_ITEMS}
             final_files = {n: v for n, v in old.files.items() if n.split('/')[0] not in RESOURCE_ITEMS}
             final_files.update(desired)
@@ -250,7 +270,7 @@ def install(root, stage, inventory, *, migration_plans=None, allow_modified=Fals
             before, after = fingerprint(path), desired.get(name)
             if before is not None and name not in before_files:
                 raise PackageError('未知文件与更新文件冲突，未覆盖：' + name)
-            if before is not None and before != old.files.get(name):
+            if before is not None and before != old.files.get(name) and not _generated_bytecode(name, old.files):
                 modified.append(name)
             if after is not None and fingerprint(stage / name) != after:
                 raise PackageError('暂存文件校验失败：' + name)

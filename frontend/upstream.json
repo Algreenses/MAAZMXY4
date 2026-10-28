@@ -41,6 +41,10 @@
     "frontend/patches/26-project-resource-version.json",
     "frontend/patches/27-project-resource-install.json",
     "frontend/patches/28-project-framework-install.json",
-    "frontend/patches/29-project-update-health.json"
+    "frontend/patches/29-project-update-health.json",
+    "frontend/patches/30-win32-explicit-window-identity.json",
+    "frontend/patches/31-win32-no-first-window-fallback.json",
+    "frontend/patches/32-win32-no-filtered-first-fallback.json",
+    "frontend/patches/33-win32-startup-explicit-selection.json"
   ]
 }

@@ -20,7 +20,7 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -178,6 +178,21 @@ internal static class Program
         Check(windows.Select(x=>x.Handle).SequenceEqual(new nint[] { 7,3 }), "recording must keep the host-selected ordering and support arbitrary titles/classes");
         Check(windows[0].Title == "Alternate game client", "recording must use the host-provided labels");
     }
+    private static void NoImplicitRecordingTarget()
+    {
+        MaaProcessorManager.Instance.Current.Config.DesktopWindow.HWnd = 0;
+        var (window, view, model) = Open(false);
+        try
+        {
+            Check(Field<ComboBox>(view,"_windows").SelectedItem == null,
+                "a new recorder must not silently choose the first unrelated desktop window");
+            MaaProcessorManager.Instance.Current.Config.DesktopWindow.HWnd = WindowFixture.Windows[0].Handle;
+            view.GetType().GetMethod("RefreshWindows",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(view,null);
+            Check((Field<ComboBox>(view,"_windows").SelectedItem as StudioWindow)?.Handle == WindowFixture.Windows[0].Handle,
+                "recorder must reuse an explicitly selected task window");
+        }
+        finally { Close(window,model); MaaProcessorManager.Instance.Current.Config.DesktopWindow.HWnd = 0; }
+    }
 }
 
 internal sealed class TestApplication : Application
@@ -195,7 +210,10 @@ namespace MFAAvalonia.Extensions.MaaFW
         public static List<MaaProcessor> Processors { get; } = new();
         public bool IsTaskRunActive { get; set; }
         public string InstanceId => "fixture";
+        public ControllerConfigFixture Config { get; } = new();
     }
+    public sealed class ControllerConfigFixture { public DesktopFixture DesktopWindow { get; } = new(); }
+    public sealed class DesktopFixture { public nint HWnd { get; set; } }
     public sealed class MaaProcessorManager
     {
         public static bool IsInstanceCreated => true;

@@ -220,7 +220,9 @@ public sealed partial class ScriptStudioView : UserControl
     {
         var old = (_windows.SelectedItem as StudioWindow)?.Handle;
         var windows = StudioWindows.List(); _windows.ItemsSource = windows;
-        _windows.SelectedItem = windows.FirstOrDefault(w => w.Handle == old) ?? windows.FirstOrDefault();
+        _windows.SelectedItem = windows.FirstOrDefault(w => w.Handle == old)
+            ?? windows.FirstOrDefault(w => w.Handle != 0 && w.Handle == StudioWindows.SelectedHandle);
+        _windows.PlaceholderText = "请选择游戏窗口";
         if (windows.Count == 0) _status.Text = "没有找到游戏窗口，请先启动造梦盒子，再刷新窗口。";
     }
     private void RenderDocument()

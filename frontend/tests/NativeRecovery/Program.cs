@@ -383,6 +383,19 @@ Test("unsupported recorded-return routes fail before starting a native task", as
     await Throws<InvalidDataException>(() => { TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString()); return Task.CompletedTask; });
 });
 
+Sync("Win32 selection never guesses from enumeration order or shared window classes", () =>
+{
+    var windows = new (nint Handle, string Title, string ClassName)[]
+        { (1,"Unrelated app","Chrome"), (2,"Game","Chrome"), (3,"Game","Chrome") };
+    Require(Win32WindowSelection.SelectIndex(windows, null, null) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, null, ("Game","Chrome")) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, (3,"Game","Chrome"), null) == 2);
+    Require(Win32WindowSelection.SelectIndex(windows, (1,"Closed game","Chrome"), null) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, null, ("Unknown","Chrome")) == -1);
+    Require(Win32WindowSelection.SelectIndex(new[] { windows[1] }, null, ("Game","Chrome")) == 0);
+    Require(Win32WindowSelection.SelectIndex(new[] { windows[1] }, null, null) == -1);
+});
+
 var passed = 0;
 foreach (var test in tests)
 {

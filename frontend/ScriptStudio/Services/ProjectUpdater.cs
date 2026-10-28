@@ -89,7 +89,8 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     public string Versions { get => _versions; private set => SetProperty(ref _versions, value); }
     public string Notes { get => _notes; private set => SetProperty(ref _notes, value); }
     public string Source { get => _source; private set => SetProperty(ref _source, value); }
-    public double Progress { get => _progress; private set => SetProperty(ref _progress, value); }
+    public double Progress { get => _progress; private set { SetProperty(ref _progress, value); OnPropertyChanged(nameof(ProgressIndeterminate)); } }
+    public bool ProgressIndeterminate => Busy && Progress <= 0;
     public bool Busy { get => _busy; private set { SetProperty(ref _busy, value); Refresh(); } }
     public bool CheckOnStart { get => _checkOnStart; set => SetProperty(ref _checkOnStart, value); }
     public bool AutoDownload { get => _autoDownload; set => SetProperty(ref _autoDownload, value); }
@@ -97,7 +98,7 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     public bool CanDownload => !Busy && _available;
     public bool CanInstall => !Busy && _staged && !ScriptStudioGuard.IsCapturing &&
         !MaaProcessor.Processors.Any(p => p.IsTaskRunActive);
-    public string InstallHint => CanInstall ? "请先保存编辑内容。安装会退出本目录的助手，并保留个人录制与配置。" :
+    public string InstallHint => Busy ? "正在处理更新，请等待当前步骤完成。" : CanInstall ? "请先保存编辑内容。安装会退出本目录的助手，并保留个人录制与配置。" :
         _staged ? "请先停止所有实例任务及脚本录制，再安装更新。" : "下载并校验更新包后，可以退出助手安装。";
     public AsyncRelayCommand CheckCommand { get; }
     public AsyncRelayCommand DownloadCommand { get; }
@@ -119,6 +120,7 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     public void Refresh()
     {
         OnPropertyChanged(nameof(CanDownload)); OnPropertyChanged(nameof(CanInstall)); OnPropertyChanged(nameof(InstallHint));
+        OnPropertyChanged(nameof(ProgressIndeterminate));
         CheckCommand?.NotifyCanExecuteChanged(); DownloadCommand?.NotifyCanExecuteChanged();
         InstallCommand?.NotifyCanExecuteChanged(); RepairCommand?.NotifyCanExecuteChanged();
         SavePreferencesCommand?.NotifyCanExecuteChanged(); CancelCommand?.NotifyCanExecuteChanged();
@@ -153,8 +155,14 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     public Task CheckAsync(bool repair = false) => RunAsync(async () =>
     {
         _available = false;
+        Progress = 0;
         Status = repair ? "正在检查完整修复包…" : "正在检查项目更新…";
         var data = await Client.CallAsync("check", new JsonObject { ["repair"] = repair }, cancellationToken: _cancel!.Token);
+        // A newer accepted manifest can invalidate an earlier download. Ask
+        // the same backend again instead of leaving a stale install button.
+        _staged = false;
+        var local = await Client.CallAsync("status", cancellationToken: _cancel.Token);
+        _staged = local["pending"]?.GetValue<bool>() ?? false;
         Status = data["message"]?.GetValue<string>() ?? "检查完成。";
         _available = data["status"]?.GetValue<string>() == "available";
         var update = data["update"];
@@ -196,6 +204,7 @@ public sealed class ProjectUpdateViewModel : ObservableObject
         try
         {
             Status = "正在准备独立安装助手与备份…";
+            Progress = 0;
             await Client.CallAsync("install", new JsonObject { ["allow_modified"] = AllowModified }, cancellationToken: _cancel!.Token);
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
