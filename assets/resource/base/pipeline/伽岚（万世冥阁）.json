@@ -1,44 +1,28 @@
 {
   "伽岚（万世冥阁）-点击万世冥阁": {
     "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "万世冥阁.png",
-          "万世冥阁（高亮）.png"
-        ]
-      }
+      "type": "DirectHit"
     },
-    "pre_delay": 80,
-    "post_delay": 1000,
-    "timeout": 10000,
     "action": {
-      "type": "Click"
+      "type": "DoNothing"
     },
     "next": [
-      "伽岚（万世冥阁）-识别万世冥阁场景"
+      "伽岚（万世冥阁）-刷取次数"
     ],
-    "on_error": [
-      "伽岚（万世冥阁）-点击场外"
-    ]
+    "timeout": 10000,
+    "post_delay": 0
   },
   "伽岚（万世冥阁）-点击场外": {
-    "pre_delay": 0,
-    "post_delay": 1000,
+    "recognition": {
+      "type": "DirectHit"
+    },
     "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          194,
-          571,
-          1,
-          1
-        ]
-      }
+      "type": "DoNothing"
     },
     "next": [
-      "伽岚（万世冥阁）-点击万世冥阁"
-    ]
+      "伽岚（万世冥阁）-失败"
+    ],
+    "post_delay": 0
   },
   "伽岚（万世冥阁）-识别万世冥阁场景": {
     "recognition": {
@@ -56,12 +40,12 @@
       "伽岚（万世冥阁）-回放战斗"
     ],
     "on_error": [
-      "伽岚（万世冥阁）-点击场外"
+      "伽岚（万世冥阁）-失败"
     ]
   },
   "伽岚（万世冥阁）-回放战斗": {
     "pre_delay": 0,
-    "post_delay": 1000,
+    "post_delay": 0,
     "action": {
       "type": "Custom",
       "param": {
@@ -78,7 +62,10 @@
       }
     },
     "next": [
-      "伽岚（万世冥阁）-点击设置"
+      "伽岚（万世冥阁）-回放后分流"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
     ]
   },
   "伽岚（万世冥阁）-点击设置": {
@@ -96,9 +83,14 @@
       "type": "Click"
     },
     "next": [
+      "伽岚（万世冥阁）-战斗失败",
+      "伽岚（万世冥阁）-成功返回地图",
       "伽岚（万世冥阁）-返回地图"
     ],
-    "post_delay": 1000
+    "post_delay": 1000,
+    "on_error": [
+      "伽岚（万世冥阁）-退出结果复核"
+    ]
   },
   "伽岚（万世冥阁）-返回地图": {
     "recognition": {
@@ -114,8 +106,7 @@
       "type": "Click"
     },
     "next": [
-      "伽岚（万世冥阁）-刷取次数",
-      "停止运行"
+      "伽岚（万世冥阁）-脚本返回确认"
     ],
     "post_delay": 1000
   },
@@ -124,7 +115,7 @@
       "type": "DirectHit"
     },
     "next": [
-      "伽岚（万世冥阁）-点击万世冥阁"
+      "伽岚（万世冥阁）-准备本轮"
     ],
     "post_delay": 1000,
     "action": {
@@ -160,8 +151,379 @@
     "pre_delay": 300,
     "post_delay": 0,
     "next": [
+      "伽岚（万世冥阁）-本轮成功"
+    ]
+  },
+  "伽岚（万世冥阁）-关卡入口": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "万世冥阁.png",
+          "万世冥阁（高亮）.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-识别万世冥阁场景"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-cec278429a196341000ce6276792c544",
+          "playback_node": "伽岚（万世冥阁）-回放战斗",
+          "exit_mode": "battle_only",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "伽岚（万世冥阁）-关卡入口",
+            "label": "伽岚（万世冥阁）"
+          },
+          "navigation_entry": "伽岚（万世冥阁）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "伽岚（万世冥阁）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "伽岚（万世冥阁）-已确认战斗成功"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "route_node": "伽岚（万世冥阁）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "伽岚（万世冥阁）-战斗失败",
+              "伽岚（万世冥阁）-成功返回地图",
+              "伽岚（万世冥阁）-脚本返回确认"
+            ],
+            "battle_only": [
+              "伽岚（万世冥阁）-战斗失败",
+              "伽岚（万世冥阁）-成功返回地图",
+              "伽岚（万世冥阁）-点击设置"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-通用导航"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "伽岚（万世冥阁）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-关卡入口"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-回放后分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "伽岚（万世冥阁）-战斗失败",
+      "伽岚（万世冥阁）-成功返回地图",
+      "伽岚（万世冥阁）-点击设置"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-战斗失败": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-失败返回地图",
+      "伽岚（万世冥阁）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "伽岚（万世冥阁）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-脚本返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "万世冥阁.png",
+          "万世冥阁（高亮）.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
+  },
+  "伽岚（万世冥阁）-本轮成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "next": [
       "伽岚（万世冥阁）-刷取次数",
       "停止运行"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "伽岚（万世冥阁）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "伽岚（万世冥阁）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "伽岚（万世冥阁）-战斗失败",
+      "伽岚（万世冥阁）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "伽岚（万世冥阁）-失败返回地图",
+      "伽岚（万世冥阁）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ]
+  },
+  "伽岚（万世冥阁）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "伽岚（万世冥阁）-成功返回地图",
+      "伽岚（万世冥阁）-脚本返回确认"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
     ]
   }
 }

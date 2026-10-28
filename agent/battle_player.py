@@ -28,6 +28,7 @@
 """
 
 import ctypes
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -43,6 +44,7 @@ from maa.custom_action import CustomAction
 
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
 from script_library import resolve_recording_reference
+from battle_outcomes import BattleOutcomeMonitor
 
 try:
     from toast import toast as _toast
@@ -435,6 +437,21 @@ class BattlePlay(CustomAction):
 
         actions: List[Dict[str, Any]] = rec["actions"]
         ctrl = context.tasker.controller
+        monitor = None
+        if param.get('result_guard') is not None:
+            try:
+                monitor = BattleOutcomeMonitor(context, param['result_guard'])
+                if not context.override_next(argv.node_name, param['result_guard']['default_next']):
+                    raise ValueError('无法恢复本轮的默认回放完成路线。')
+                monitor.start()
+            except Exception as error:
+                if monitor is not None:
+                    try:
+                        monitor.close()
+                    except Exception as cleanup_error:
+                        self._log('[battle_play] 监测清理失败：' + str(cleanup_error))
+                self._log('[battle_play] 战斗结果监测未启动：' + str(error))
+                return False
         self._log(
             "[battle_play] 回放「%s」：%d 个动作，倍率 %.2f"
             % (rec.get("name") or name, len(actions), speed)
@@ -452,21 +469,35 @@ class BattlePlay(CustomAction):
         # 绝对时刻调度：每个动作的目标时刻 = 起点 + 累计时间偏移。
         # 某个动作执行得慢，下一个动作就少睡一点，整体不会越跑越慢。
         offset, held_keys, held_buttons, loose_contacts = 0.0, set(), set(), set()
+        # Outcome recognition and playback both issue reverse requests over
+        # the same Agent channel.  Serialize the complete requests, not only
+        # the monitor's own calls, to keep their replies matched.
+        rpc_lock = monitor.rpc_lock if monitor is not None else nullcontext()
         def stopping():
             try:
-                return bool(context.tasker.stopping)
+                if monitor is not None and monitor.interrupted:
+                    return True
+                with rpc_lock:
+                    return bool(context.tasker.stopping) or monitor is not None and monitor.interrupted
             except Exception:
                 return False
-        completed, cleanup_errors = False, []
+        completed, dispatch_failed, cleanup_errors = False, False, []
         try:
             for i, act in enumerate(actions):
                 offset += float(act.get("t", 0)) / 1000.0 / speed
                 if stopping() or not _sleep_until(started + offset, stopping) or stopping():
-                    self._log("[battle_play] 收到停止任务指令，中止回放")
+                    self._log('[battle_play] 结果监测要求停止后续动作' if monitor is not None and monitor.interrupted
+                              else '[battle_play] 收到停止任务指令，中止回放')
                     break
                 # Remember a press before submission: a failing native job may
                 # have pressed the device before reporting failure.
                 op = act["op"]
+                if monitor is not None and op in ('click', 'down', 'up'):
+                    # Recorded return clicks must not dismiss a defeat before
+                    # its result is observed and incorrectly count that round.
+                    monitor.probe()
+                    if stopping():
+                        break
                 transient_key = int(act["key"]) if op == "key" else None
                 had_key = transient_key in held_keys
                 had_left = 0 in held_buttons
@@ -482,19 +513,21 @@ class BattlePlay(CustomAction):
                 try:
                     # Check once more immediately before dispatch, after local
                     # bookkeeping, so cancellation never schedules an old action.
-                    if stopping():
-                        if not key_was_held:
-                            held_keys.discard(press_key)
-                        if not contact_was_held:
-                            held_buttons.discard(press_contact)
-                        break
-                    if op == "move" and not held_buttons:
-                        # The legacy Win32 touch-move API carries a left-button
-                        # flag even for recorded hover movement. Clear it on exit.
-                        loose_contacts.add(0)
-                    _dispatch(ctrl, act, held_buttons)
+                    with rpc_lock:
+                        if stopping():
+                            if not key_was_held:
+                                held_keys.discard(press_key)
+                            if not contact_was_held:
+                                held_buttons.discard(press_contact)
+                            break
+                        if op == "move" and not held_buttons:
+                            # The legacy Win32 touch-move API carries a left-button
+                            # flag even for recorded hover movement. Clear it on exit.
+                            loose_contacts.add(0)
+                        _dispatch(ctrl, act, held_buttons)
                 except Exception as exc:
                     self._log("[battle_play] 第 %d 个动作（%s）执行失败：%s" % (i, op, exc))
+                    dispatch_failed = True
                     break
                 if op == "keyup":
                     held_keys.discard(int(act["key"]))
@@ -509,21 +542,39 @@ class BattlePlay(CustomAction):
                 # The editor preserves the empty interval after the final event.
                 completed = _sleep_until(started + _total, stopping) and not stopping()
         finally:
+            if monitor is not None:
+                monitor.request_stop()
             # Cleanup does not consult stopping: cancellation must never prevent
             # releases, and one failed release must not skip the remaining ones.
             for key in sorted(held_keys):
                 try:
-                    _wait_job(ctrl.post_key_up(key))
+                    with rpc_lock:
+                        _wait_job(ctrl.post_key_up(key))
                 except Exception as exc:
                     cleanup_errors.append("释放键 %d：%s" % (key, exc))
             for contact in sorted(held_buttons | loose_contacts):
                 try:
-                    _wait_job(ctrl.post_touch_up(contact=contact))
+                    with rpc_lock:
+                        _wait_job(ctrl.post_touch_up(contact=contact))
                 except Exception as exc:
                     cleanup_errors.append("释放鼠标 %d：%s" % (contact, exc))
+            if monitor is not None:
+                try:
+                    monitor.close()
+                except Exception as error:
+                    cleanup_errors.append(str(error))
         if cleanup_errors:
             self._log("[battle_play] 输入清理未完成：%s" % "；".join(cleanup_errors))
             return False
+        if dispatch_failed:
+            return False
+        if monitor is not None:
+            if monitor.error is not None:
+                self._log('[battle_play] 结果监测停止：' + str(monitor.error))
+                return False
+            if monitor.branch is not None and not context.tasker.stopping:
+                self._log('[battle_play] 已识别通关结果，释放输入后进入结果处理。')
+                return bool(context.override_next(argv.node_name, monitor.branch))
         if not completed:
             return False
 

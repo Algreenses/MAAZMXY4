@@ -20,7 +20,7 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions()).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -31,6 +31,38 @@ internal static class Program
     }
 
     private static T Field<T>(object target, string name) => (T)target.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(target)!;
+    private static void DurationTextApplies()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"User recording","duration_ms":31359,"operations":[],"dirty":false}""")!);
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            Dispatcher.UIThread.RunJobs();
+            var duration=Field<NumericUpDown>(view,"_scriptDuration");
+            duration.Text="32.500";
+            Console.WriteLine($"TRACE duration text={duration.Text} value={duration.Value}");
+            Click(Find(window,"应用时长"));
+            Check(model.Client.DurationRequest==32500, $"typed duration sent {model.Client.DurationRequest}, expected 32500");
+            Check(model.Duration==32500, "duration response must update the page");
+        }
+        finally { Close(window,model); }
+    }
+    private static void DurationTextSavesWithoutExtraApply()
+    {
+        var (window, view, model) = Open(false);
+        try
+        {
+            model.Apply(JsonNode.Parse("""{"file":"user.json","name":"User recording","duration_ms":31359,"operations":[],"dirty":false}""")!);
+            Field<TabControl>(view,"_tabs").SelectedIndex=1;
+            Dispatcher.UIThread.RunJobs();
+            Field<NumericUpDown>(view,"_scriptDuration").Text="32.500";
+            Click(Find(window,"保存"));
+            Check(model.Client.DurationRequest==32500, "Save ignored the typed total duration");
+            Check(model.Client.Calls.IndexOf("set_duration")<model.Client.Calls.IndexOf("save"), "duration must be applied before saving");
+        }
+        finally { Close(window,model); }
+    }
     private static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Click(Button button) { button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs(); }
     private static Button Find(Window window, string name) => window.GetVisualDescendants().OfType<Button>().First(b => Equals(b.Content, name));
@@ -189,11 +221,17 @@ namespace MFAAvalonia.Services
     {
         public List<string> Calls { get; } = new();
         public int FailLists;
+        public long? DurationRequest;
         private string? _renamed, _renamedFile;
         public bool IsDisconnected => false;
         public Task<JsonNode> CallAsync(string method, JsonObject? parameters = null)
         {
             Calls.Add(method);
+            if (method=="set_duration")
+            {
+                DurationRequest=parameters!["duration_ms"]!.GetValue<long>();
+                return Task.FromResult<JsonNode>(new JsonObject { ["file"]="user.json", ["name"]="User recording", ["duration_ms"]=(double)DurationRequest.Value, ["operations"]=new JsonArray(), ["dirty"]=true });
+            }
             if (method == "list" && FailLists-- > 0) throw new IOException("Fixture transient list failure");
             if (method == "rename_file")
             {

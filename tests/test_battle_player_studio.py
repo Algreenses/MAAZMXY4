@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import threading
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -94,7 +95,54 @@ class BattlePlayerStudioTests(unittest.TestCase):
         (self.directory/filename).write_text(json.dumps(data,ensure_ascii=False),encoding="utf8")
         return data
     def run_recording(self, file="record.json", **params):
-        return player.BattlePlay().run(self.context,SimpleNamespace(custom_action_param=dict(file=file,**params)))
+        return player.BattlePlay().run(self.context,SimpleNamespace(node_name='Playback', custom_action_param=dict(file=file,**params)))
+
+    def guarded_monitor(self, outcome):
+        events = []
+        monitor = SimpleNamespace(branch=None, error=None, interrupted=False, rpc_lock=threading.RLock(),
+            start=lambda:None, probe=lambda:None, request_stop=lambda:None, close=lambda:events.append('closed'))
+        def after(name, *_args):
+            events.append(name)
+            if name == 'post_key_down':
+                monitor.branch = [outcome]
+                monitor.interrupted = True
+        self.controller.after_call = after
+        def override(name, targets):
+            events.append(('next', list(targets)))
+            return True
+        self.context.override_next = override
+        return monitor, events
+
+    def test_outcome_stops_tail_and_releases_key_before_branching(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10000,op='keyup',key=65)])
+        for outcome in ('Failed', 'Won'):
+            with self.subTest(outcome=outcome):
+                monitor, events = self.guarded_monitor(outcome)
+                with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+                    self.assertTrue(self.run_recording(result_guard={'default_next':['Exit']}))
+                self.assertLess(events.index('post_key_up'), events.index(('next',[outcome])))
+                self.assertIn('closed', events)
+
+    def test_input_failure_cannot_be_hidden_by_concurrent_result(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10,op='keyup',key=65)])
+        monitor, events = self.guarded_monitor('Failed')
+        self.controller.fail.add('post_key_down')
+        with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+            self.assertFalse(self.run_recording(result_guard={'default_next':['Exit']}))
+        self.assertNotIn(('next',['Failed']), events)
+        self.assertIn('post_key_up', events)
+
+    def test_cancelled_task_never_follows_a_concurrent_result(self):
+        self.write([dict(t=0,op='keydown',key=65),dict(t=10,op='keyup',key=65)])
+        monitor, events = self.guarded_monitor('Won')
+        callback = self.controller.after_call
+        def after(*args):
+            callback(*args)
+            self.tasker.stopping = True
+        self.controller.after_call = after
+        with patch.object(player, 'BattleOutcomeMonitor', return_value=monitor):
+            self.assertFalse(self.run_recording(result_guard={'default_next':['Exit']}))
+        self.assertNotIn(('next',['Won']), events)
 
     def test_legacy_actions_keep_order_leading_wait_and_absolute_schedule(self):
         self.write([dict(t=100,op="key",key=74),dict(t=20,op="click",x=10,y=20),

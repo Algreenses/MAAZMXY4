@@ -1,0 +1,6 @@
+{
+  "description": "Reset the live-view failure streak only after a capture actually succeeds.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "                // 上一帧已结束：若失败，先向调用方上报（仅一次），随后替换为新的在途任务\n                _liveViewScreencapJob = null;\n                if (status is MaaJobStatus.Failed or MaaJobStatus.Invalid)\n                {\n                    return status;\n                }\n",
+  "replace": "                // 上一帧已结束：若失败，先向调用方上报（仅一次），随后替换为新的在途任务\n                _liveViewScreencapJob = null;\n                if (status is MaaJobStatus.Failed or MaaJobStatus.Invalid)\n                {\n                    return status;\n                }\n                // A queued or pending capture is not evidence of recovery.\n                // Reset only when a completed capture actually succeeded.\n                if (status == MaaJobStatus.Succeeded)\n                    ResetActionFailedCount();\n"
+}

@@ -22,6 +22,42 @@ def doc(actions=None, duration=1000, **extra):
 
 
 class LegacyFormatTests(unittest.TestCase):
+    def test_recording_end_tracks_duration_and_allows_shortening_tail(self):
+        original = doc(editor={'markers': [
+            {'at_ms': 1000, 'label': '暂停录制'},
+            {'at_ms': 1000, 'label': '录制停止'}]})
+        shorter = original.set_duration(400)
+        self.assertEqual(shorter.duration_ms, 400)
+        self.assertEqual([m['at_ms'] for m in shorter.snapshot()['markers']], [400, 400])
+        longer = shorter.set_duration(2000)
+        self.assertEqual([m['at_ms'] for m in longer.snapshot()['markers']], [2000, 2000])
+        self.assertEqual(longer.snapshot()['events'], original.snapshot()['events'])
+        self.assertEqual(RecordingDocument.from_dict(longer.to_dict()).duration_ms, 2000)
+        stop = next(m for m in longer.snapshot()['markers'] if m['label'] == '录制停止')
+        moved = longer.edit(stop['id'], {'start_ms': 500})
+        self.assertEqual(moved.duration_ms, 500)
+        self.assertTrue(all(m['at_ms'] == 500 for m in moved.snapshot()['markers']))
+        extended = moved.insert({'kind': 'key', 'key': 65, 'start_ms': 2500})
+        self.assertEqual(extended.duration_ms, 2500)
+        self.assertTrue(all(m['at_ms'] == 2500 for m in extended.snapshot()['markers']))
+
+    def test_stale_legacy_stop_marker_uses_current_endpoint_without_losing_origin(self):
+        original = doc(duration=2000, editor={'markers': [{'at_ms': 1000, 'label': '录制停止'}]})
+        marker = original.snapshot()['markers'][0]
+        self.assertEqual(marker['at_ms'], 2000)
+        self.assertEqual(marker['recorded_at_ms'], 1000)
+
+    def test_duration_edit_preserves_events_and_rejects_cutting_them(self):
+        original = doc()
+        shorter = original.set_duration(300)
+        self.assertEqual(shorter.snapshot()['duration_ms'], 300)
+        self.assertEqual(shorter.snapshot()['events'], original.snapshot()['events'])
+        self.assertEqual(original.snapshot()['duration_ms'], 1000)
+        self.assertEqual(RecordingDocument.from_dict(shorter.to_dict()).duration_ms, 300)
+        with self.assertRaises(ValueError): original.set_duration(299)
+        with self.assertRaises(ValueError): original.add_marker(900, '末尾').set_duration(800)
+        self.assertEqual(shorter.set_duration(2000).duration_ms, 2000)
+
     def test_all_atomic_legacy_actions_and_extensions_roundtrip_exactly(self):
         raw = dict(version=1,name="旧格式",base=[1147,720], recorded_at="before",
                    custom=dict(nested=[1,2]), actions=[

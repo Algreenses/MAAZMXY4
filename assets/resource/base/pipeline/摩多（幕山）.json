@@ -2,7 +2,7 @@
   "摩多（幕山）-刷取次数": {
     "post_delay": 1000,
     "next": [
-      "摩多（幕山）-点击幕山"
+      "摩多（幕山）-准备本轮"
     ],
     "$__mpe_code": {
       "position": {
@@ -43,68 +43,44 @@
         }
       }
     },
-    "post_delay": 1000,
+    "post_delay": 0,
     "next": [
-      "摩多（幕山）-点击设置"
+      "摩多（幕山）-回放后分流"
     ],
     "$__mpe_code": {
       "position": {
         "x": 320,
         "y": 103
       }
-    }
+    },
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
   },
   "摩多（幕山）-点击场外": {
-    "pre_delay": 0,
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          194,
-          571,
-          1,
-          1
-        ]
-      }
+    "recognition": {
+      "type": "DirectHit"
     },
-    "post_delay": 1000,
+    "action": {
+      "type": "DoNothing"
+    },
     "next": [
-      "摩多（幕山）-点击幕山"
+      "摩多（幕山）-失败"
     ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1600,
-        "y": 119
-      }
-    }
+    "post_delay": 0
   },
   "摩多（幕山）-点击幕山": {
     "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "幕山.png"
-        ]
-      }
+      "type": "DirectHit"
     },
-    "pre_delay": 80,
     "action": {
-      "type": "Click"
+      "type": "DoNothing"
     },
-    "post_delay": 1000,
-    "timeout": 10000,
     "next": [
-      "摩多（幕山）-识别幕山场景"
+      "摩多（幕山）-刷取次数"
     ],
-    "on_error": [
-      "摩多（幕山）-点击场外"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    }
+    "timeout": 10000,
+    "post_delay": 0
   },
   "摩多（幕山）-点击设置": {
     "recognition": {
@@ -121,6 +97,8 @@
     },
     "timeout": 8000,
     "next": [
+      "摩多（幕山）-战斗失败",
+      "摩多（幕山）-成功返回地图",
       "摩多（幕山）-返回地图"
     ],
     "$__mpe_code": {
@@ -129,7 +107,10 @@
         "y": 93
       }
     },
-    "post_delay": 1000
+    "post_delay": 1000,
+    "on_error": [
+      "摩多（幕山）-退出结果复核"
+    ]
   },
   "摩多（幕山）-识别幕山场景": {
     "recognition": {
@@ -147,7 +128,7 @@
       "摩多（幕山）-回放战斗"
     ],
     "on_error": [
-      "摩多（幕山）-点击场外"
+      "摩多（幕山）-失败"
     ],
     "$__mpe_code": {
       "position": {
@@ -170,8 +151,7 @@
     },
     "timeout": 10000,
     "next": [
-      "摩多（幕山）-刷取次数",
-      "停止运行"
+      "摩多（幕山）-脚本返回确认"
     ],
     "$__mpe_code": {
       "position": {
@@ -197,8 +177,383 @@
     "pre_delay": 300,
     "post_delay": 0,
     "next": [
+      "摩多（幕山）-本轮成功"
+    ]
+  },
+  "摩多（幕山）-关卡入口": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "幕山.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "摩多（幕山）-识别幕山场景"
+    ],
+    "on_error": [
+      "摩多（幕山）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "摩多（幕山）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-a6d033b0de18710531a9524e34afbdde",
+          "playback_node": "摩多（幕山）-回放战斗",
+          "exit_mode": "battle_only",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "摩多（幕山）-关卡入口",
+            "label": "摩多（幕山）"
+          },
+          "navigation_entry": "摩多（幕山）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "摩多（幕山）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "摩多（幕山）-已确认战斗成功"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "route_node": "摩多（幕山）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "摩多（幕山）-战斗失败",
+              "摩多（幕山）-成功返回地图",
+              "摩多（幕山）-脚本返回确认"
+            ],
+            "battle_only": [
+              "摩多（幕山）-战斗失败",
+              "摩多（幕山）-成功返回地图",
+              "摩多（幕山）-点击设置"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "摩多（幕山）-通用导航"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "摩多（幕山）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "摩多（幕山）-关卡入口"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-回放后分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "摩多（幕山）-战斗失败",
+      "摩多（幕山）-成功返回地图",
+      "摩多（幕山）-点击设置"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-战斗失败": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "摩多（幕山）-失败返回地图",
+      "摩多（幕山）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "摩多（幕山）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "摩多（幕山）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "摩多（幕山）-脚本返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "幕山.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
+  },
+  "摩多（幕山）-本轮成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "next": [
       "摩多（幕山）-刷取次数",
       "停止运行"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "摩多（幕山）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "摩多（幕山）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "摩多（幕山）-战斗失败",
+      "摩多（幕山）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "摩多（幕山）-失败返回地图",
+      "摩多（幕山）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "摩多（幕山）-失败"
+    ]
+  },
+  "摩多（幕山）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "摩多（幕山）-成功返回地图",
+      "摩多（幕山）-脚本返回确认"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "摩多（幕山）-失败"
     ]
   }
 }

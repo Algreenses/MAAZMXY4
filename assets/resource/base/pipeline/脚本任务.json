@@ -5,7 +5,11 @@
       "param": {
         "custom_action": "script_task_state",
         "custom_action_param": {
-          "phase": "configuration"
+          "phase": "configuration",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          }
         }
       }
     }

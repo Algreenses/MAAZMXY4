@@ -8,6 +8,9 @@ on:
       - 'tests/**'
       - 'tools/build_frontend.ps1'
       - 'tools/migrate_zaomeng_scripts.py'
+      - 'tools/import_navigation_library.py'
+      - 'tools/configure_task_navigation.py'
+      - 'tools/navigation_privacy_masks.json'
       - 'tools/sync_task_assets.py'
       - 'tools/build_update.py'
       - 'tools/build_release.py'
@@ -33,6 +36,14 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Live-view connection and completed-frame failure regression
+        env:
+          LIVEVIEW_PATCH_TESTS: '1'
+        run: python -m unittest discover -s tests -p "test_liveview_patch.py" -v
+      - name: Agent process ownership and cleanup regression
+        env:
+          AGENT_CLEANUP_PATCH_TESTS: '1'
+        run: python -m unittest discover -s tests -p "test_agent_cleanup_patch.py" -v
       - name: Native task recovery policy checks without processes or input
         shell: pwsh
         run: dotnet run --project frontend/tests/NativeRecovery/NativeRecovery.csproj -c Release

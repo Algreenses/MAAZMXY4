@@ -6,6 +6,7 @@ pins the saved library file and its hash in memory; the next round resolves the
 current binding again. The front end owns bounded process recovery.
 """
 import hashlib
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,10 @@ from maa.custom_action import CustomAction
 
 from script_library import resolve_recording_reference
 from script_studio.model import MAX_FILE_BYTES, RecordingDocument
+from task_catalog import custom_parameters
+from navigation.catalog import task_graph
+from navigation import NavigationError
+from navigation.runtime import GraphNavigator
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -180,10 +185,27 @@ def _override(context, patch):
 
 def begin_round(context, parameters, state):
     _check(context)
+    parameters = deepcopy(parameters)
+    if parameters.get('navigation') is not None:
+        # The option editor already merges overrides. Read that same native
+        # node; do not invent a second options store or a task-name whitelist.
+        settings = context.get_node_data(parameters.get('settings_node', '脚本任务设置'))
+        for key, value in custom_parameters(settings or {}).items():
+            if key in ('exit_mode', 'failure_retry', 'recovery'):
+                parameters[key] = deepcopy(value)
     reference = parameters.get('file', '@task')
     if reference == '@task':
         reference = '@task:' + parameters['task_binding_id']
+    playback_node = parameters.get('playback_node')
+    if parameters.get('navigation') is not None and isinstance(playback_node, str):
+        prepared = custom_parameters(context.get_node_data(playback_node) or {})
+        if prepared.get('file'):
+            reference = prepared['file']
+    else:
+        prepared = {}
     recording = inspect_recording(reference)
+    if prepared.get('expected_sha256') is not None and prepared['expected_sha256'] != recording['sha256']:
+        raise RecordingChanged('本轮脚本在任务准备后已修改，未开始导航。')
     filename = Path(recording['path']).name
     expected_file = parameters.get('expected_recording_file')
     expected_hash = parameters.get('expected_recording_sha256')
@@ -191,7 +213,17 @@ def begin_round(context, parameters, state):
         if expected_file != filename or expected_hash != recording['sha256']:
             raise RecordingChanged('本轮绑定或脚本已修改，自动恢复不会切换到另一份录制。')
     state.update(recording=recording, reference=reference, recording_file=filename,
-                 recording_sha256=recording['sha256'])
+                 recording_sha256=recording['sha256'], parameters=parameters,
+                 failure_retries=0, battle_failed=False)
+    policy = parameters.get('failure_retry', {})
+    if not isinstance(policy, dict) or type(policy.get('enabled', False)) is not bool:
+        raise ValueError('失败自动重试配置无效。')
+    retries = policy.get('max_retries', 3)
+    if isinstance(retries, str) and retries.isascii() and retries.isdecimal():
+        retries = int(retries)
+    if type(retries) is not int or not 0 <= retries <= 20:
+        raise ValueError('每轮失败重试次数必须为0～20；0表示不自动重开。')
+    state['failure_retry'] = dict(enabled=policy.get('enabled', False) and retries > 0, max_retries=retries)
     routes = parameters.get('routes', {})
     mode = parameters.get('exit_mode', next(iter(routes), None))
     if routes and mode not in routes:
@@ -202,10 +234,16 @@ def begin_round(context, parameters, state):
         raise ValueError('脚本与当前720截图尺寸不一致，请使用相同游戏布局重新录制。')
     playback = dict(file=recording['path'], expected_sha256=recording['sha256'],
                     strict_task=True, expected_short_side=720, expected_base=recording['base'], speed=1)
-    playback_node = parameters.get('playback_node')
     if not isinstance(playback_node, str) or not playback_node:
         raise ValueError('任务缺少脚本回放节点配置。')
     patch = {playback_node: {'action': {'param': {'custom_action_param': playback}}}}
+    guard = parameters.get('result_guard')
+    if guard is not None:
+        playback['result_guard'] = deepcopy(guard)
+        default_next = ([parameters['route_node']] if parameters.get('route_node') else
+                        context.get_node_data(playback_node).get('next', []))
+        playback['result_guard']['default_next'] = deepcopy(default_next)
+        patch[playback_node]['next'] = deepcopy(default_next)
     if routes:
         route_node = parameters.get('route_node')
         targets = routes[mode]
@@ -214,6 +252,52 @@ def begin_round(context, parameters, state):
         patch[route_node] = {'next': targets}
     _override(context, patch)
     write_status(state, 'running', 'round_started', file=Path(recording['path']).name, exit_mode=mode)
+
+
+def _navigator(context, state, *, targets=None):
+    graph = task_graph(context, state['parameters'], targets=targets)
+    return GraphNavigator(context, graph, capture=lambda: capture(context),
+        check=lambda: _check(context), log=lambda message: print('[navigation] ' + message, flush=True))
+
+
+def navigate_round(context, state):
+    _check(context)
+    current = inspect_recording(state['reference'])
+    if current['path'] != state['recording']['path'] or current['sha256'] != state['recording']['sha256']:
+        raise RecordingChanged('本轮重试期间录制已改变，未开始下一次回放。')
+    return _navigator(context, state).run()
+
+
+def confirm_return(context, state):
+    allowed = ['task_map', 'map_a', 'map_b']
+    if state['parameters'].get('navigation', {}).get('kind') == 'stage':
+        allowed.append('task_destination')
+    actual = _navigator(context, state, targets=allowed).locate()
+    if actual not in allowed:
+        raise ValueError('尚未确认返回地图，本轮不计次也不重试。')
+
+
+def retry_failed_round(context, state, node_name):
+    _check(context)
+    if not state.get('battle_failed'):
+        raise ValueError('没有已确认的挑战失败，不执行失败重试。')
+    confirm_return(context, state)
+    policy = state['failure_retry']
+    if not policy['enabled']:
+        write_status(state, 'fatal', 'battle_failed', message='挑战失败，已返回地图；失败自动重试已关闭，本轮未计次。')
+        return False
+    if state['failure_retries'] >= policy['max_retries']:
+        write_status(state, 'fatal', 'battle_retry_exhausted', message='挑战失败重试次数已用尽，本轮未计次。')
+        return False
+    next_node = state['parameters'].get('navigation_entry')
+    if not isinstance(next_node, str) or not next_node or not context.override_next(node_name, [next_node]):
+        raise ValueError('缺少本轮导航重试入口。')
+    state['failure_retries'] += 1
+    state['battle_failed'] = False
+    write_status(state, 'running', 'battle_retry',
+        message=f"失败轮次未计次，开始第{state['failure_retries']}次重试。",
+        failure_retries=state['failure_retries'])
+    return True
 
 
 def begin_recovery(context, parameters, state):
@@ -269,8 +353,23 @@ class ScriptTaskState(CustomAction):
             if state is None:
                 raise ValueError('缺少本轮初始化状态。')
             _check(context)
+            if phase == 'navigate':
+                navigate_round(context, state)
+                return True
+            if phase == 'battle_failure':
+                state['battle_failed'] = True
+                write_status(state, 'running', 'battle_failed_returning', message='识别到挑战失败，已停止录制；本次失败不计入次数。')
+                return True
+            if phase == 'retry_after_failure':
+                retry = retry_failed_round(context, state, argv.node_name)
+                terminal = not retry
+                return retry
             terminal = True
             if phase in ('success', 'ready'):
+                if phase == 'success' and state.get('battle_failed'):
+                    raise ValueError('挑战失败未结束，不得计为成功。')
+                if phase == 'success' and state['parameters'].get('navigation') is not None:
+                    confirm_return(context, state)
                 write_status(state, phase)
                 return True
             if phase == 'fatal':
@@ -289,6 +388,11 @@ class ScriptTaskState(CustomAction):
             reason = 'capture_unavailable' if isinstance(error, CaptureUnavailable) else 'recording_changed'
             if state is not None:
                 _stop_status(state, 'fatal', reason, message=str(error))
+            return False
+        except (NavigationError, TimeoutError) as error:
+            terminal = True
+            if state is not None:
+                _stop_status(state, 'fatal', 'navigation_' + getattr(error, 'reason', 'timeout'), message=str(error))
             return False
         except Exception as error:
             terminal = True

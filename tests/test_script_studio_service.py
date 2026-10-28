@@ -104,6 +104,38 @@ class ServiceTests(unittest.TestCase):
     def load(self, file="原脚本.json"):
         return self.service.dispatch("load", dict(file=file))
 
+    def test_duration_edit_undo_redo_and_save_preserve_events(self):
+        self.load()
+        self.service.dispatch('set_duration', {'duration_ms': 400})
+        self.assertEqual(self.service.document.duration_ms, 400)
+        self.service.dispatch('undo')
+        self.assertEqual(self.service.document.duration_ms, 1000)
+        self.service.dispatch('redo')
+        self.assertEqual(self.service.document.duration_ms, 400)
+        with self.assertRaises(ValueError):
+            self.service.dispatch('set_duration', {'duration_ms': 399})
+        self.service.dispatch('save')
+        saved = json.loads(self.file.read_text(encoding='utf8'))
+        self.assertEqual(saved['duration_ms'], 400)
+        self.assertEqual(saved['actions'], legacy()['actions'])
+
+    def test_duration_edit_moves_stop_markers_through_save_and_history(self):
+        raw = legacy()
+        raw['editor'] = {'markers': [{'at_ms': 1000, 'label': '暂停录制'},
+                                     {'at_ms': 1000, 'label': '录制停止'}]}
+        self.write(self.file, raw)
+        self.load()
+        self.service.dispatch('set_duration', {'duration_ms': 450})
+        self.service.dispatch('undo')
+        self.assertEqual(self.service.document.duration_ms, 1000)
+        self.service.dispatch('redo')
+        self.service.dispatch('save')
+        self.load()
+        snapshot = self.service.document.snapshot()
+        self.assertEqual(snapshot['duration_ms'], 450)
+        self.assertEqual([m['at_ms'] for m in snapshot['markers']], [450, 450])
+        self.assertEqual(self.service.document.to_dict()['actions'], raw['actions'])
+
     def edit_key(self, key=75):
         snapshot = self.service.dispatch("snapshot")
         operation = next(op for op in snapshot["operations"] if op["kind"] == "key_hold")

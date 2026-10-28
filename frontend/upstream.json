@@ -30,6 +30,13 @@
     "frontend/patches/14-shared-recording-windows.json",
     "frontend/patches/15-manual-frontend-version-check.json",
     "frontend/patches/16-manual-frontend-download.json",
-    "frontend/patches/17-manual-frontend-help.json"
+    "frontend/patches/17-manual-frontend-help.json",
+    "frontend/patches/18-liveview-connecting.json",
+    "frontend/patches/19-liveview-success-reset.json",
+    "frontend/patches/20-liveview-missing-frame-state.json",
+    "frontend/patches/21-liveview-missing-frame-warning.json",
+    "frontend/patches/22-agent-owned-process-cleanup.json",
+    "frontend/patches/23-agent-retry-process-ownership.json",
+    "frontend/patches/24-native-unlimited-brush-count.json"
   ]
 }

@@ -18,7 +18,7 @@ from uuid import uuid4
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'agent'))
 from legacy_script_bindings import plan_legacy_bindings
 from script_library import _bindings_state
-from task_catalog import _configuration, node_links
+from task_catalog import _configuration, custom_parameters, node_links
 
 SEPARATOR = '<|||>'
 MAX_JSON_BYTES = 16 * 1024 * 1024
@@ -273,18 +273,41 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None, up
         value = _json(raw)
         if not isinstance(value, dict): raise ValueError('Pipeline必须是对象。')
         pipeline_files[path] = (raw, value)
-        for node in value: node_files[node] = path
+        for node in value:
+            if node in node_files:
+                raise ValueError('Pipeline重复声明了节点：' + node)
+            node_files[node] = path
     new_nodes = {name: value for _raw, pipeline in pipeline_files.values() for name, value in pipeline.items()}
     pending = [task['entry'] for task in tasks]
     if any(entry not in node_files for entry in pending): raise ValueError('Pipeline缺少任务入口。')
     pending += [text for text in _strings([tasks, options]) if text in node_files]
-    selected_files = set()
+    selected_files, navigation_metadata = set(), {}
     while pending:
         node = pending.pop()
         path = node_files[node]
         if path in selected_files: continue
         selected_files.add(path)
         value = pipeline_files[path][1]
+        if not navigation_metadata and any(custom_parameters(definition).get('navigation') is not None
+                                           for definition in value.values() if isinstance(definition, dict)):
+            # Graph edges are selected at runtime and are not ordinary next
+            # links. Follow the packaged resource declaration as well.
+            directory = _safe(source_root, 'agent/data/navigation')
+            manifest_path = _safe(source_root, 'agent/data/navigation/resources.json')
+            manifest = _json(_read(manifest_path, source_inputs))
+            names = manifest.get('pipelines')
+            if manifest.get('version') != 1 or not isinstance(names, list) or not names:
+                raise ValueError('导航资源依赖清单无效。')
+            for name in names:
+                if not isinstance(name, str) or '/' in name or not name.endswith('.json'):
+                    raise ValueError('导航Pipeline依赖文件名无效。')
+                dependency = _safe(source_root, source_prefix+'resource/base/pipeline/'+name)
+                if dependency not in pipeline_files:
+                    raise ValueError('缺少导航Pipeline依赖：' + name)
+                pending.extend(pipeline_files[dependency][1])
+            for metadata in sorted(directory.glob('*.json')):
+                relative = metadata.relative_to(source_root).as_posix()
+                navigation_metadata[relative] = _read(_safe(source_root, relative), source_inputs)
         for definition in value.values():
             if not isinstance(definition, dict): raise ValueError('Pipeline节点格式无效。')
             for link in node_links(new_nodes, definition):
@@ -353,6 +376,21 @@ def sync_task_assets(source_root, target_root, dry_run=True, task_names=None, up
             if raw is None or _sha(raw) != item['sha256']: raise ValueError('默认录制校验失败：' + filename)
             plan_bytes(relative, raw)
         plan_bytes('agent/recordings/manifest.json', bundle_raw)
+    for relative, raw in navigation_metadata.items():
+        _json(raw)
+        plan_bytes(relative, raw)
+    if navigation_metadata:
+        library = _json(navigation_metadata.get('agent/data/navigation/library.json'))
+        if library.get('version') != 1 or not isinstance(library.get('assets'), list):
+            raise ValueError('导航素材清单无效。')
+        for asset in library['assets']:
+            template = asset.get('path')
+            if not isinstance(template, str) or not template.startswith('navigation/'):
+                raise ValueError('导航素材必须位于独立的navigation目录。')
+            raw = _read(_safe(source_root, source_prefix+'resource/base/image/'+template), source_inputs)
+            if raw is None or _sha(raw) != asset.get('sha256'):
+                raise ValueError('导航素材校验失败：' + template)
+            plan_bytes('resource/base/image/'+template, raw)
     for path in sorted(selected_files):
         raw, pipeline = pipeline_files[path]
         plan_bytes(path.relative_to(source_root/source_prefix).as_posix(), raw)

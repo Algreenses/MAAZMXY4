@@ -43,6 +43,7 @@ public sealed class ScriptTimeline : Control
     public void Update(IReadOnlyList<StudioOperation> operations, double duration)
     {
         _operations = operations; DurationMs = duration; _hoveredId = null;
+        CursorMs = Math.Clamp(CursorMs, 0, Math.Max(0, DurationMs));
         // Retiming an operation must not move whole tracks under the pointer.
         var present = operations.Select(operation => operation.Lane).Distinct().ToList();
         _lanes.RemoveAll(lane => !present.Contains(lane));
@@ -60,7 +61,7 @@ public sealed class ScriptTimeline : Control
         if (_fitted) FitScale();
         Resize();
     }
-    public void SetCursor(double time) { CursorMs = Math.Max(0, time); InvalidateVisual(); }
+    public void SetCursor(double time) { CursorMs = Math.Clamp(time, 0, Math.Max(0, DurationMs)); InvalidateVisual(); }
     public void Fit(double width)
     {
         if (width < 150) return;
@@ -119,6 +120,11 @@ public sealed class ScriptTimeline : Control
             }
             _hits.Add((rect, operation));
         }
+        var end = Header + DurationMs / 1000 * _scale;
+        var endLabelX = Math.Max(Header + 3, end - 105);
+        context.FillRectangle(background, new Rect(endLabelX, 0, 120, Ruler));
+        context.DrawLine(new Pen(Brushes.DarkOrange, 2), new Point(end, 0), new Point(end, Height));
+        Text(context, $"结束 {DurationMs / 1000:0.000}s", endLabelX, 8, Brushes.DarkOrange, 11);
         var cursor = Header + CursorMs / 1000 * _scale;
         context.DrawLine(new Pen(new SolidColorBrush(Color.Parse("#E56766")), 2), new Point(cursor, 0), new Point(cursor, Height));
         context.FillRectangle(background, new Rect(left, 0, Header, Height));

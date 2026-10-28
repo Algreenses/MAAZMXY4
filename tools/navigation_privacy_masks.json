@@ -1,0 +1,369 @@
+{
+  "version": 1,
+  "base": [
+    1147,
+    720
+  ],
+  "frames": {
+    "capture-map-a-client": {
+      "source_sha256": "28dd43348ccba0d7c84fe14b45316fa9afa52f63786b769567cfdc8ee7c023dc",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-map-b-client": {
+      "source_sha256": "67a5c4108fd7e82d83ca4cc226a2b5eda30b7316ad6fd3977102b2af5e537207",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-activity-client": {
+      "source_sha256": "c8cfca4bbd8c794c1e26190f17f603db01c89c42d0dab37c0717cf43dcb508fa",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-profile-client": {
+      "source_sha256": "e0551b7fd5886fb352181b59780b016e7ffad27a112d6c193b2842059362eef7",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ],
+        [
+          245,
+          110,
+          180,
+          37
+        ]
+      ]
+    },
+    "capture-treasure-client": {
+      "source_sha256": "69b916479a60d3485bc9bfd4553fd74f1a242335b861165411e9a7350e536df1",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-shop-client": {
+      "source_sha256": "e04d3e6d6919b9fe9560633b4dd284f7bbe15d2abdb276f112086b2cbae2205d",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-time-boat-client": {
+      "source_sha256": "3e53b84482d0afea7a410b26f53a37a8e5a94a2d5b32b620a58a714f671de2fd",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-time-replay-1-client": {
+      "source_sha256": "38788bdf31ca48e23dfa353a1089b58da4e06526d7a89f636e920b6af5e4e4ce",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-time-replay-2-client": {
+      "source_sha256": "69ee341d87a7de3ffa4f3deafd2a0f34fd91aa33e1928bf2650ce14479326224",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-daily-expanded-client": {
+      "source_sha256": "2bc4c2dd0d19ddb4a7f996bca5336270b5cffc49765b9eb6620e2c2e416802e4",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-theme-client": {
+      "source_sha256": "9228a8ad59d94c54a176bff417159511c054729991a70e62c8e43aa95cffbad2",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-defend-south-client": {
+      "source_sha256": "e879bb9788ed00edb41a2fb68c30d2a53fc07accf4b396085db0bc1464810683",
+      "boxes": [
+        [
+          90,
+          456,
+          180,
+          24
+        ]
+      ]
+    },
+    "capture-defend-east-client": {
+      "source_sha256": "5dd545f32c16bd36c969b8e3652d0916841f9bab6a6e1c45c3d549970b2e4922",
+      "boxes": [
+        [
+          90,
+          456,
+          180,
+          24
+        ]
+      ]
+    },
+    "capture-defend-north-client": {
+      "source_sha256": "974310411dc6a126e74625830fa5a76c2c2896bb3324e11d85cb1a472631983b",
+      "boxes": [
+        [
+          90,
+          456,
+          180,
+          24
+        ]
+      ]
+    },
+    "capture-hell-client": {
+      "source_sha256": "1603643af544b20edb28f58ac050203b2ed0ff4d4b139c007a17dde347a590f9",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-arhat-client": {
+      "source_sha256": "4ae702b6ed3d149b8079c925eee07269f345ede18ca8e99c2dece8e0c6ccd22e",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-fortune-client": {
+      "source_sha256": "d6b71c30b53d0e0c4f51d3a683ddf11d7ddf6bbb1e22923489a19bad23c6e062",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-bounty-client": {
+      "source_sha256": "bc93f924cdda29290ef617596c759c215dacd55c590b87e2622bca48769f3ba2",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-alliance-contribution-client": {
+      "source_sha256": "86836b6b1d7894f204309ce16948bbdafbfff32016aed1ce4d536749446bca05",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-alliance-blessing-client": {
+      "source_sha256": "5cbf2d0cecdfddd315d78ca0866f68977b28d5caf4efcf55d4a7a270879ffadc",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-alliance-blessing-selected-client": {
+      "source_sha256": "b4575ebb43bd2a3aa228bf58b9f6e0bd8b5dada36337f84fe0b134c556e4f1dc",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-mount-gather-client": {
+      "source_sha256": "2b246037d89e6a0652d84864ab07a2c5cb1a74f2ffb65478e3d3326fb50e97cd",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-profile-hub-client": {
+      "source_sha256": "627f2389b4eabaed3de7912279c8c6da56ceb4507641e1db2c66266be4389df6",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ],
+        [
+          245,
+          110,
+          180,
+          37
+        ]
+      ]
+    },
+    "capture-profile-sell-client": {
+      "source_sha256": "cd4fadb69223474462c45b0ce6c1dc5337b9c4e375f7a7ab16b86eb6ad62991f",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ],
+        [
+          245,
+          110,
+          180,
+          37
+        ]
+      ]
+    },
+    "capture-warehouse-client": {
+      "source_sha256": "5b2328bc5ccb28e18a79a3b3e5188a4a6bb9dfec888300f3f8352bf38de101be",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-settings-menu-client": {
+      "source_sha256": "30c95e38215b5b5f092720aecce9e1c998bf322d3d31231783138b9258d4b0c5",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-activity-claimable-client": {
+      "source_sha256": "de9cac448cb9450f1d54b82219ace23b29ce69b6d6e457022fa94fb7020eaef8",
+      "boxes": [
+        [
+          90,
+          447,
+          180,
+          29
+        ]
+      ]
+    },
+    "capture-arena-client": {
+      "source_sha256": "eb63f3d30b8d4623ca0cda3cf51408149b7d82e209cad4eeca0e8d722f5232ca",
+      "boxes": [
+        [
+          100,
+          240,
+          170,
+          40
+        ],
+        [
+          325,
+          365,
+          760,
+          39
+        ]
+      ]
+    },
+    "capture-alliance-client": {
+      "source_sha256": "94081c3254bde3f8b16ea39ba429f44dffb97c7fb4548f1e0388c6e462c9d1ba",
+      "boxes": [
+        [
+          194,
+          170,
+          205,
+          80
+        ],
+        [
+          460,
+          160,
+          555,
+          120
+        ]
+      ]
+    },
+    "capture-saves-client": {
+      "source_sha256": "5d47a43d6ca95dac4068af69607dd8d273d98ce6f0479385faed5ff2e56f6b0f",
+      "boxes": [
+        [
+          330,
+          218,
+          210,
+          33
+        ]
+      ]
+    }
+  }
+}

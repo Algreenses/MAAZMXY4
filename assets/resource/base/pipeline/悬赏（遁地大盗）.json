@@ -2,7 +2,7 @@
   "悬赏（遁地大盗）-刷取次数": {
     "post_delay": 1000,
     "next": [
-      "悬赏（遁地大盗）-点击任务"
+      "悬赏（遁地大盗）-准备本轮"
     ],
     "$__mpe_code": {
       "position": {
@@ -43,16 +43,19 @@
         }
       }
     },
-    "post_delay": 1000,
+    "post_delay": 0,
     "next": [
-      "悬赏（遁地大盗）-点击设置"
+      "悬赏（遁地大盗）-回放后分流"
     ],
     "$__mpe_code": {
       "position": {
         "x": 0,
         "y": 248
       }
-    }
+    },
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
   },
   "悬赏（遁地大盗）-成功进入遁地大盗关卡": {
     "recognition": {
@@ -100,7 +103,7 @@
       }
     },
     "on_error": [
-      "悬赏（遁地大盗）-刷取次数"
+      "悬赏（遁地大盗）-通用导航"
     ]
   },
   "悬赏（遁地大盗）-点击前往副本": {
@@ -108,12 +111,80 @@
       "type": "And",
       "param": {
         "all_of": [
-          { "recognition": { "type": "OCR", "param": { "expected": ["^前往副本$"], "roi": [480, 550, 350, 100] } } },
-          { "recognition": { "type": "OCR", "param": { "expected": ["^遁地大[盗盜]$"], "roi": [500, 165, 430, 75] } } },
-          { "recognition": { "type": "Or", "param": { "any_of": [
-            { "recognition": { "type": "OCR", "param": { "expected": ["^已接受$"], "roi": [200, 195, 320, 85] } } },
-            { "recognition": { "type": "OCR", "param": { "expected": ["^已[接搜]受$"], "roi": [420, 220, 66, 40], "only_rec": true } } }
-          ] } } }
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^前往副本$"
+                ],
+                "roi": [
+                  480,
+                  550,
+                  350,
+                  100
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^遁地大[盗盜]$"
+                ],
+                "roi": [
+                  500,
+                  165,
+                  430,
+                  75
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          200,
+                          195,
+                          320,
+                          85
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          420,
+                          220,
+                          66,
+                          40
+                        ],
+                        "only_rec": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
         ],
         "box_index": 0
       }
@@ -172,6 +243,8 @@
     },
     "timeout": 8000,
     "next": [
+      "悬赏（遁地大盗）-战斗失败",
+      "悬赏（遁地大盗）-成功返回地图",
       "悬赏（遁地大盗）-返回地图"
     ],
     "$__mpe_code": {
@@ -180,7 +253,10 @@
         "y": 58
       }
     },
-    "post_delay": 1000
+    "post_delay": 1000,
+    "on_error": [
+      "悬赏（遁地大盗）-退出结果复核"
+    ]
   },
   "悬赏（遁地大盗）-返回地图": {
     "recognition": {
@@ -196,8 +272,7 @@
     },
     "timeout": 10000,
     "next": [
-      "悬赏（遁地大盗）-刷取次数",
-      "停止运行"
+      "悬赏（遁地大盗）-脚本返回确认"
     ],
     "$__mpe_code": {
       "position": {
@@ -223,8 +298,354 @@
     "pre_delay": 300,
     "post_delay": 0,
     "next": [
+      "悬赏（遁地大盗）-本轮成功"
+    ]
+  },
+  "悬赏（遁地大盗）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-1a8c308b34915cf0f660aed26af263ca",
+          "playback_node": "悬赏（遁地大盗）-回放战斗",
+          "exit_mode": "battle_only",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "悬赏（遁地大盗）-点击前往副本",
+            "label": "悬赏（遁地大盗）",
+            "title": "遁地大盗"
+          },
+          "navigation_entry": "悬赏（遁地大盗）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "悬赏（遁地大盗）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "悬赏（遁地大盗）-已确认战斗成功"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "route_node": "悬赏（遁地大盗）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "悬赏（遁地大盗）-战斗失败",
+              "悬赏（遁地大盗）-成功返回地图",
+              "悬赏（遁地大盗）-脚本返回确认"
+            ],
+            "battle_only": [
+              "悬赏（遁地大盗）-战斗失败",
+              "悬赏（遁地大盗）-成功返回地图",
+              "悬赏（遁地大盗）-点击设置"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-通用导航"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（遁地大盗）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-点击前往副本"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-回放后分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（遁地大盗）-战斗失败",
+      "悬赏（遁地大盗）-成功返回地图",
+      "悬赏（遁地大盗）-点击设置"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-战斗失败": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-失败返回地图",
+      "悬赏（遁地大盗）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "悬赏（遁地大盗）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-脚本返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
+  },
+  "悬赏（遁地大盗）-本轮成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "next": [
       "悬赏（遁地大盗）-刷取次数",
       "停止运行"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（遁地大盗）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "悬赏（遁地大盗）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（遁地大盗）-战斗失败",
+      "悬赏（遁地大盗）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-失败返回地图",
+      "悬赏（遁地大盗）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（遁地大盗）-成功返回地图",
+      "悬赏（遁地大盗）-脚本返回确认"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
     ]
   }
 }

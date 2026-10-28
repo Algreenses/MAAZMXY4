@@ -23,10 +23,14 @@
           "routes": {
             "recorded_return": [
               "悬赏（守卫宝烛）-阻断提示",
+              "悬赏（守卫宝烛）-战斗失败",
+              "悬赏（守卫宝烛）-成功返回地图",
               "悬赏（守卫宝烛）-等待返回"
             ],
             "battle_only": [
               "悬赏（守卫宝烛）-阻断提示",
+              "悬赏（守卫宝烛）-战斗失败",
+              "悬赏（守卫宝烛）-成功返回地图",
               "悬赏（守卫宝烛）-点击设置"
             ]
           },
@@ -34,12 +38,32 @@
             "binding_id": "bounty-candle",
             "resume_entry": "悬赏（守卫宝烛）-恢复登录",
             "settings_node": "脚本任务设置"
+          },
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "悬赏（守卫宝烛）-点击前往副本",
+            "label": "悬赏（守卫宝烛）",
+            "title": "守卫宝烛"
+          },
+          "navigation_entry": "悬赏（守卫宝烛）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "悬赏（守卫宝烛）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "悬赏（守卫宝烛）-已确认战斗成功"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
           }
         }
       }
     },
     "next": [
-      "悬赏（守卫宝烛）-定位"
+      "悬赏（守卫宝烛）-通用导航"
     ],
     "timeout": 10000,
     "post_delay": 0,
@@ -239,7 +263,7 @@
       "悬赏（守卫宝烛）-点击悬赏任务"
     ],
     "on_error": [
-      "悬赏（守卫宝烛）-失败"
+      "悬赏（守卫宝烛）-通用导航"
     ]
   },
   "悬赏（守卫宝烛）-点击悬赏任务": {
@@ -310,8 +334,15 @@
                     "recognition": {
                       "type": "OCR",
                       "param": {
-                        "expected": ["^已接受$"],
-                        "roi": [200, 195, 320, 85]
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          200,
+                          195,
+                          320,
+                          85
+                        ]
                       }
                     }
                   },
@@ -319,8 +350,15 @@
                     "recognition": {
                       "type": "OCR",
                       "param": {
-                        "expected": ["^已[接搜]受$"],
-                        "roi": [420, 220, 66, 40],
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          420,
+                          220,
+                          66,
+                          40
+                        ],
                         "only_rec": true
                       }
                     }
@@ -522,7 +560,7 @@
       "悬赏（守卫宝烛）-回放后分流"
     ],
     "timeout": 10000,
-    "post_delay": 1000,
+    "post_delay": 0,
     "on_error": [
       "悬赏（守卫宝烛）-失败"
     ]
@@ -535,9 +573,12 @@
       "type": "DoNothing"
     },
     "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-战斗失败",
+      "悬赏（守卫宝烛）-成功返回地图",
       "悬赏（守卫宝烛）-等待返回"
     ],
-    "timeout": 10000,
+    "timeout": 15000,
     "post_delay": 0,
     "on_error": [
       "悬赏（守卫宝烛）-失败"
@@ -728,12 +769,15 @@
       }
     },
     "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-战斗失败",
+      "悬赏（守卫宝烛）-成功返回地图",
       "悬赏（守卫宝烛）-返回地图"
     ],
     "timeout": 8000,
     "post_delay": 1000,
     "on_error": [
-      "悬赏（守卫宝烛）-失败"
+      "悬赏（守卫宝烛）-退出结果复核"
     ]
   },
   "悬赏（守卫宝烛）-返回地图": {
@@ -1481,5 +1525,242 @@
     "next": [],
     "timeout": 10000,
     "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-点击前往副本"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-战斗失败": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-失败返回地图",
+      "悬赏（守卫宝烛）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-等待返回"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
+  },
+  "悬赏（守卫宝烛）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-战斗失败",
+      "悬赏（守卫宝烛）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "悬赏（守卫宝烛）-失败返回地图",
+      "悬赏（守卫宝烛）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（守卫宝烛）-成功返回地图",
+      "悬赏（守卫宝烛）-等待返回"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
   }
 }

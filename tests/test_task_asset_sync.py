@@ -1,5 +1,6 @@
 """Native task installation touches only owned task/resource paths."""
 from copy import deepcopy
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -20,6 +21,34 @@ OLD_ENTRY = 'OldEntry'
 PIPELINE_FILE = 'test.json'
 
 class TaskAssetSyncTests(unittest.TestCase):
+    def test_runtime_navigation_dependencies_and_library_are_installed_atomically(self):
+        path = self.source/('assets/resource/base/pipeline/'+PIPELINE_FILE)
+        pipeline = self.read(path)
+        pipeline[ENTRY]['action'] = dict(type='Custom', param=dict(custom_action='script_task_state',
+            custom_action_param=dict(phase='begin', navigation=dict(kind='stage'))))
+        self.write(path, pipeline)
+        self.write(self.source/'agent/data/navigation/resources.json', dict(version=1, pipelines=['navigation.json','outcomes.json']))
+        self.write(self.source/'agent/data/navigation/graph.json', dict(version=1, targets=['map']))
+        self.write(self.source/'assets/resource/base/pipeline/navigation.json', {'Nav':dict(next=['Shared'])})
+        self.write(self.source/'assets/resource/base/pipeline/outcomes.json', {'Shared':dict(action=dict(type='DoNothing'))})
+        raw = b'library-only crop'
+        self.bytes(self.source/'assets/resource/base/image/navigation/unused-in-current-graph.png', raw)
+        self.write(self.source/'agent/data/navigation/library.json', dict(version=1, assets=[dict(
+            path='navigation/unused-in-current-graph.png', sha256=hashlib.sha256(raw).hexdigest())]))
+        sync.sync_task_assets(self.source, self.target, dry_run=False)
+        self.assertTrue((self.target/'resource/base/pipeline/navigation.json').is_file())
+        self.assertTrue((self.target/'resource/base/pipeline/outcomes.json').is_file())
+        self.assertEqual((self.target/'resource/base/image/navigation/unused-in-current-graph.png').read_bytes(),raw)
+        self.assertTrue((self.target/'agent/data/navigation/graph.json').is_file())
+        self.assertEqual(sync.sync_task_assets(self.source,self.target)['changes'], [])
+
+    def test_duplicate_pipeline_node_is_rejected_before_writing(self):
+        self.write(self.source/'assets/resource/base/pipeline/duplicate.json', {ENTRY:dict(next=[])})
+        before = self.snapshot()
+        with self.assertRaisesRegex(ValueError, '重复声明'):
+            sync.sync_task_assets(self.source,self.target,dry_run=False)
+        self.assertEqual(before, self.snapshot())
+
     def test_installed_client_layout_can_migrate_an_old_install_without_assets(self):
         self.prepare_legacy_recording()
         shutil.copytree(self.source/'assets/resource',self.source/'resource')

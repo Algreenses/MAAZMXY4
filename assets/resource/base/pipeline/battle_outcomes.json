@@ -1,0 +1,428 @@
+{
+  "Result_Failed": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_FailedReturn": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 500
+  },
+  "Result_Succeeded": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/succeeded-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_SucceededReturn": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 500
+  },
+  "Nav_TaskMap": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_QuestPanel": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^任务$"
+                ],
+                "roi": [
+                  450,
+                  20,
+                  280,
+                  100
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "悬赏任务"
+                ],
+                "roi": [
+                  180,
+                  85,
+                  500,
+                  100
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_AcceptedBounties": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "完成悬赏任务"
+        ],
+        "roi": [
+          180,
+          130,
+          350,
+          100
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_OpenQuest": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "任务.png"
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_PausedTaskMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "bounty-candle/pause.png",
+                  "bounty-candle/pause-cloudy.png",
+                  "navigation/panels/daily-pause-caption.png"
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_ResumeTaskMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "bounty-candle/pause.png",
+                  "bounty-candle/pause-cloudy.png",
+                  "navigation/panels/daily-pause-caption.png"
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_SelectBountyTab": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "^悬赏任务$"
+        ],
+        "roi": [
+          180,
+          85,
+          500,
+          100
+        ]
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  },
+  "Nav_BlockedDialog": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "验证码|请输入密码|账号密码登录|扫码登录|背包已满|网络连接.*断|连接.*失败|余额不足"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Nav_CloseQuest": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/panels/quest-close.png",
+                "roi": [
+                  860,
+                  20,
+                  180,
+                  150
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^任务$"
+                        ],
+                        "roi": [
+                          450,
+                          20,
+                          280,
+                          100
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "悬赏任务"
+                        ],
+                        "roi": [
+                          180,
+                          85,
+                          500,
+                          100
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 350
+  }
+}

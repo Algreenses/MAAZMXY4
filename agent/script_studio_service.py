@@ -362,6 +362,8 @@ class StudioService:
             self.capture.start(int(params["hwnd"]), countdown_seconds=int(params.get("countdown_seconds", 3)))
             return self.capture.snapshot()
         document = self.require_document()
+        if method == "set_duration":
+            return self.replace(document.set_duration(params["duration_ms"]))
         if method == "edit":
             return self.replace(document.edit(params["id"], params["changes"]))
         if method == "insert":

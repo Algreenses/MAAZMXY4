@@ -58,6 +58,23 @@ public sealed partial class ScriptStudioView
             _focusTimelineButton,
             new TextBlock { Text = "位置（秒）", Foreground = Brushes.LightGray, FontSize = 11, VerticalAlignment = VerticalAlignment.Center }, _cursor);
         var extras = new Button { Content = "更多", Padding = new Thickness(9, 5), MinHeight = 32, Foreground = Brushes.White, Background = new SolidColorBrush(Color.Parse("#202733")) };
+        _scriptDuration.Width = 145; _scriptDuration.Height = 32; _scriptDuration.MinHeight = 32;
+        ToolTip.SetTip(_scriptDuration, "输入总时长，点击应用时长或保存；停止标记同步移动，现有动作不会被截断。");
+        toolbar.Children.Add(new TextBlock { Text = "总时长（秒）", Foreground = Brushes.LightGray, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
+        toolbar.Children.Add(_scriptDuration);
+        var applyDuration = Button("应用时长", async () =>
+        {
+            var duration = Milliseconds(_scriptDuration);
+            if (await EnsureInspectorAsync())
+            {
+                await _vm.ChangeAsync("set_duration", new JsonObject { ["duration_ms"] = duration });
+                _status.Text = $"脚本总时长已应用：{_vm.Duration / 1000:0.000} 秒；保存后用于回放。";
+            }
+        });
+        applyDuration.Foreground = Brushes.White;
+        applyDuration.Background = new SolidColorBrush(Color.Parse("#202733"));
+        applyDuration.Padding = new Thickness(9, 5); applyDuration.MinHeight = 32;
+        _documentActions.Add(applyDuration); toolbar.Children.Add(applyDuration);
         var menu = new MenuFlyout();
         foreach (var option in new (string Label, Func<Task> Run)[] {
             ("检查脚本", ValidateAsync),

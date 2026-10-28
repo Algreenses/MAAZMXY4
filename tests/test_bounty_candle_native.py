@@ -145,6 +145,11 @@ class NativeCandleRecognitionTests(unittest.TestCase):
         frames = {name: read_png_bgr(ROOT / 'tests/fixtures/bounty-candle' / (name + '.png'))
                   for name in ('quest-map', 'quest-tab', 'quest-candle', 'candle-battle-ready', 'candle-battle-settings',
                                'login', 'saves-slot4', 'world')}
+        # This memory-controller fixture was deliberately synthetic. Include
+        # the real panel's header/tab anchors required by shared navigation;
+        # retain the synthetic candle detail to exercise its existing guards.
+        header = read_png_bgr(ROOT / 'tests/fixtures/navigation/quest-taizong-real.png')
+        frames['quest-tab'][55:175,175:980] = header[55:175,175:980]
         # Use the real, tilted status badge on an otherwise synthetic panel.
         # The actual route first scans the whole frame for blocking dialogs;
         # that OCR cache can miss the small badge and must not prevent entry.

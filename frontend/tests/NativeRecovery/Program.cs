@@ -17,6 +17,16 @@ Task<TaskAttempt> NoRecovery(int slot, int attempt, CancellationToken token) => 
 void Test(string name, Func<Task> run) => tests.Add((name, run));
 void Sync(string name, Action action) => Test(name, () => { action(); return Task.CompletedTask; });
 
+Sync("infinite brush count uses native unlimited sentinel without changing action parameters", () =>
+{
+    var result = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits("{\"loop\":{\"max_hit\":-1,\"custom_action_param\":{\"max_hit\":-1}},\"finite\":{\"max_hit\":3}}"))!;
+    Require(result["loop"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+    Require(result["finite"]!["max_hit"]!.GetValue<int>() == 3);
+    Require(result["loop"]!["custom_action_param"]!["max_hit"]!.GetValue<int>() == -1);
+    var array = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits("[{\"loop\":{\"max_hit\":-1}}]"))!;
+    Require(array[0]!["loop"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+});
+
 Test("success completes exactly one round", async () =>
 {
     var calls = 0;

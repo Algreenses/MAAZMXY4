@@ -16,68 +16,44 @@
         }
       }
     },
-    "post_delay": 1000,
+    "post_delay": 0,
     "next": [
-      "无冥（孤魂岭）-点击设置"
+      "无冥（孤魂岭）-回放后分流"
     ],
     "$__mpe_code": {
       "position": {
         "x": 320,
         "y": 103
       }
-    }
+    },
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
   },
   "无冥（孤魂岭）-点击场外": {
-    "pre_delay": 0,
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          605,
-          140,
-          36,
-          30
-        ]
-      }
+    "recognition": {
+      "type": "DirectHit"
     },
-    "post_delay": 1000,
+    "action": {
+      "type": "DoNothing"
+    },
     "next": [
-      "无冥（孤魂岭）-点击孤魂岭"
+      "无冥（孤魂岭）-失败"
     ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1600,
-        "y": 119
-      }
-    }
+    "post_delay": 0
   },
   "无冥（孤魂岭）-点击孤魂岭": {
     "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "孤魂岭.png"
-        ]
-      }
+      "type": "DirectHit"
     },
-    "pre_delay": 80,
     "action": {
-      "type": "Click"
+      "type": "DoNothing"
     },
-    "post_delay": 1000,
-    "timeout": 10000,
     "next": [
-      "无冥（孤魂岭）-识别孤魂岭场景"
+      "无冥（孤魂岭）-刷取次数"
     ],
-    "on_error": [
-      "无冥（孤魂岭）-点击场外"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 1280,
-        "y": 0
-      }
-    }
+    "timeout": 10000,
+    "post_delay": 0
   },
   "无冥（孤魂岭）-点击设置": {
     "recognition": {
@@ -94,6 +70,8 @@
     },
     "timeout": 8000,
     "next": [
+      "无冥（孤魂岭）-战斗失败",
+      "无冥（孤魂岭）-成功返回地图",
       "无冥（孤魂岭）-返回地图"
     ],
     "$__mpe_code": {
@@ -102,7 +80,10 @@
         "y": 93
       }
     },
-    "post_delay": 1000
+    "post_delay": 1000,
+    "on_error": [
+      "无冥（孤魂岭）-退出结果复核"
+    ]
   },
   "无冥（孤魂岭）-识别孤魂岭场景": {
     "recognition": {
@@ -120,7 +101,7 @@
       "无冥（孤魂岭）-回放战斗"
     ],
     "on_error": [
-      "无冥（孤魂岭）-点击场外"
+      "无冥（孤魂岭）-失败"
     ],
     "$__mpe_code": {
       "position": {
@@ -143,8 +124,7 @@
     },
     "timeout": 10000,
     "next": [
-      "无冥（孤魂岭）-刷取次数",
-      "停止运行"
+      "无冥（孤魂岭）-脚本返回确认"
     ],
     "$__mpe_code": {
       "position": {
@@ -159,7 +139,7 @@
       "type": "DirectHit"
     },
     "next": [
-      "无冥（孤魂岭）-点击孤魂岭"
+      "无冥（孤魂岭）-准备本轮"
     ],
     "post_delay": 1000,
     "action": {
@@ -194,8 +174,383 @@
     "pre_delay": 300,
     "post_delay": 0,
     "next": [
+      "无冥（孤魂岭）-本轮成功"
+    ]
+  },
+  "无冥（孤魂岭）-关卡入口": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭.png"
+        ]
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-识别孤魂岭场景"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    }
+  },
+  "无冥（孤魂岭）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-c57f88bbbb36fe7d14fc6f86fc050c7e",
+          "playback_node": "无冥（孤魂岭）-回放战斗",
+          "exit_mode": "battle_only",
+          "navigation": {
+            "kind": "stage",
+            "target_node": "无冥（孤魂岭）-关卡入口",
+            "label": "无冥（孤魂岭）"
+          },
+          "navigation_entry": "无冥（孤魂岭）-通用导航",
+          "result_guard": {
+            "failed_next": [
+              "无冥（孤魂岭）-已确认战斗失败"
+            ],
+            "succeeded_next": [
+              "无冥（孤魂岭）-已确认战斗成功"
+            ]
+          },
+          "settings_node": "脚本任务设置",
+          "failure_retry": {
+            "enabled": false,
+            "max_retries": 3
+          },
+          "route_node": "无冥（孤魂岭）-回放后分流",
+          "routes": {
+            "recorded_return": [
+              "无冥（孤魂岭）-战斗失败",
+              "无冥（孤魂岭）-成功返回地图",
+              "无冥（孤魂岭）-脚本返回确认"
+            ],
+            "battle_only": [
+              "无冥（孤魂岭）-战斗失败",
+              "无冥（孤魂岭）-成功返回地图",
+              "无冥（孤魂岭）-点击设置"
+            ]
+          }
+        }
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-通用导航"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "无冥（孤魂岭）-通用导航": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "navigate"
+        }
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-关卡入口"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-回放后分流": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "无冥（孤魂岭）-战斗失败",
+      "无冥（孤魂岭）-成功返回地图",
+      "无冥（孤魂岭）-点击设置"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-战斗失败": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "navigation/outcomes/failed-title.png",
+        "roi": [
+          200,
+          120,
+          780,
+          380
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-失败返回地图",
+      "无冥（孤魂岭）-失败返回确认"
+    ],
+    "post_delay": 0
+  },
+  "无冥（孤魂岭）-失败返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-成功返回地图": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-return.png",
+                "roi": [
+                  500,
+                  450,
+                  550,
+                  200
+                ],
+                "threshold": 0.85
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/succeeded-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-脚本返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 500,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-失败返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "retry_after_failure"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "post_delay": 0
+  },
+  "无冥（孤魂岭）-本轮成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "next": [
       "无冥（孤魂岭）-刷取次数",
       "停止运行"
+    ],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "无冥（孤魂岭）-失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "failure",
+          "reason": "任务导航、回放或返回画面未确认，本轮未计次。"
+        }
+      }
+    },
+    "next": [],
+    "timeout": 10000,
+    "post_delay": 0
+  },
+  "无冥（孤魂岭）-退出结果复核": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "无冥（孤魂岭）-战斗失败",
+      "无冥（孤魂岭）-成功返回地图"
+    ],
+    "timeout": 3000,
+    "post_delay": 0,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-已确认战斗失败": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "battle_failure"
+        }
+      }
+    },
+    "next": [
+      "无冥（孤魂岭）-失败返回地图",
+      "无冥（孤魂岭）-失败返回确认"
+    ],
+    "timeout": 10000,
+    "post_delay": 0,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-已确认战斗成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "无冥（孤魂岭）-成功返回地图",
+      "无冥（孤魂岭）-脚本返回确认"
+    ],
+    "timeout": 15000,
+    "post_delay": 0,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
     ]
   }
 }

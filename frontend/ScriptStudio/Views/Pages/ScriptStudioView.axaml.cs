@@ -37,6 +37,7 @@ public sealed partial class ScriptStudioView : UserControl
     private readonly ScriptTimeline _timeline = new();
     private readonly ScrollViewer _timelineScroll = new() { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Top };
     private readonly NumericUpDown _cursor = Number(0, 0, 604800, "0.000");
+    private readonly NumericUpDown _scriptDuration = Number(0, 0, 604800, "0.000");
     private readonly ComboBox _kind = new() { ItemsSource = new[] { "按键长按", "鼠标点击 / 拖动", "单次按键", "单次点击", "鼠标移动", "滚轮", "输入文本", "阶段标记" }, SelectedIndex = 1 };
     private readonly NumericUpDown _start = Number(0), _duration = Number(.05), _key = Number(74, 1, 255, "0"), _x = Number(0, 0, 32767, "0"), _y = Number(0, 0, 32767, "0");
     private readonly NumericUpDown _dx = Number(0, -100000, 100000, "0"), _dy = Number(1, -100000, 100000, "0");
@@ -108,6 +109,13 @@ public sealed partial class ScriptStudioView : UserControl
                 Dispatcher.UIThread.Post(FitPendingTimeline, DispatcherPriority.Background);
         };
         _cursor.ValueChanged += (_, _) => _timeline.SetCursor(Milliseconds(_cursor));
+        _scriptDuration.ValueChanged += (_, _) =>
+        {
+            if (_sync || _vm.Document == null) return;
+            _status.Text = DurationPending
+                ? $"总时长待应用：{_scriptDuration.Value:0.000} 秒；点击应用时长或保存。"
+                : $"当前脚本总时长：{_vm.Duration / 1000:0.000} 秒。";
+        };
         foreach (var number in new[] { _start, _duration, _key, _x, _y, _dx, _dy })
             number.ValueChanged += (_, _) => { if (!_sync) RefreshInspectorDirty(); };
         _button.SelectionChanged += (_, _) => { if (!_sync) RefreshInspectorDirty(); };
@@ -224,6 +232,9 @@ public sealed partial class ScriptStudioView : UserControl
         _summary.Text = _vm.Document == null ? "" : $"{_vm.Duration / 1000:0.000} 秒 · {_vm.Operations.Count} 个操作" + (_vm.Dirty ? " · 未保存" : " · 已保存");
         _diagnostics.Text = string.Join("\n", _vm.Diagnostics.Take(3));
         _timeline.Update(_vm.Operations.ToList(), _vm.Duration);
+        _scriptDuration.Value = (decimal)(_vm.Duration / 1000);
+        _cursor.Maximum = (decimal)(_vm.Duration / 1000);
+        _cursor.Value = (decimal)(_timeline.CursorMs / 1000);
         _sync = false;
         _inspectorDirty = false;
         SelectById(selectedId); FilterLibrary(); UpdateControls();
@@ -341,7 +352,21 @@ public sealed partial class ScriptStudioView : UserControl
         else BeginInsert();
         return true;
     }
-    private bool HasChanges => _vm.Dirty || RefreshInspectorDirty();
+    private bool DurationPending => _vm.Document != null && Milliseconds(_scriptDuration) != (long)Math.Round(_vm.Duration);
+    private async Task ApplyPendingEditsAsync()
+    {
+        var pendingDuration = DurationPending;
+        var requestedDuration = Milliseconds(_scriptDuration);
+        if (RefreshInspectorDirty()) await ApplyInspectorAsync();
+        if (pendingDuration)
+        {
+            // Applying operation parameters refreshes the document and controls.
+            // Preserve the separately entered total duration across that refresh.
+            _scriptDuration.Value = requestedDuration / 1000m;
+            await _vm.ChangeAsync("set_duration", new JsonObject { ["duration_ms"] = requestedDuration });
+        }
+    }
+    private bool HasChanges => _vm.Dirty || RefreshInspectorDirty() || DurationPending;
     private async Task<bool> EnsureSavedAsync()
     {
         if (!HasChanges) return true;
@@ -367,7 +392,7 @@ public sealed partial class ScriptStudioView : UserControl
     private static FilePickerFileType JsonFiles => new("录制脚本 JSON") { Patterns = new[] { "*.json" } };
     private async Task ExportAsync()
     {
-        if (RefreshInspectorDirty()) await ApplyInspectorAsync();
+        await ApplyPendingEditsAsync();
         var storage = TopLevel.GetTopLevel(this)?.StorageProvider; if (storage == null || _vm.Document == null) return;
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions { Title = "导出录制脚本", SuggestedFileName = _vm.Name + ".json", DefaultExtension = "json", FileTypeChoices = new[] { JsonFiles }, ShowOverwritePrompt = true });
         var path = file?.TryGetLocalPath(); if (path != null) { await _vm.Client.CallAsync("export", new JsonObject { ["path"] = path }); _status.Text = "脚本已导出。"; }
@@ -468,6 +493,7 @@ public sealed partial class ScriptStudioView : UserControl
         _undo.IsEnabled = editable && _vm.Document?["can_undo"]?.GetValue<bool>() == true;
         _redo.IsEnabled = editable && _vm.Document?["can_redo"]?.GetValue<bool>() == true;
         foreach (var action in _documentActions) action.IsEnabled = editable && _vm.Document != null;
+        _scriptDuration.IsEnabled = editable && _vm.Document != null;
         foreach (var action in _operationActions) action.IsEnabled = editable && _selected != null;
         _inspector.IsVisible = _selected != null || _adding;
         _emptyInspector.IsVisible = !_inspector.IsVisible;

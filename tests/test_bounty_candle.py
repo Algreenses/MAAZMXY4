@@ -55,9 +55,29 @@ class Context:
         self.tasker = SimpleNamespace(stopping=False, controller=Controller())
         self.patches = []
         self.reject = False
+        self.nodes = {}
+        for path in (ROOT/'assets/resource/base/pipeline').glob('*.json'):
+            self.nodes.update(json.loads(path.read_text(encoding='utf8')))
     def override_pipeline(self, value):
         self.patches.append(deepcopy(value))
+        if not self.reject:
+            def merge(target, patch):
+                for key, item in patch.items():
+                    if isinstance(item, dict) and isinstance(target.get(key), dict):
+                        merge(target[key], item)
+                    else:
+                        target[key] = deepcopy(item)
+            merge(self.nodes, value)
         return not self.reject
+    def get_node_data(self, name):
+        return deepcopy(self.nodes.get(name))
+    def override_next(self, name, targets):
+        return self.override_pipeline({name: {'next': targets}})
+    def run_recognition(self, name, frame):
+        if name not in self.nodes:
+            return None
+        # No desktop controller: the fixture remains on a positively known map.
+        return SimpleNamespace(hit=name in ('Nav_TaskMap', 'Nav_Probe_hub_scene'))
 
 
 PREFIX = '悬赏（守卫宝烛）-'
@@ -96,6 +116,7 @@ class BountyCandleTests(unittest.TestCase):
     def run_phase(self, phase, **parameters):
         defaults = PIPELINE[PREFIX + ('恢复登录' if phase == 'recovery_begin' else '初始化')]['action']['param']['custom_action_param']
         self.argv.custom_action_param = dict(defaults, **dict(phase=phase, run_id=self.ident, instance_id='default', **parameters))
+        self.argv.node_name = PREFIX + '失败返回确认'
         with redirect_stdout(io.StringIO()):
             return runtime.ScriptTaskState().run(self.context, self.argv)
 
@@ -104,7 +125,8 @@ class BountyCandleTests(unittest.TestCase):
 
     def test_state_action_accepts_an_unrelated_task_route_and_playback_node(self):
         self.assertTrue(self.run_phase('begin',file='one.json',playback_node='OtherPlayback',
-                        route_node='OtherRoute',exit_mode='finish',routes={'finish':['OtherExit']}))
+                        route_node='OtherRoute',exit_mode='finish',routes={'finish':['OtherExit']},
+                        navigation=None,result_guard=None))
         patch = self.context.patches[0]
         self.assertEqual(set(patch),{'OtherPlayback','OtherRoute'})
         self.assertEqual(patch['OtherRoute']['next'],['OtherExit'])
@@ -122,7 +144,8 @@ class BountyCandleTests(unittest.TestCase):
         self.assertEqual(playback['expected_sha256'], hashlib.sha256((self.recordings/'one.json').read_bytes()).hexdigest())
         self.assertTrue(playback['strict_task'])
         self.assertEqual(playback['expected_base'], [1148,720])
-        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'], [PREFIX+'阻断提示',PREFIX+'等待返回'])
+        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
+                         [PREFIX+'阻断提示', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'等待返回'])
         self.assertEqual(self.outcome()['status'], 'running')
         self.assertEqual(self.outcome()['recording_sha256'],playback['expected_sha256'])
 
@@ -132,13 +155,15 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(self.run_phase('success'))
         self.save_recording('one.json', 66)
         self.ident = str(uuid4())
+        self.context = Context()  # Maa overrides belong to one top-level task.
         self.assertTrue(self.run_phase('begin'))
         self.assertNotEqual(runtime._rounds[100]['recording']['sha256'], original)
         self.assertEqual(sorted(path.name for path in self.recordings.iterdir()), ['.bindings.json', 'one.json'])
 
     def test_battle_only_mode_uses_native_exit_and_full_mode_does_not(self):
         self.assertTrue(self.run_phase('begin',exit_mode='battle_only'))
-        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'], [PREFIX+'阻断提示',PREFIX+'点击设置'])
+        self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
+                         [PREFIX+'阻断提示', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'点击设置'])
 
     def test_missing_binding_is_fatal_without_latest_fallback_or_capture(self):
         (self.recordings/'.bindings.json').unlink()
@@ -238,6 +263,7 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(self.run_phase('success'))
         self.assertEqual(self.outcome()['recording_sha256'],first['recording_sha256'])
         self.save_recording('one.json',67)
+        self.context = Context()
         self.ident=str(uuid4())
         self.context.patches.clear()
         self.context.tasker.controller.calls=0
@@ -249,6 +275,59 @@ class BountyCandleTests(unittest.TestCase):
         self.ident=str(uuid4())
         self.assertTrue(self.run_phase('begin'))
         self.assertNotEqual(self.outcome()['recording_sha256'],first['recording_sha256'])
+
+    def test_defeat_returns_then_stops_by_default_without_success(self):
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['reason'], 'battle_failed')
+        self.assertEqual(self.outcome()['failure_retries'], 0)
+        self.assertFalse(runtime._rounds)
+
+    def test_defeat_retry_bypasses_quota_and_keeps_one_saved_revision(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': True, 'max_retries': '1'}
+        self.assertTrue(self.run_phase('begin'))
+        saved_hash = self.outcome()['recording_sha256']
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.assertTrue(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.context.patches[-1], {PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}})
+        self.assertEqual(self.outcome()['recording_sha256'], saved_hash)
+        self.assertEqual(self.outcome()['failure_retries'], 1)
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['reason'], 'battle_retry_exhausted')
+        self.assertFalse(runtime._rounds)
+
+    def test_zero_retries_disables_reopening_even_when_enabled(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': True, 'max_retries': '0'}
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        patches = len(self.context.patches)
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['reason'], 'battle_failed')
+        self.assertEqual(self.outcome()['failure_retries'], 0)
+        self.assertNotIn({PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}}, self.context.patches[patches:])
+        self.assertFalse(self.outcome()['failure_retry']['enabled'])
+
+    def test_defeat_cannot_be_reported_as_success_or_retried_on_unknown_return(self):
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.assertFalse(self.run_phase('success'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
+        with patch.object(runtime.GraphNavigator, '_settle'):
+            self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+
+    def test_editing_during_defeat_retry_cannot_switch_recording(self):
+        self.assertTrue(self.run_phase('begin'))
+        self.save_recording('one.json', 67)
+        self.assertFalse(self.run_phase('navigate'))
+        self.assertEqual(self.outcome()['reason'], 'recording_changed')
 
 
 class NativePipelineStructureTests(unittest.TestCase):
