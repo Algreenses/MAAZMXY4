@@ -44,7 +44,8 @@ def running_images():
                         result.append((entry.th32ProcessID, path.value))
                 finally:
                     api.CloseHandle(handle)
-            elif entry.szExeFile.casefold() in ('mfaavalonia.exe', 'maa造梦西游4.exe', 'python.exe', 'pythonw.exe'):
+            elif (c.get_last_error() not in (87, 1168) and
+                  entry.szExeFile.casefold() in ('mfaavalonia.exe', 'maa造梦西游4.exe', 'python.exe', 'pythonw.exe')):
                 # An elevated matching process cannot be assigned to this root
                 # safely. Fail closed instead of killing it or guessing.
                 raise PackageError('无法核实正在运行的 ' + entry.szExeFile + '，请手动关闭相关助手后安装。')

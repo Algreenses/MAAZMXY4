@@ -91,6 +91,7 @@ def start_worker(root, *, allow_modified=False):
     worker = prepare_worker(root, allow_modified=allow_modified)
     process = subprocess.Popen([str(worker / 'runtimes/python/pythonw.exe'), '-E', '-s', '-u',
                                 '-X', 'utf8', '-m', 'update_engine', 'worker'], cwd=worker,
+                               stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                close_fds=True, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     return dict(state='awaiting_exit', pid=process.pid,
                 message='更新助手已就绪，等待此目录的客户端退出。不会结束游戏或其他目录的助手。')

@@ -1,6 +1,9 @@
 import hashlib
 import json
 import os
+import signal
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -81,6 +84,40 @@ class UpdateWorkerTests(unittest.TestCase):
                                    {'interface.json': fingerprint(b'{}')}, '2.3.8')
             with self.subTest(kind=kind), self.assertRaisesRegex(PackageError, '缺少'):
                 validate_stage(self.root, inventory)
+
+    def test_installer_handoff_releases_frontend_response_pipe(self):
+        # A long-lived installer must not inherit the short-lived JSON helper's
+        # stdout pipe: the frontend waits for EOF before it can exit.
+        code = '''
+import json, subprocess, sys
+from pathlib import Path
+from update_engine import worker
+original = subprocess.Popen
+worker.prepare_worker = lambda *a, **k: Path(sys.argv[1])
+def child(arguments, **options):
+    return original([sys.executable, '-c', 'import time; time.sleep(20)'], **options)
+worker.subprocess.Popen = child
+print(json.dumps(worker.start_worker(Path(sys.argv[1]))), flush=True)
+'''
+        process = subprocess.Popen([sys.executable, '-c', code, str(self.root)],
+            cwd=Path(__file__).resolve().parents[1], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding='utf8')
+        child_pid = None
+        try:
+            # read the PID even on regression so cleanup never leaks the fixture
+            line = process.stdout.readline()
+            child_pid = json.loads(line)['pid']
+            process.communicate(timeout=5)
+            self.assertEqual(process.returncode, 0)
+        finally:
+            if child_pid is not None:
+                try:
+                    os.kill(child_pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+            if process.poll() is None:
+                process.kill()
+            process.communicate(timeout=5)
 
 
 if __name__ == '__main__':
