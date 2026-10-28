@@ -25,7 +25,11 @@ class CandleTaskEntryTests(unittest.TestCase):
 
     def test_uses_the_existing_quest_panel_route(self):
         p = PREFIX
-        self.assertEqual(self.nodes[p + '初始化']['next'], [p + '定位'])
+        self.assertEqual(self.nodes[p + '初始化']['next'], [p + '通用导航'])
+        navigation = custom_parameters(self.nodes[p + '初始化'])['navigation']
+        self.assertEqual(navigation['kind'], 'bounty')
+        self.assertEqual(navigation['target_node'], p+'点击前往副本')
+        self.assertEqual(custom_parameters(self.nodes[p+'通用导航'])['phase'], 'navigate')
         self.assertIn(p + '点击任务', self.nodes[p + '定位']['next'])
         for suffix, target in (('点击任务', '点击悬赏任务'),
                                ('点击悬赏任务', '点击前往副本'),
@@ -33,7 +37,7 @@ class CandleTaskEntryTests(unittest.TestCase):
             node = self.nodes[p + suffix]
             self.assertIn(p + target, node['next'])
             self.assertEqual(node['action']['type'], 'Click')
-            self.assertEqual(node['on_error'], [p + '失败'])
+            self.assertEqual(node['on_error'], [p + ('通用导航' if suffix == '点击任务' else '失败')])
         for suffix in ('点击任务', '点击悬赏任务'):
             self.assertEqual(self.nodes[p + suffix]['recognition'],
                              self.taizong['悬赏（守卫太宗）-' + suffix]['recognition'])
@@ -61,8 +65,8 @@ class CandleTaskEntryTests(unittest.TestCase):
         p = PREFIX
         parameters = custom_parameters(self.nodes[p + '初始化'])
         self.assertEqual(custom_parameters(self.nodes[p + '回放战斗'])['file'], '@task:bounty-candle')
-        self.assertEqual(parameters['routes']['battle_only'], [p + '阻断提示', p + '点击设置'])
-        self.assertEqual(parameters['routes']['recorded_return'], [p + '阻断提示', p + '等待返回'])
+        self.assertEqual(parameters['routes']['battle_only'], [p+'阻断提示',p+'战斗失败',p+'成功返回地图',p+'点击设置'])
+        self.assertEqual(parameters['routes']['recorded_return'], [p+'阻断提示',p+'战斗失败',p+'成功返回地图',p+'等待返回'])
         self.assertEqual(self.nodes[p + '返回复检']['next'], [p + '成功'])
         self.assertEqual(custom_parameters(self.nodes[p + '成功'])['phase'], 'success')
         self.assertFalse(any(node.get('action', {}).get('param', {}).get('custom_action') == 'loop_count'
@@ -110,7 +114,8 @@ class CandleTaskEntryTests(unittest.TestCase):
             saved = json.loads((target / 'config/instances/default.json').read_text(encoding='utf8'))
             self.assertEqual(saved['TaskItems'][0]['repeat_count'], 9)
             self.assertTrue(saved['TaskItems'][0]['default_check'])
-            self.assertEqual(saved['TaskItems'][0]['option'], instance['TaskItems'][0]['option'])
+            self.assertEqual(saved['TaskItems'][0]['option'],
+                             instance['TaskItems'][0]['option']+[{'name':'失败自动重试','index':0}])
             self.assertEqual(json.loads((target / 'interface.json').read_text(encoding='utf8'))['controller'],
                              [{'name': 'personal controller'}])
             installed = json.loads((target / 'resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))

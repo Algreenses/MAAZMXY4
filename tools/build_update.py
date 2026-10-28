@@ -49,7 +49,7 @@ def is_local_instructions(name):
 
 
 def _skip(name):
-    if name in EXCLUDE_NAMES or is_local_instructions(name):
+    if name in EXCLUDE_NAMES or is_local_instructions(name) or name in ('.gitignore', '.gitattributes', '.gitkeep'):
         return True
     if ".bak" in name or name.endswith(".pyc") or name.endswith(".pyo"):
         return True
@@ -99,9 +99,33 @@ def collect(root):
     return files
 
 
+def build_resource(root, destination, *, min_client_version, max_client_version=None):
+    """Protocol-2 resource package; metadata is read by new installers only.
+
+    It still changes exactly resource/, agent/ and interface.json. No new feed
+    is published implicitly, and legacy version.json is deliberately untouched.
+    """
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from update_engine.packages import build_inventory, write_inventory_files, RESOURCE_RECORD
+    files = collect(str(root))
+    interface_path = next(source for source, name in files if name == 'interface.json')
+    version = json.loads(Path(interface_path).read_text(encoding='utf8'))['version']
+    inventory = build_inventory(files, kind='resource', resource_version=version,
+                                min_client_version=min_client_version, max_client_version=max_client_version)
+    Path(destination).parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        write_inventory_files(archive, files, inventory)
+        archive.writestr(RESOURCE_RECORD, json.dumps(inventory.to_dict(), ensure_ascii=False, indent=2))
+    return Path(destination)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", required=True, help="版本号，例如 2.2")
+    ap.add_argument("--legacy", action='store_true', help="仅供维护旧客户端兼容分支；输出旧 version.json")
+    ap.add_argument("--min-client-version", default='2.3.8', help="新资源包最低兼容客户端版本")
+    ap.add_argument("--max-client-version", help="可选的最高兼容客户端版本")
     ap.add_argument("--tag", default=None, help="Release tag，默认 v<version>")
     ap.add_argument("--note", default="", help="更新说明，显示在更新弹窗里")
     ap.add_argument("--root", default=None, help="包根目录，默认是本脚本上一级")
@@ -119,6 +143,15 @@ def main():
     files = collect(root)
     zip_name = "update-v%s.zip" % version
     zip_path = os.path.join(out_dir, zip_name)
+
+    if not args.legacy:
+        interface_path = next(source for source, name in files if name == 'interface.json')
+        if json.loads(open(interface_path, encoding='utf8').read()).get('version') != version:
+            ap.error('--version 必须与规范 interface.json 版本一致。')
+        print(build_resource(root, zip_path, min_client_version=args.min_client_version,
+                             max_client_version=args.max_client_version))
+        print('未修改旧 version.json。使用 tools/build_update_manifest.py 从真实资产生成新清单。')
+        return 0
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
         for full, rel in files:

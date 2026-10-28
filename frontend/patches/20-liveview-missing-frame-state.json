@@ -1,0 +1,6 @@
+{
+  "description": "Track and reset the live-view missing-frame warning interval.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    partial void OnIsConnectedChanged(bool value)\n    {\n        OnPropertyChanged(nameof(IsLiveViewVisible));\n        _liveViewNoImageLogged = false;\n",
+  "replace": "    // A submitted asynchronous capture may not have populated the cache yet.\n    // Warn only after the image has remained unavailable for a bounded period.\n    private const long LiveViewNoImageWarningDelayMs = 5000;\n    private long _liveViewNoImageSince = -1;\n\n    private void ResetLiveViewNoImageWarning()\n    {\n        Interlocked.Exchange(ref _liveViewNoImageSince, -1);\n        _liveViewNoImageLogged = false;\n    }\n\n    partial void OnIsConnectedChanged(bool value)\n    {\n        OnPropertyChanged(nameof(IsLiveViewVisible));\n        ResetLiveViewNoImageWarning();\n"
+}

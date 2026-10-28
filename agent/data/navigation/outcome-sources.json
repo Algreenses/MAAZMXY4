@@ -1,0 +1,94 @@
+[
+  {
+    "kind": "failed",
+    "part": "title",
+    "source_sha256": "0dd323e52cc023671a00f250534161afedac88cddef9a0ff98ffc7d49778c430",
+    "client_crop": [
+      1,
+      39,
+      1175,
+      737
+    ],
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      330,
+      292,
+      480,
+      133
+    ],
+    "path": "navigation/outcomes/failed-title.png",
+    "sha256": "39e26a343d92b1117df2f16a80c3a0466c88bda5b3b0c554d466a8944cb0d7f3"
+  },
+  {
+    "kind": "failed",
+    "part": "return",
+    "source_sha256": "0dd323e52cc023671a00f250534161afedac88cddef9a0ff98ffc7d49778c430",
+    "client_crop": [
+      1,
+      39,
+      1175,
+      737
+    ],
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      600,
+      490,
+      180,
+      60
+    ],
+    "path": "navigation/outcomes/failed-return.png",
+    "sha256": "58766a2b2af0d4caa56626bcab4b0573e947588607243ef9fe4826590833713e"
+  },
+  {
+    "kind": "succeeded",
+    "part": "title",
+    "source_sha256": "5f8f7e89b86028374e8b6e2d217a3a7f8ca44dff08393d72059a3413634ae676",
+    "client_crop": [
+      1,
+      39,
+      1175,
+      737
+    ],
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      570,
+      169,
+      315,
+      90
+    ],
+    "path": "navigation/outcomes/succeeded-title.png",
+    "sha256": "0d3006667b03e8b699d0f2e1e8d2dd328e76aa0e212076470711bd125c3bb632"
+  },
+  {
+    "kind": "succeeded",
+    "part": "return",
+    "source_sha256": "5f8f7e89b86028374e8b6e2d217a3a7f8ca44dff08393d72059a3413634ae676",
+    "client_crop": [
+      1,
+      39,
+      1175,
+      737
+    ],
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      810,
+      530,
+      210,
+      65
+    ],
+    "path": "navigation/outcomes/succeeded-return.png",
+    "sha256": "7f3e220648baf05fc2e2e7fe429d76e5da1546e0e3a0b8889c4cf3063af97053"
+  }
+]

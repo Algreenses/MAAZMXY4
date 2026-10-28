@@ -118,6 +118,11 @@ class RecordingDocument:
         obj._raw, obj._events, obj._markers = raw, events, markers
         obj.duration_ms = duration
         obj._edited = False
+        end_ids = obj._end_marker_ids()
+        for marker in obj._markers:
+            if marker['id'] in end_ids and marker['at_ms'] != duration:
+                marker.setdefault('recorded_at_ms', marker['at_ms'])
+                marker['at_ms'] = duration
         return obj
 
     @classmethod
@@ -345,6 +350,11 @@ class RecordingDocument:
         raise ValueError("操作已不存在，请刷新录制")
 
     def _finish(self, result, allow_new_diagnostics=False):
+        end_ids = self._end_marker_ids()
+        for marker in result._markers:
+            if marker['id'] in end_ids:
+                marker['at_ms'] = result.duration_ms
+        result._markers.sort(key=lambda marker: marker['at_ms'])
         result._edited = True
         if len(result._events) + len(result._markers) > MAX_EVENTS:
             raise ValueError("动作与标记合计不能超过 100000 条")
@@ -375,6 +385,12 @@ class RecordingDocument:
             raise ValueError("此鼠标轨迹由多个按钮共用，不能单独修改")
         result = deepcopy(self)
         start = _time(changes.get("start_ms", changes.get("at_ms", operation["start_ms"])))
+        if operation['kind'] == 'marker' and operation['id'] in self._end_marker_ids():
+            result = self.set_duration(start)
+            marker = next(m for m in result._markers if m['id'] == operation['id'])
+            marker['anchor'] = 'script_end'
+            marker['label'] = _text(changes.get('label', marker['label']), '标记', 256)
+            return result
         hold = _time(changes.get("duration_ms", operation["duration_ms"]), "按住时长")
         _time(start+hold)
         if operation["kind"] == "marker":
@@ -495,6 +511,28 @@ class RecordingDocument:
         ids = set(operation["event_ids"])
         result._events = [e for e in result._events if e["id"] not in ids]
         result._markers = [m for m in result._markers if m["id"] not in ids]
+        return self._finish(result)
+
+    def _end_marker_ids(self):
+        # Legacy recorders wrote a stop marker (and sometimes a pause at the
+        # same instant). These describe the endpoint, not a timed game input.
+        ends = [m for m in self._markers if m.get('anchor') == 'script_end'
+                or m['label'] in ('录制停止', '结束录制')]
+        if not ends:
+            return set()
+        last_stop = max(m['at_ms'] for m in ends)
+        return {m['id'] for m in self._markers if m in ends and m['at_ms'] == last_stop
+                or m['label'] == '暂停录制' and m['at_ms'] == last_stop}
+
+    def set_duration(self, duration_ms):
+        duration = _time(duration_ms, "总时长")
+        end_ids = self._end_marker_ids()
+        last = max([0] + [event["at_ms"] for event in self._events]
+                   + [marker["at_ms"] for marker in self._markers if marker['id'] not in end_ids])
+        if duration < last:
+            raise ValueError(f"总时长不能小于最后一个动作或标记的时间（{last / 1000:.3f} 秒）；请先移动或删除末尾操作。")
+        result = deepcopy(self)
+        result.duration_ms = duration
         return self._finish(result)
 
     def add_marker(self, at_ms, label):

@@ -17,6 +17,16 @@ Task<TaskAttempt> NoRecovery(int slot, int attempt, CancellationToken token) => 
 void Test(string name, Func<Task> run) => tests.Add((name, run));
 void Sync(string name, Action action) => Test(name, () => { action(); return Task.CompletedTask; });
 
+Sync("infinite brush count uses native unlimited sentinel without changing action parameters", () =>
+{
+    var result = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits("{\"loop\":{\"max_hit\":-1,\"custom_action_param\":{\"max_hit\":-1}},\"finite\":{\"max_hit\":3}}"))!;
+    Require(result["loop"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+    Require(result["finite"]!["max_hit"]!.GetValue<int>() == 3);
+    Require(result["loop"]!["custom_action_param"]!["max_hit"]!.GetValue<int>() == -1);
+    var array = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits("[{\"loop\":{\"max_hit\":-1}}]"))!;
+    Require(array[0]!["loop"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+});
+
 Test("success completes exactly one round", async () =>
 {
     var calls = 0;
@@ -371,6 +381,19 @@ Test("unsupported recorded-return routes fail before starting a native task", as
     var overrides = new JsonObject();
     TaskScriptPlan.Parameters(overrides, "脚本任务设置")["exit_mode"] = "recorded_return";
     await Throws<InvalidDataException>(() => { TaskScriptPlan.Prepare(plan, "Enter", overrides.ToJsonString()); return Task.CompletedTask; });
+});
+
+Sync("Win32 selection never guesses from enumeration order or shared window classes", () =>
+{
+    var windows = new (nint Handle, string Title, string ClassName)[]
+        { (1,"Unrelated app","Chrome"), (2,"Game","Chrome"), (3,"Game","Chrome") };
+    Require(Win32WindowSelection.SelectIndex(windows, null, null) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, null, ("Game","Chrome")) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, (3,"Game","Chrome"), null) == 2);
+    Require(Win32WindowSelection.SelectIndex(windows, (1,"Closed game","Chrome"), null) == -1);
+    Require(Win32WindowSelection.SelectIndex(windows, null, ("Unknown","Chrome")) == -1);
+    Require(Win32WindowSelection.SelectIndex(new[] { windows[1] }, null, ("Game","Chrome")) == 0);
+    Require(Win32WindowSelection.SelectIndex(new[] { windows[1] }, null, null) == -1);
 });
 
 var passed = 0;

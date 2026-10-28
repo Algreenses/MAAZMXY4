@@ -1,0 +1,9 @@
+{
+  "description": "Pause live-view polling while a controller connection is still being established.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "            if (!IsLiveViewExpanded)\n                return;\n            if (EnableLiveView && IsConnected)",
+  "replace": "            // A newly selected controller may be marked connected before its\n            // LinkStart job finishes.  Do not count its temporary unavailability\n            // as a live-view failure during that connection attempt.\n            if (!IsLiveViewExpanded || Processor.IsConnecting)\n            {\n                ResetLiveViewNoImageWarning();\n                return;\n            }\n            if (EnableLiveView && IsConnected)",
+  "previous_replacements": [
+    "            // A newly selected controller may be marked connected before its\n            // LinkStart job finishes.  Do not count its temporary unavailability\n            // as a live-view failure during that connection attempt.\n            if (!IsLiveViewExpanded || Processor.IsConnecting)\n                return;\n            if (EnableLiveView && IsConnected)"
+  ]
+}

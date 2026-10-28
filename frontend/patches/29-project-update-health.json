@@ -1,0 +1,6 @@
+{
+  "description": "Route project updates and recovery through the shared update engine.",
+  "path": "MFAAvalonia/Views/Windows/RootView.axaml.cs",
+  "find": "            if (AppRuntime.IsNewInstance)\n            {\n                // interface/config 就绪且窗口已显示后立即检查更新。",
+  "replace": "            await MFAAvalonia.Services.ProjectUpdater.InitializeAsync();\n            if (AppRuntime.IsNewInstance)\n            {\n                // interface/config 就绪且窗口已显示后立即检查更新。"
+}

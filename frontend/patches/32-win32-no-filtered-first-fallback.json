@@ -1,0 +1,6 @@
+{
+  "description": "Require explicit or unique remembered Win32 window selection.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "        return (matchedIdx >= 0 ? matchedIdx : (filtered.Count > 0 ? 0 : 0), filtered.ToList());",
+  "replace": "        return (controllerType == MaaControllerTypes.Win32 ? matchedIdx : Math.Max(0, matchedIdx), filtered.ToList());"
+}

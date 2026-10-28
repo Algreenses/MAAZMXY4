@@ -19,7 +19,7 @@ public sealed partial class ScriptStudioView
     private async Task<bool> SaveDocumentAsync(bool saveAs)
     {
         if (_vm.Document == null) return false;
-        if (RefreshInspectorDirty()) await ApplyInspectorAsync();
+        await ApplyPendingEditsAsync();
         string? filename = null;
         if (_vm.File == null || saveAs)
         {

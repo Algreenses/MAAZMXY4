@@ -16,8 +16,10 @@ public static class ScriptStudioGuard
 {
     public static object SyncRoot { get; } = new();
     public static bool IsCapturing { get; set; }
+    public static string UpdateBlockReason { get; set; } = "";
     public static void ThrowIfCapturing()
     {
+        if (!string.IsNullOrEmpty(UpdateBlockReason)) throw new InvalidOperationException(UpdateBlockReason);
         if (IsCapturing) throw new InvalidOperationException("请先在脚本工具中停止录制，再开始任务。");
     }
     public static void BeginCapture()

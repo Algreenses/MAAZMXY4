@@ -140,7 +140,7 @@ def remember_skip(version):
 
 
 def find_mfa():
-    for name in (MFA_EXE, "MFAAvalonia.exe"):
+    for name in ("MFAAvalonia.exe", MFA_EXE):
         p = os.path.join(BASE, name)
         if os.path.isfile(p):
             return p
@@ -385,7 +385,7 @@ class Updater(tk.Tk):
 
 # ---------------- 入口 ----------------
 
-def main():
+def legacy_main():
     log("---- 启动更新检查 ----")
     info = {"local": local_version()}
 
@@ -409,9 +409,34 @@ def main():
     app.mainloop()
 
 
+def main():
+    """Unified clients check/download in the existing frontend update page.
+
+    Startup only validates transaction state. The stable launcher chooses the
+    independent recovery runtime before loading this file if a job is pending.
+    Legacy functions above remain for old-protocol compatibility regression;
+    no new startup or frontend entry dispatches to legacy_main/apply_update.
+    """
+    from pathlib import Path
+    from update_engine.transaction import current_status, installed_versions
+    from update_engine.packages import PackageError
+    root = Path(BASE)
+    state = current_status(root)['state']
+    if state not in ('idle', 'complete', 'rolled_back'):
+        raise PackageError('更新尚未完成，请从 MAA造梦西游4.exe 启动以恢复；不要直接运行前端。')
+    if installed_versions(root) is None:
+        raise PackageError('客户端缺少安装版本记录，请首次安装本项目新版完整客户端。')
+    if not launch_mfa():
+        raise PackageError('无法启动 MFAAvalonia.exe，请保留更新备份并使用完整客户端修复。')
+
+
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except Exception as error:
         log(traceback.format_exc())
-        launch_mfa()
+        from tkinter import messagebox
+        window = tk.Tk()
+        window.withdraw()
+        messagebox.showerror('MAA造梦西游4 · 启动未完成', str(error), parent=window)
+        window.destroy()

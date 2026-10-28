@@ -1,0 +1,6 @@
+{
+  "description": "Require explicit or unique remembered Win32 window selection.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    private int MatchPreviousWindow(List<DesktopWindowInfo> windows, MaaControllerTypes controllerType)\n    {\n        if (windows.Count == 0)",
+  "replace": "    private int MatchPreviousWindow(List<DesktopWindowInfo> windows, MaaControllerTypes controllerType)\n    {\n        if (controllerType == MaaControllerTypes.Win32)\n        {\n            var current = CurrentDevice as DesktopWindowInfo;\n            return MFAAvalonia.Services.Win32WindowSelection.SelectIndex(\n                windows.Select(w => (w.Handle, w.Name, w.ClassName)).ToArray(),\n                current == null ? null : (current.Handle, current.Name, current.ClassName),\n                (Processor.InstanceConfiguration.GetValue(ConfigurationKeys.DesktopWindowName, string.Empty),\n                 Processor.InstanceConfiguration.GetValue(ConfigurationKeys.DesktopWindowClassName, string.Empty)));\n        }\n        if (windows.Count == 0)"
+}

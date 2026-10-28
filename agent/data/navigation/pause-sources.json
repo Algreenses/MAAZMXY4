@@ -1,0 +1,18 @@
+[
+  {
+    "source": "capture-daily-expanded-client",
+    "source_sha256": "2bc4c2dd0d19ddb4a7f996bca5336270b5cffc49765b9eb6620e2c2e416802e4",
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      638,
+      343,
+      132,
+      34
+    ],
+    "path": "navigation/panels/daily-pause-caption.png",
+    "sha256": "36193f036a530d8911377aa04ffc9954bb4048d43aacb809767e8eb73d8b398a"
+  }
+]

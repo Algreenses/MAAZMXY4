@@ -13,6 +13,9 @@ public sealed record StudioWindow(nint Handle, string Title, string ClassName)
 
 public static class StudioWindows
 {
+    public static nint SelectedHandle => MaaProcessorManager.IsInstanceCreated
+        ? MaaProcessorManager.Instance.Current.Config.DesktopWindow.HWnd : 0;
+
     /// <summary>Translate supported logical keys without coupling Core to Avalonia.Win32.</summary>
     public static int VirtualKeyFromKey(Key key)
     {

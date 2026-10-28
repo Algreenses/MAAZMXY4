@@ -1,0 +1,4510 @@
+{
+  "schema": "zaomeng.navigation",
+  "version": 1,
+  "width": 1175,
+  "height": 737,
+  "provenance": "用户提供的 V58.7 客户区截图；仅离线编排，所有跳转均待实机验证。",
+  "probes": {
+    "paused_overlay": {
+      "detector": "navigation_paused"
+    },
+    "hub_scene": {
+      "detector": "hub_scene"
+    },
+    "daily_menu_scene": {
+      "detector": "daily_menu_scene"
+    },
+    "daily_expanded_arhat": {
+      "reference": "capture-daily-expanded-menu-arhat",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          309,
+          325,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          197,
+          146
+        ],
+        "upper": [
+          255,
+          255,
+          218
+        ],
+        "count": 4
+      }
+    },
+    "daily_expanded_arena": {
+      "reference": "capture-daily-expanded-menu-arena",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          439,
+          409,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          0,
+          0
+        ],
+        "upper": [
+          255,
+          43,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "login_logo": {
+      "reference": "capture-login-logo",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          101,
+          37,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          220,
+          154
+        ],
+        "upper": [
+          255,
+          255,
+          221
+        ],
+        "count": 4
+      }
+    },
+    "login_start": {
+      "reference": "capture-login-start-game",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          498,
+          634,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          194,
+          72
+        ],
+        "upper": [
+          255,
+          255,
+          137
+        ],
+        "count": 4
+      }
+    },
+    "saves_title": {
+      "reference": "capture-saves-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          648,
+          97,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          222,
+          166
+        ],
+        "upper": [
+          255,
+          255,
+          233
+        ],
+        "count": 4
+      }
+    },
+    "world_center": {
+      "reference": "capture-world-sumeru-entry",
+      "threshold": 0.03,
+      "method": 1
+    },
+    "world_lower_left": {
+      "reference": "capture-world-landmark-05",
+      "threshold": 0.03,
+      "method": 1
+    },
+    "sumeru_recovery_entry": {
+      "reference": "capture-world-sumeru-entry",
+      "threshold": 0.03,
+      "method": 1
+    },
+    "map_a_center": {
+      "reference": "capture-map-a-landmark-06",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          598,
+          329,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          153,
+          223,
+          208
+        ],
+        "upper": [
+          220,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "map_a_lower": {
+      "reference": "capture-map-a-landmark-09",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          506,
+          554,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          204,
+          221,
+          222
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "map_b_center": {
+      "reference": "capture-map-b-landmark-06",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          771,
+          348,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          114,
+          182,
+          190
+        ],
+        "upper": [
+          174,
+          242,
+          250
+        ],
+        "count": 4
+      }
+    },
+    "map_b_lower": {
+      "reference": "capture-map-b-landmark-09",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          538,
+          417,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          124,
+          179,
+          190
+        ],
+        "upper": [
+          185,
+          240,
+          251
+        ],
+        "count": 4
+      }
+    },
+    "activity_title": {
+      "reference": "capture-activity-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          530,
+          110,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          207,
+          158,
+          109
+        ],
+        "upper": [
+          255,
+          219,
+          169
+        ],
+        "count": 4
+      }
+    },
+    "profile_title": {
+      "reference": "capture-profile-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          598,
+          49,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          217,
+          169
+        ],
+        "upper": [
+          255,
+          255,
+          233
+        ],
+        "count": 4
+      }
+    },
+    "treasure_title": {
+      "reference": "capture-treasure-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          567,
+          99,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          224,
+          154
+        ],
+        "upper": [
+          255,
+          255,
+          226
+        ],
+        "count": 4
+      }
+    },
+    "time_boat_title": {
+      "reference": "capture-time-boat-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          797,
+          74,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          193,
+          123,
+          80
+        ],
+        "upper": [
+          253,
+          183,
+          140
+        ],
+        "count": 4
+      }
+    },
+    "theme_title": {
+      "reference": "capture-theme-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          495,
+          132,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          217,
+          182,
+          135
+        ],
+        "upper": [
+          255,
+          244,
+          198
+        ],
+        "count": 4
+      }
+    },
+    "hell_title": {
+      "reference": "capture-hell-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          482,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "arhat_title": {
+      "reference": "capture-arhat-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          516,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "fortune_title": {
+      "reference": "capture-fortune-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          458,
+          159,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          185,
+          125
+        ],
+        "upper": [
+          255,
+          245,
+          185
+        ],
+        "count": 4
+      }
+    },
+    "mount_gather_title": {
+      "reference": "capture-mount-gather-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          655,
+          67,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          215,
+          217,
+          165
+        ],
+        "upper": [
+          255,
+          255,
+          234
+        ],
+        "count": 4
+      }
+    },
+    "arena_title": {
+      "reference": "capture-arena-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          627,
+          61,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          174,
+          76
+        ],
+        "upper": [
+          255,
+          238,
+          141
+        ],
+        "count": 4
+      }
+    },
+    "arena_list": {
+      "reference": "capture-arena-challenge-instruction",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          350,
+          153,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          193,
+          100
+        ],
+        "upper": [
+          255,
+          253,
+          160
+        ],
+        "count": 4
+      }
+    },
+    "shop_title": {
+      "reference": "capture-shop-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          561,
+          94,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          224,
+          154
+        ],
+        "upper": [
+          255,
+          255,
+          226
+        ],
+        "count": 4
+      }
+    },
+    "shop_mystery_selected": {
+      "reference": "capture-shop-mystery-tab",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          358,
+          169,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          207,
+          173
+        ],
+        "upper": [
+          255,
+          255,
+          244
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_1_title": {
+      "reference": "capture-time-replay-1-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          483,
+          146,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          165,
+          116
+        ],
+        "upper": [
+          255,
+          226,
+          176
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_1_selected": {
+      "reference": "capture-time-replay-1-page-1",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          541,
+          582,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          209,
+          166,
+          113
+        ],
+        "upper": [
+          255,
+          226,
+          173
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_2_title": {
+      "reference": "capture-time-replay-2-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          483,
+          146,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          165,
+          116
+        ],
+        "upper": [
+          255,
+          226,
+          176
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_2_selected": {
+      "reference": "capture-time-replay-2-page-2",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          602,
+          597,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          225,
+          225
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_south_title": {
+      "reference": "capture-defend-south-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          429,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "defend_south_selected": {
+      "reference": "capture-defend-south-tab-south",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          263,
+          197,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          209,
+          198,
+          205
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_east_title": {
+      "reference": "capture-defend-east-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          429,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "defend_east_selected": {
+      "reference": "capture-defend-east-tab-east",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          263,
+          309,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          205,
+          200,
+          208
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_north_title": {
+      "reference": "capture-defend-north-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          429,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "defend_north_selected": {
+      "reference": "capture-defend-north-tab-north",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          263,
+          420,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          206,
+          201,
+          205
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "bounty_board_title": {
+      "reference": "capture-bounty-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          560,
+          64,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          223,
+          184,
+          79
+        ],
+        "upper": [
+          255,
+          247,
+          145
+        ],
+        "count": 4
+      }
+    },
+    "bounty_board_tab": {
+      "reference": "capture-bounty-daily-tab",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          102,
+          146,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          217,
+          195,
+          117
+        ],
+        "upper": [
+          255,
+          255,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "alliance_title": {
+      "reference": "capture-alliance-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          577,
+          52,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          181,
+          70
+        ],
+        "upper": [
+          255,
+          244,
+          140
+        ],
+        "count": 4
+      }
+    },
+    "alliance_overview": {
+      "reference": "capture-alliance-overview",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          82,
+          56,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          223,
+          0
+        ],
+        "upper": [
+          255,
+          255,
+          47
+        ],
+        "count": 4
+      }
+    },
+    "alliance_contribution_title": {
+      "reference": "capture-alliance-contribution-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          488,
+          199,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          169,
+          111
+        ],
+        "upper": [
+          255,
+          230,
+          172
+        ],
+        "count": 4
+      }
+    },
+    "alliance_blessing_title": {
+      "reference": "capture-alliance-blessing-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          485,
+          165,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          210,
+          169,
+          111
+        ],
+        "upper": [
+          255,
+          230,
+          172
+        ],
+        "count": 4
+      }
+    },
+    "survival_week_title": {
+      "reference": "capture-survival-week-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          709,
+          31,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          223,
+          188,
+          0
+        ],
+        "upper": [
+          255,
+          250,
+          35
+        ],
+        "count": 4
+      }
+    },
+    "survival_week_label": {
+      "reference": "capture-survival-week-weekly-score-label",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          92,
+          74,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          219,
+          124
+        ],
+        "upper": [
+          255,
+          255,
+          184
+        ],
+        "count": 4
+      }
+    },
+    "survival_question_title": {
+      "reference": "capture-survival-question-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          709,
+          31,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          223,
+          188,
+          0
+        ],
+        "upper": [
+          255,
+          250,
+          35
+        ],
+        "count": 4
+      }
+    },
+    "survival_question_attributes": {
+      "reference": "capture-survival-question-attributes-label",
+      "threshold": 0.94
+    },
+    "survival_rewards_title": {
+      "reference": "capture-survival-rewards-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          502,
+          92,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          202,
+          75
+        ],
+        "upper": [
+          255,
+          255,
+          136
+        ],
+        "count": 4
+      }
+    },
+    "survival_rewards_choice": {
+      "reference": "capture-survival-rewards-choose-one",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          477,
+          167,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          208,
+          48
+        ],
+        "upper": [
+          255,
+          255,
+          109
+        ],
+        "count": 4
+      }
+    },
+    "profile_sell_warning": {
+      "reference": "capture-profile-sell-warning",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          553,
+          448,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          224,
+          225
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "profile_sell_quality": {
+      "reference": "capture-profile-sell-quality-label",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          385,
+          229,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          213,
+          199,
+          145
+        ],
+        "upper": [
+          255,
+          255,
+          210
+        ],
+        "count": 4
+      }
+    },
+    "warehouse_title": {
+      "reference": "capture-warehouse-title",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          597,
+          81,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          224,
+          0
+        ],
+        "upper": [
+          255,
+          255,
+          57
+        ],
+        "count": 4
+      }
+    },
+    "warehouse_bag": {
+      "reference": "capture-warehouse-bag-label",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          325,
+          139,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          213,
+          123
+        ],
+        "upper": [
+          255,
+          255,
+          185
+        ],
+        "count": 4
+      }
+    },
+    "settings_continue": {
+      "reference": "capture-settings-menu-continue",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          552,
+          177,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          218,
+          139
+        ],
+        "upper": [
+          255,
+          255,
+          199
+        ],
+        "count": 4
+      }
+    },
+    "settings_return_map": {
+      "reference": "capture-settings-menu-map-return",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          612,
+          247,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          218,
+          139
+        ],
+        "upper": [
+          255,
+          255,
+          199
+        ],
+        "count": 4
+      }
+    },
+    "saves_close": {
+      "reference": "capture-saves-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          875,
+          129,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          168,
+          105
+        ],
+        "upper": [
+          255,
+          228,
+          165
+        ],
+        "count": 4
+      }
+    },
+    "map_a_world": {
+      "reference": "capture-map-a-world",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1130,
+          99,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          216,
+          180
+        ],
+        "upper": [
+          255,
+          255,
+          250
+        ],
+        "count": 4
+      }
+    },
+    "map_a_activity_entry": {
+      "reference": "capture-map-a-activity",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          735,
+          32,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          208,
+          174
+        ],
+        "upper": [
+          255,
+          255,
+          246
+        ],
+        "count": 4
+      }
+    },
+    "map_a_backpack_entry": {
+      "reference": "capture-map-a-backpack",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          175,
+          62,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          216,
+          151
+        ],
+        "upper": [
+          255,
+          255,
+          212
+        ],
+        "count": 4
+      }
+    },
+    "map_a_treasure_entry": {
+      "reference": "capture-map-a-treasure",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          249,
+          62,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          221,
+          151
+        ],
+        "upper": [
+          255,
+          255,
+          217
+        ],
+        "count": 4
+      }
+    },
+    "map_b_world": {
+      "reference": "capture-map-b-world",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1130,
+          99,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          216,
+          180
+        ],
+        "upper": [
+          255,
+          255,
+          250
+        ],
+        "count": 4
+      }
+    },
+    "map_b_activity_entry": {
+      "reference": "capture-map-b-activity",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          735,
+          32,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          208,
+          174
+        ],
+        "upper": [
+          255,
+          255,
+          246
+        ],
+        "count": 4
+      }
+    },
+    "map_b_backpack_entry": {
+      "reference": "capture-map-b-backpack",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          175,
+          62,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          216,
+          151
+        ],
+        "upper": [
+          255,
+          255,
+          212
+        ],
+        "count": 4
+      }
+    },
+    "map_b_treasure_entry": {
+      "reference": "capture-map-b-treasure",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          249,
+          62,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          221,
+          151
+        ],
+        "upper": [
+          255,
+          255,
+          217
+        ],
+        "count": 4
+      }
+    },
+    "home_entry": {
+      "detector": "home_label"
+    },
+    "hub_world_entry": {
+      "reference": "capture-daily-expanded-world",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          413,
+          72,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          223,
+          224,
+          216
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "hub_profile_entry": {
+      "reference": "capture-daily-expanded-bottom-backpack",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          459,
+          714,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          219,
+          149
+        ],
+        "upper": [
+          255,
+          255,
+          213
+        ],
+        "count": 4
+      }
+    },
+    "hub_treasure_entry": {
+      "reference": "capture-daily-expanded-bottom-treasure",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          570,
+          714,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          219,
+          149
+        ],
+        "upper": [
+          255,
+          255,
+          215
+        ],
+        "count": 4
+      }
+    },
+    "hub_settings_menu_entry": {
+      "reference": "capture-daily-expanded-bottom-settings",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          717,
+          714,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          217,
+          217,
+          149
+        ],
+        "upper": [
+          255,
+          255,
+          212
+        ],
+        "count": 4
+      }
+    },
+    "hub_alliance_entry": {
+      "reference": "capture-daily-expanded-alliance",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          567,
+          59,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          210,
+          166
+        ],
+        "upper": [
+          255,
+          255,
+          234
+        ],
+        "count": 4
+      }
+    },
+    "hub_time_boat_entry": {
+      "reference": "capture-daily-expanded-time-boat",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          533,
+          247,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          198,
+          120
+        ],
+        "upper": [
+          255,
+          255,
+          188
+        ],
+        "count": 4
+      }
+    },
+    "hub_daily_toggle": {
+      "reference": "capture-daily-expanded-daily-menu",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          468,
+          239,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          224,
+          208,
+          203
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "mystery_shop_entry": {
+      "detector": "shop_entry"
+    },
+    "daily_arena_entry": {
+      "reference": "capture-daily-expanded-menu-arena",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          439,
+          409,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          0,
+          0
+        ],
+        "upper": [
+          255,
+          43,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "daily_theme_entry": {
+      "reference": "capture-daily-expanded-menu-theme",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          502,
+          394,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          206,
+          40,
+          225
+        ],
+        "upper": [
+          255,
+          110,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "daily_hell_entry": {
+      "reference": "capture-daily-expanded-menu-hell",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          346,
+          396,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          141,
+          130
+        ],
+        "upper": [
+          255,
+          210,
+          200
+        ],
+        "count": 4
+      }
+    },
+    "daily_arhat_entry": {
+      "reference": "capture-daily-expanded-menu-arhat",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          309,
+          325,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          197,
+          146
+        ],
+        "upper": [
+          255,
+          255,
+          218
+        ],
+        "count": 4
+      }
+    },
+    "daily_fortune_entry": {
+      "reference": "capture-daily-expanded-menu-fortune",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          527,
+          330,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          69,
+          0
+        ],
+        "upper": [
+          255,
+          140,
+          37
+        ],
+        "count": 4
+      }
+    },
+    "daily_survival_week_entry": {
+      "reference": "capture-daily-expanded-menu-survival",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          430,
+          322,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          212,
+          182,
+          89
+        ],
+        "upper": [
+          255,
+          243,
+          150
+        ],
+        "count": 4
+      }
+    },
+    "daily_defend_entry": {
+      "reference": "capture-daily-expanded-menu-defend",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          580,
+          423,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          204,
+          193,
+          212
+        ],
+        "upper": [
+          255,
+          253,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_south_to_east": {
+      "reference": "capture-defend-south-tab-east",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          245,
+          305,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          206,
+          209,
+          204
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_south_to_north": {
+      "reference": "capture-defend-south-tab-north",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          243,
+          415,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          202,
+          210,
+          204
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_east_to_south": {
+      "reference": "capture-defend-east-tab-south",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          242,
+          189,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          204,
+          207,
+          208
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_east_to_north": {
+      "reference": "capture-defend-east-tab-north",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          243,
+          415,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          202,
+          210,
+          204
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_north_to_south": {
+      "reference": "capture-defend-north-tab-south",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          242,
+          189,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          204,
+          207,
+          208
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "defend_north_to_east": {
+      "reference": "capture-defend-north-tab-east",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          245,
+          305,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          206,
+          209,
+          204
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "time_boat_replay_entry": {
+      "reference": "capture-time-boat-replay",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          553,
+          385,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          184,
+          222,
+          224
+        ],
+        "upper": [
+          250,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_1_to_2": {
+      "reference": "capture-time-replay-1-page-2",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          602,
+          597,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          225,
+          225,
+          225
+        ],
+        "upper": [
+          255,
+          255,
+          255
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_1_close": {
+      "reference": "capture-time-replay-1-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          824,
+          147,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          209,
+          163,
+          114
+        ],
+        "upper": [
+          255,
+          223,
+          174
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_2_to_1": {
+      "reference": "capture-time-replay-2-page-1",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          541,
+          582,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          209,
+          166,
+          113
+        ],
+        "upper": [
+          255,
+          226,
+          173
+        ],
+        "count": 4
+      }
+    },
+    "time_replay_2_close": {
+      "reference": "capture-time-replay-2-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          824,
+          147,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          209,
+          163,
+          114
+        ],
+        "upper": [
+          255,
+          223,
+          174
+        ],
+        "count": 4
+      }
+    },
+    "alliance_contribution_entry": {
+      "reference": "capture-alliance-contribution-entry",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          550,
+          394,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          212,
+          188,
+          137
+        ],
+        "upper": [
+          255,
+          248,
+          197
+        ],
+        "count": 4
+      }
+    },
+    "profile_warehouse_entry": {
+      "reference": "capture-profile-warehouse",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          834,
+          621,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          193,
+          150,
+          93
+        ],
+        "upper": [
+          253,
+          210,
+          153
+        ],
+        "count": 4
+      }
+    },
+    "survival_reward_entry": {
+      "reference": "capture-survival-week-reward-entry",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          159,
+          164,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          222,
+          206,
+          118
+        ],
+        "upper": [
+          255,
+          255,
+          185
+        ],
+        "count": 4
+      }
+    },
+    "activity_close": {
+      "reference": "capture-activity-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          939,
+          113,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          203,
+          151,
+          103
+        ],
+        "upper": [
+          255,
+          212,
+          163
+        ],
+        "count": 4
+      }
+    },
+    "profile_close": {
+      "reference": "capture-profile-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1010,
+          42,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          218,
+          48,
+          0
+        ],
+        "upper": [
+          255,
+          119,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "treasure_close": {
+      "reference": "capture-treasure-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          944,
+          90,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          59,
+          0
+        ],
+        "upper": [
+          255,
+          130,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "arena_close": {
+      "reference": "capture-arena-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1104,
+          88,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          195,
+          147,
+          75
+        ],
+        "upper": [
+          255,
+          207,
+          135
+        ],
+        "count": 4
+      }
+    },
+    "shop_mystery_close": {
+      "reference": "capture-shop-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1014,
+          94,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          52,
+          0
+        ],
+        "upper": [
+          255,
+          123,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "time_boat_close": {
+      "reference": "capture-time-boat-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1049,
+          160,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          179,
+          100,
+          65
+        ],
+        "upper": [
+          241,
+          161,
+          126
+        ],
+        "count": 4
+      }
+    },
+    "theme_close": {
+      "reference": "capture-theme-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1064,
+          117,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          213,
+          169,
+          117
+        ],
+        "upper": [
+          255,
+          229,
+          180
+        ],
+        "count": 4
+      }
+    },
+    "hell_close": {
+      "reference": "capture-hell-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          904,
+          166,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          177,
+          115
+        ],
+        "upper": [
+          255,
+          237,
+          175
+        ],
+        "count": 4
+      }
+    },
+    "arhat_close": {
+      "reference": "capture-arhat-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          904,
+          166,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          177,
+          115
+        ],
+        "upper": [
+          255,
+          237,
+          175
+        ],
+        "count": 4
+      }
+    },
+    "fortune_close": {
+      "reference": "capture-fortune-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          924,
+          146,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          215,
+          176,
+          114
+        ],
+        "upper": [
+          255,
+          236,
+          174
+        ],
+        "count": 4
+      }
+    },
+    "bounty_board_close": {
+      "reference": "capture-bounty-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1036,
+          41,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          219,
+          46,
+          0
+        ],
+        "upper": [
+          255,
+          118,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "alliance_close": {
+      "reference": "capture-alliance-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1149,
+          90,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          188,
+          132,
+          44
+        ],
+        "upper": [
+          250,
+          194,
+          105
+        ],
+        "count": 4
+      }
+    },
+    "mount_gather_close": {
+      "reference": "capture-mount-gather-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          993,
+          123,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          175,
+          122,
+          75
+        ],
+        "upper": [
+          236,
+          183,
+          139
+        ],
+        "count": 4
+      }
+    },
+    "survival_week_close": {
+      "reference": "capture-survival-week-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          1113,
+          20,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          53,
+          0
+        ],
+        "upper": [
+          255,
+          123,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "defend_south_close": {
+      "reference": "capture-defend-south-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          904,
+          166,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          177,
+          115
+        ],
+        "upper": [
+          255,
+          237,
+          175
+        ],
+        "count": 4
+      }
+    },
+    "defend_east_close": {
+      "reference": "capture-defend-east-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          904,
+          166,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          177,
+          115
+        ],
+        "upper": [
+          255,
+          237,
+          175
+        ],
+        "count": 4
+      }
+    },
+    "defend_north_close": {
+      "reference": "capture-defend-north-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          904,
+          166,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          177,
+          115
+        ],
+        "upper": [
+          255,
+          237,
+          175
+        ],
+        "count": 4
+      }
+    },
+    "alliance_contribution_close": {
+      "reference": "capture-alliance-contribution-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          939,
+          204,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          208,
+          165,
+          108
+        ],
+        "upper": [
+          255,
+          226,
+          169
+        ],
+        "count": 4
+      }
+    },
+    "alliance_blessing_close": {
+      "reference": "capture-alliance-blessing-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          994,
+          163,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          206,
+          163,
+          105
+        ],
+        "upper": [
+          255,
+          223,
+          166
+        ],
+        "count": 4
+      }
+    },
+    "survival_rewards_close": {
+      "reference": "capture-survival-rewards-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          911,
+          31,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          220,
+          46,
+          0
+        ],
+        "upper": [
+          255,
+          118,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "warehouse_close": {
+      "reference": "capture-warehouse-close",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          988,
+          46,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          216,
+          61,
+          0
+        ],
+        "upper": [
+          255,
+          133,
+          30
+        ],
+        "count": 4
+      }
+    },
+    "profile_sell_cancel": {
+      "reference": "capture-profile-sell-cancel",
+      "threshold": 0.94,
+      "color_guard": {
+        "roi": [
+          627,
+          474,
+          2,
+          2
+        ],
+        "method": 4,
+        "lower": [
+          221,
+          182,
+          120
+        ],
+        "upper": [
+          255,
+          242,
+          180
+        ],
+        "count": 4
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "hub",
+      "label": "须弥山大厅",
+      "recognition": [
+        "hub_scene"
+      ],
+      "exclude": [
+        "paused_overlay"
+      ],
+      "obscures": [],
+      "note": "缺少无弹窗且未暂停的完整大厅样本，使用本机校准识别项。"
+    },
+    {
+      "id": "daily_menu",
+      "label": "须弥山日常活动菜单",
+      "recognition": [
+        "daily_menu_scene"
+      ],
+      "exclude": [
+        "paused_overlay"
+      ],
+      "obscures": [
+        "hub"
+      ],
+      "note": "恢复游戏后的日常展开状态需本机校准。"
+    },
+    {
+      "id": "daily_expanded",
+      "label": "日常活动菜单（暂停）",
+      "recognition": [
+        "daily_expanded_arhat",
+        "daily_expanded_arena",
+        "paused_overlay"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu"
+      ],
+      "note": "原图有继续游戏叠字；识别后停止，不推测恢复动作。"
+    },
+    {
+      "id": "login",
+      "label": "开始游戏",
+      "recognition": [
+        "login_logo",
+        "login_start"
+      ],
+      "exclude": [],
+      "obscures": [],
+      "note": ""
+    },
+    {
+      "id": "saves",
+      "label": "存档记录",
+      "recognition": [
+        "saves_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "login"
+      ],
+      "note": "现有槽号不能证明存档身份，不自动选择或创建存档。"
+    },
+    {
+      "id": "world",
+      "label": "世界地图",
+      "recognition": [
+        "world_center",
+        "world_lower_left"
+      ],
+      "exclude": [],
+      "obscures": [],
+      "note": ""
+    },
+    {
+      "id": "map_a",
+      "label": "洲地图 A（名称待确认）",
+      "recognition": [
+        "map_a_center",
+        "map_a_lower"
+      ],
+      "exclude": [],
+      "obscures": [],
+      "note": ""
+    },
+    {
+      "id": "map_b",
+      "label": "洲地图 B（名称待确认）",
+      "recognition": [
+        "map_b_center",
+        "map_b_lower"
+      ],
+      "exclude": [],
+      "obscures": [],
+      "note": ""
+    },
+    {
+      "id": "activity",
+      "label": "活跃奖励",
+      "recognition": [
+        "activity_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "profile",
+      "label": "个人资料／背包",
+      "recognition": [
+        "profile_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "treasure",
+      "label": "法宝",
+      "recognition": [
+        "treasure_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "time_boat",
+      "label": "时光之舟",
+      "recognition": [
+        "time_boat_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "theme",
+      "label": "主题挑战",
+      "recognition": [
+        "theme_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "hell",
+      "label": "螺旋地狱",
+      "recognition": [
+        "hell_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "arhat",
+      "label": "罗汉堂",
+      "recognition": [
+        "arhat_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "fortune",
+      "label": "挑战福禄寿",
+      "recognition": [
+        "fortune_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "mount_gather",
+      "label": "骑装加速养成",
+      "recognition": [
+        "mount_gather_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "arena",
+      "label": "竞技场对手列表",
+      "recognition": [
+        "arena_title",
+        "arena_list"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "shop_mystery",
+      "label": "神秘商店",
+      "recognition": [
+        "shop_title",
+        "shop_mystery_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": "只识别页面；次数为零也可定位，购买资格由业务模块检查。"
+    },
+    {
+      "id": "time_replay_1",
+      "label": "时光重现 · 第 1 页",
+      "recognition": [
+        "time_replay_1_title",
+        "time_replay_1_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "time_boat",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "time_replay_2",
+      "label": "时光重现 · 第 2 页",
+      "recognition": [
+        "time_replay_2_title",
+        "time_replay_2_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "time_boat",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "defend_south",
+      "label": "守卫须弥山 · 城南",
+      "recognition": [
+        "defend_south_title",
+        "defend_south_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "defend_east",
+      "label": "守卫须弥山 · 城东",
+      "recognition": [
+        "defend_east_title",
+        "defend_east_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "defend_north",
+      "label": "守卫须弥山 · 城北",
+      "recognition": [
+        "defend_north_title",
+        "defend_north_selected"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "bounty_board",
+      "label": "未接取悬赏榜",
+      "recognition": [
+        "bounty_board_title",
+        "bounty_board_tab"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": "此处为揭榜界面，不是已接受悬赏列表，不自动揭榜。"
+    },
+    {
+      "id": "alliance",
+      "label": "我的联盟",
+      "recognition": [
+        "alliance_title",
+        "alliance_overview"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "alliance_contribution",
+      "label": "联盟贡献",
+      "recognition": [
+        "alliance_contribution_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "alliance",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "alliance_blessing",
+      "label": "联盟祝福",
+      "recognition": [
+        "alliance_blessing_title"
+      ],
+      "exclude": [],
+      "obscures": [
+        "alliance",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": "未选择和已选待确认共用页面；导航不选择或领取祝福。"
+    },
+    {
+      "id": "survival_week",
+      "label": "生存大冒险 · 每周列表",
+      "recognition": [
+        "survival_week_title",
+        "survival_week_label"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "survival_question",
+      "label": "生存大冒险 · 答题",
+      "recognition": [
+        "survival_question_title",
+        "survival_question_attributes"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": "题目选择会推进玩法；没有自动答题或中断进度的导航边。"
+    },
+    {
+      "id": "survival_rewards",
+      "label": "生存大冒险 · 积分奖励",
+      "recognition": [
+        "survival_rewards_title",
+        "survival_rewards_choice"
+      ],
+      "exclude": [],
+      "obscures": [
+        "survival_week",
+        "survival_question",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "profile_sell",
+      "label": "一键出售确认",
+      "recognition": [
+        "profile_sell_warning",
+        "profile_sell_quality"
+      ],
+      "exclude": [],
+      "obscures": [
+        "profile",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": "仅允许取消，不创建出售确认边。"
+    },
+    {
+      "id": "warehouse",
+      "label": "仓库",
+      "recognition": [
+        "warehouse_title",
+        "warehouse_bag"
+      ],
+      "exclude": [],
+      "obscures": [
+        "profile",
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    },
+    {
+      "id": "settings_menu",
+      "label": "设置菜单",
+      "recognition": [
+        "settings_continue",
+        "settings_return_map"
+      ],
+      "exclude": [],
+      "obscures": [
+        "hub",
+        "daily_menu",
+        "daily_expanded",
+        "map_a",
+        "map_b"
+      ],
+      "note": ""
+    }
+  ],
+  "edges": [
+    {
+      "id": "login__saves",
+      "source": "login",
+      "target": "saves",
+      "label": "开始游戏，等待存档页",
+      "steps": [
+        {
+          "probe": "login_start",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "saves__login",
+      "source": "saves",
+      "target": "login",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "saves_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_a__world",
+      "source": "map_a",
+      "target": "world",
+      "label": "打开世界地图",
+      "steps": [
+        {
+          "probe": "map_a_world",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_a__activity",
+      "source": "map_a",
+      "target": "activity",
+      "label": "打开活跃奖励",
+      "steps": [
+        {
+          "probe": "map_a_activity_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_a__profile",
+      "source": "map_a",
+      "target": "profile",
+      "label": "打开个人资料／背包",
+      "steps": [
+        {
+          "probe": "map_a_backpack_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_a__treasure",
+      "source": "map_a",
+      "target": "treasure",
+      "label": "打开法宝",
+      "steps": [
+        {
+          "probe": "map_a_treasure_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_b__world",
+      "source": "map_b",
+      "target": "world",
+      "label": "打开世界地图",
+      "steps": [
+        {
+          "probe": "map_b_world",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_b__activity",
+      "source": "map_b",
+      "target": "activity",
+      "label": "打开活跃奖励",
+      "steps": [
+        {
+          "probe": "map_b_activity_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_b__profile",
+      "source": "map_b",
+      "target": "profile",
+      "label": "打开个人资料／背包",
+      "steps": [
+        {
+          "probe": "map_b_backpack_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "map_b__treasure",
+      "source": "map_b",
+      "target": "treasure",
+      "label": "打开法宝",
+      "steps": [
+        {
+          "probe": "map_b_treasure_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "world__hub",
+      "source": "world",
+      "target": "hub",
+      "label": "通过已适配的须弥山入口进入大厅",
+      "steps": [
+        {
+          "probe": "home_entry",
+          "click": true,
+          "post_delay": 800
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。世界图地标没有可见名称，不直接把中央岛屿绑定为须弥山。"
+    },
+    {
+      "id": "hub__world",
+      "source": "hub",
+      "target": "world",
+      "label": "打开世界地图",
+      "steps": [
+        {
+          "probe": "hub_world_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__profile",
+      "source": "hub",
+      "target": "profile",
+      "label": "打开个人资料／背包",
+      "steps": [
+        {
+          "probe": "hub_profile_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__treasure",
+      "source": "hub",
+      "target": "treasure",
+      "label": "打开法宝",
+      "steps": [
+        {
+          "probe": "hub_treasure_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__settings_menu",
+      "source": "hub",
+      "target": "settings_menu",
+      "label": "打开设置菜单",
+      "steps": [
+        {
+          "probe": "hub_settings_menu_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__alliance",
+      "source": "hub",
+      "target": "alliance",
+      "label": "打开我的联盟",
+      "steps": [
+        {
+          "probe": "hub_alliance_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__time_boat",
+      "source": "hub",
+      "target": "time_boat",
+      "label": "打开时光之舟",
+      "steps": [
+        {
+          "probe": "hub_time_boat_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__daily_menu",
+      "source": "hub",
+      "target": "daily_menu",
+      "label": "展开日常活动",
+      "steps": [
+        {
+          "probe": "hub_daily_toggle",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__hub",
+      "source": "daily_menu",
+      "target": "hub",
+      "label": "收起日常活动",
+      "steps": [
+        {
+          "probe": "hub_daily_toggle",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hub__shop_mystery",
+      "source": "hub",
+      "target": "shop_mystery",
+      "label": "打开已适配的神秘商店入口",
+      "steps": [
+        {
+          "probe": "mystery_shop_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__arena",
+      "source": "daily_menu",
+      "target": "arena",
+      "label": "打开竞技场对手列表",
+      "steps": [
+        {
+          "probe": "daily_arena_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__theme",
+      "source": "daily_menu",
+      "target": "theme",
+      "label": "打开主题挑战",
+      "steps": [
+        {
+          "probe": "daily_theme_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__hell",
+      "source": "daily_menu",
+      "target": "hell",
+      "label": "打开螺旋地狱",
+      "steps": [
+        {
+          "probe": "daily_hell_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__arhat",
+      "source": "daily_menu",
+      "target": "arhat",
+      "label": "打开罗汉堂",
+      "steps": [
+        {
+          "probe": "daily_arhat_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__fortune",
+      "source": "daily_menu",
+      "target": "fortune",
+      "label": "打开挑战福禄寿",
+      "steps": [
+        {
+          "probe": "daily_fortune_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__survival_week",
+      "source": "daily_menu",
+      "target": "survival_week",
+      "label": "打开生存大冒险 · 每周列表",
+      "steps": [
+        {
+          "probe": "daily_survival_week_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "daily_menu__defend_south",
+      "source": "daily_menu",
+      "target": "defend_south",
+      "label": "打开守卫须弥山并确认当前页签",
+      "steps": [
+        {
+          "probe": "daily_defend_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。可能恢复到上次选择的城市；执行后重定位。"
+    },
+    {
+      "id": "daily_menu__defend_east",
+      "source": "daily_menu",
+      "target": "defend_east",
+      "label": "打开守卫须弥山并确认当前页签",
+      "steps": [
+        {
+          "probe": "daily_defend_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。可能恢复到上次选择的城市；执行后重定位。"
+    },
+    {
+      "id": "daily_menu__defend_north",
+      "source": "daily_menu",
+      "target": "defend_north",
+      "label": "打开守卫须弥山并确认当前页签",
+      "steps": [
+        {
+          "probe": "daily_defend_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。可能恢复到上次选择的城市；执行后重定位。"
+    },
+    {
+      "id": "defend_south__defend_east",
+      "source": "defend_south",
+      "target": "defend_east",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_south_to_east",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_south__defend_north",
+      "source": "defend_south",
+      "target": "defend_north",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_south_to_north",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_east__defend_south",
+      "source": "defend_east",
+      "target": "defend_south",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_east_to_south",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_east__defend_north",
+      "source": "defend_east",
+      "target": "defend_north",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_east_to_north",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_north__defend_south",
+      "source": "defend_north",
+      "target": "defend_south",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_north_to_south",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_north__defend_east",
+      "source": "defend_north",
+      "target": "defend_east",
+      "label": "切换守卫城市页签",
+      "steps": [
+        {
+          "probe": "defend_north_to_east",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_boat__time_replay_1",
+      "source": "time_boat",
+      "target": "time_replay_1",
+      "label": "打开时光重现并确认页码",
+      "steps": [
+        {
+          "probe": "time_boat_replay_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_replay_1__time_replay_2",
+      "source": "time_replay_1",
+      "target": "time_replay_2",
+      "label": "切换时光重现页码",
+      "steps": [
+        {
+          "probe": "time_replay_1_to_2",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_replay_1__time_boat",
+      "source": "time_replay_1",
+      "target": "time_boat",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "time_replay_1_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_boat__time_replay_2",
+      "source": "time_boat",
+      "target": "time_replay_2",
+      "label": "打开时光重现并确认页码",
+      "steps": [
+        {
+          "probe": "time_boat_replay_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_replay_2__time_replay_1",
+      "source": "time_replay_2",
+      "target": "time_replay_1",
+      "label": "切换时光重现页码",
+      "steps": [
+        {
+          "probe": "time_replay_2_to_1",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_replay_2__time_boat",
+      "source": "time_replay_2",
+      "target": "time_boat",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "time_replay_2_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "alliance__alliance_contribution",
+      "source": "alliance",
+      "target": "alliance_contribution",
+      "label": "打开联盟贡献面板",
+      "steps": [
+        {
+          "probe": "alliance_contribution_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "profile__warehouse",
+      "source": "profile",
+      "target": "warehouse",
+      "label": "打开仓库",
+      "steps": [
+        {
+          "probe": "profile_warehouse_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "survival_week__survival_rewards",
+      "source": "survival_week",
+      "target": "survival_rewards",
+      "label": "查看积分奖励",
+      "steps": [
+        {
+          "probe": "survival_reward_entry",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "activity__map_a",
+      "source": "activity",
+      "target": "map_a",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "activity_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "activity__map_b",
+      "source": "activity",
+      "target": "map_b",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "activity_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "profile__map_a",
+      "source": "profile",
+      "target": "map_a",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "profile_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "profile__map_b",
+      "source": "profile",
+      "target": "map_b",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "profile_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "profile__hub",
+      "source": "profile",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "profile_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "treasure__map_a",
+      "source": "treasure",
+      "target": "map_a",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "treasure_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "treasure__map_b",
+      "source": "treasure",
+      "target": "map_b",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "treasure_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "treasure__hub",
+      "source": "treasure",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "treasure_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "arena__hub",
+      "source": "arena",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "arena_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "shop_mystery__hub",
+      "source": "shop_mystery",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "shop_mystery_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "time_boat__hub",
+      "source": "time_boat",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "time_boat_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "theme__hub",
+      "source": "theme",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "theme_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "hell__hub",
+      "source": "hell",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "hell_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "arhat__hub",
+      "source": "arhat",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "arhat_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "fortune__hub",
+      "source": "fortune",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "fortune_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "bounty_board__hub",
+      "source": "bounty_board",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "bounty_board_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "alliance__hub",
+      "source": "alliance",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "alliance_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "mount_gather__hub",
+      "source": "mount_gather",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "mount_gather_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "survival_week__hub",
+      "source": "survival_week",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "survival_week_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_south__hub",
+      "source": "defend_south",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "defend_south_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_east__hub",
+      "source": "defend_east",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "defend_east_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "defend_north__hub",
+      "source": "defend_north",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "defend_north_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "alliance_contribution__alliance",
+      "source": "alliance_contribution",
+      "target": "alliance",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "alliance_contribution_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "alliance_blessing__alliance",
+      "source": "alliance_blessing",
+      "target": "alliance",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "alliance_blessing_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "survival_rewards__survival_week",
+      "source": "survival_rewards",
+      "target": "survival_week",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "survival_rewards_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "survival_rewards__survival_question",
+      "source": "survival_rewards",
+      "target": "survival_question",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "survival_rewards_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "warehouse__profile",
+      "source": "warehouse",
+      "target": "profile",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "warehouse_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "warehouse__hub",
+      "source": "warehouse",
+      "target": "hub",
+      "label": "关闭当前面板并重新定位",
+      "steps": [
+        {
+          "probe": "warehouse_close",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "profile_sell__profile",
+      "source": "profile_sell",
+      "target": "profile",
+      "label": "取消出售并返回背包",
+      "steps": [
+        {
+          "probe": "profile_sell_cancel",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    },
+    {
+      "id": "settings_menu__hub",
+      "source": "settings_menu",
+      "target": "hub",
+      "label": "关闭设置并继续游戏",
+      "steps": [
+        {
+          "probe": "settings_continue",
+          "click": true,
+          "post_delay": 400
+        }
+      ],
+      "cost": 1,
+      "timeout_ms": 10000,
+      "max_attempts": 1,
+      "status": "candidate",
+      "evidence": "截图中可见该控件；跳转结果尚未实机验证。"
+    }
+  ],
+  "color_guard_missing": [
+    "survival_question_attributes"
+  ]
+}

@@ -32,15 +32,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 安装备份位于 `backup/frontend-script-studio-日期-随机后缀/`。其中 `installation.json` 记录覆盖前已存在和新建的文件；需要恢复时，关闭前端，将备份文件按相同相对路径复制回项目。脚本不会主动关闭任何现有 MFAAvalonia 进程。
 
-## 发布与手动升级
+## 发布与统一更新
 
-本次保留 `tools/build_update.py` / `updater.py` 的三项资源更新协议：`resource/`、`agent/`、`interface.json`。新增工作台必须使用本 PR 构建的前端，发布者需要把 `dist/script-studio` 中的前端与项目资源、Python 运行环境组合成完整客户端，通知旧用户重新下载后手动升级。CI 提供 `script-studio-frontend-win-x64` 构建附件，附件本身不含项目资源或 Python。
+2.3.8 正在引入统一更新器，发布与兼容边界以[更新协议与发布规范](../docs/zh_cn/更新协议与发布规范.md)为准。小更新仍只修改 `resource/`、`agent/`、`interface.json`；完整更新使用与 EXE 同源的客户端 ZIP。旧客户端必须先手动安装一次新版完整客户端，旧更新器不能安装新的前端和更新引擎。CI 提供的 `script-studio-frontend-win-x64` 仍只是前端附件，不含完整运行依赖；源码构建通过不等于已完成实机验收。
 
 完整客户端的标准入口为 `MAA造梦西游4.exe`：启动器调用 `runtimes/python/pythonw.exe` 运行 `updater.py`，再启动 MFA 前端。`MFAAvalonia.exe` 是直接启动前端的入口，不能用它启动成功代替标准入口验证。本轮首个候选整包曾漏掉官方启动器，包内服务及直接启动前端的检查没有发现此问题；最终包必须重新检查完整启动链路。
 
 完整包保留空的 `runtimes/win-x64/native/plugins/` 目录，供 MaaFramework 按其原有机制查找可选插件；该目录可以为空，不需要添加假插件。缺少目录时框架可能把目录路径当作动态库并输出加载错误。
 
-启动器从[官方 v2.3.1 发布包](https://github.com/Inkyu-Zero/MAAZMXY4/releases/tag/v2.3.1)提取。原始发布文件 `MAAZMXY4.v2.3.1.exe` 的 SHA-256 为 `cf59d9470dd71cb2f0a4ad21cddcede25b55ca3fafde6d653f6475fdcf22a351`；其中 `MAA造梦西游4.exe` 的固定 SHA-256 为 `a0367870662916dc6abcaadf76b8321e3979a82b7c894d9d2004e3eb90197e46`。完整包通过 `--launcher` 显式指定这份启动器，不从个人运行目录猜测来源。
+启动器现在从 `tools/launcher/Program.cs` 构建。正常入口仍调用内嵌 Python 和 `updater.py`；若存在待恢复事务，则先启动独立复制的恢复运行时，避免依赖正在替换的 Python DLL。`tools/build_launcher.ps1` 使用 Windows .NET Framework 编译器及项目图标，生成 EXE 和 `launcher-build.json`，打包核对源码、图标及二进制摘要。不能再把旧 v2.3.1 启动器混入统一更新客户端。手动自解压 EXE 的 7-Zip 外壳继续复用原有固定来源和校验规则。
 
 完整客户端还应包含 `script-studio-build.json`、`LICENSE-MFAAvalonia.txt`、`agent/recordings/` 和 `agent/task_asset_sync.py`，不得夹带发布者的 `recordings/`、`config/`、个人绑定、日志或缓存。根目录 `recordings/` 是用户库，与 `agent/recordings/` 发布模板分开；默认模板首次入库后不覆盖用户编辑，不恢复用户删除。
 
@@ -48,7 +48,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 ```powershell
 ./tools/build_frontend.ps1
-python tools/build_release.py --client --launcher "<官方解压目录>/MAA造梦西游4.exe" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>"
+./tools/build_launcher.ps1 -Version 2.3.8
+python tools/build_release.py --client --launcher "dist/launcher/MAA造梦西游4.exe" --frontend "<编译输出目录>" --python-runtime "<完整内嵌Python目录>" --repository "<发布者>/<仓库>"
 python tools/build_release.py --verify-client <完整包解压目录>
 ```
 
@@ -62,13 +63,15 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 
 工具核对官方自解压包、前缀与 7zr 的固定 SHA-256，检查 ZIP 中的客户端和路径，附带 7-Zip、LGPL 许可与来源声明，再生成不覆盖已有文件的 EXE。官方许可来源为 [7-Zip](https://www.7-zip.org/license.txt) 和 [GNU LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)。该 EXE 是自解压包，不创建卸载项或快捷方式；实际发行前仍须从发布地址重新下载并验证图形解压和运行。
 
-设置中的“前端升级说明”复用现有版本检测命令，提示下载本项目完整客户端；内部“更新软件”调用也会提示，防止通用 MFAAvalonia 更新覆盖定制页面。另须区分两条资源更新链路：外部 `updater.py` 只替换三项，不安装前端，也不执行旧脚本选择迁移；MFA 宿主内建资源更新通过 GitHub Release 选择资产，检测到核心程序文件后会尝试安装程序文件。后者没有被上述手动分发策略禁用，不能把它概括为“三项更新器”，也不能在尚未验证时宣称它已支持本次完整升级。首次引入工作台的版本按手动完整升级验收。
+现有版本更新页改为项目统一更新页，展示客户端/资源版本、渠道、来源和更新说明。检查、下载与安装分开；任务或录制运行时不能安装。MFA 的软件、资源、框架更新及本地包入口均转到项目流程，禁止通用 MFA 包覆盖定制前端。完整包导入只接受当前发布清单匹配的 ZIP，支持显式检查同版本完整修复包。启动器与前端使用同一 `update_engine`；旧 `updater.py` 中保留的兼容函数不再作为新版入口。
 
 手动升级的迁移命令与文件覆盖顺序见[使用说明](../docs/zh_cn/脚本工具-使用说明.md#手动升级客户端)。必须在替换旧 `interface.json` 前迁移，单纯保留 `config/` 和录制文件不等于保留旧任务的脚本选择。
 
 发布前应在隔离目录验证完整客户端；fork 试发布后重新下载实际 Release 资产，检查首次安装、旧版手动升级、启动器及用户数据。最终包的哈希、实际安装和远端 CI 各自取证，不以前一版本候选包的测试结果代替。是否提交上游 PR 由发布者决定。
 
-当前 `tools/build_update.py` 的默认 Release 仓库、`updater.py` 的版本源及公共 `interface.json.github` 仍指向原仓库。fork 发布前逐项核实下载地址；不能直接把默认生成的上游 URL 当作 fork 下载地址，也不要在 fork 试发布时更新上游或共享 R2 清单。发布 `version.json` 时只填写实际生成包的地址、体积和 SHA-256；本地测试版本不能写成已经上线的发布清单。MFA 内建更新可能选中完整 `win-x64` ZIP，其升级能力需要在发布后的独立验证中另行确认。
+新版更新源在打包时生成的 `update-config.json` 中，默认正式源为所选仓库 Release 的 `client-version.json` 附件；R2/CDN 可通过重复 `--manifest-url` 配置，但必须发布相同协议和序号的清单。fork 候选必须显式传 `--repository Algreenses/MAAZMXY4 --channel preview --manifest-url <独立候选清单地址>`，不修改上游或共享 R2。资源包由 `build_update.py` 默认生成协议 2 的清单内置包；旧 `version.json` 仅在显式 `--legacy` 时生成，不将新资源推给不兼容旧客户端。
+
+用 `tools/build_update_manifest.py --client <完整ZIP> --resource <资源ZIP> --repository <发布仓库> --tag <实际标签> --sequence <递增序号> --channel <stable或preview> --out <新清单路径>` 从最终资产生成候选清单。它校验包内摘要，只写本地文件，不上传；正式启用前先完成审核、授权实机、真实资产下载复验。旧清单与新清单相互独立，构建版本增加不能视为线上已发布。
 
 ## 宿主接入
 

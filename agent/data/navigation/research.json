@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-10-28",
+  "policy": "Public web pages are reference evidence, not live acceptance. Downloaded annotated screenshots, user identities and forum content are not bundled. Runtime navigation uses the existing reviewed client crops and guarded native actions.",
+  "sources": [
+    {
+      "id": "4399-sumeru-entry",
+      "page": "https://m.news.4399.com/gonglue/zmxy4/wenda/558932.html",
+      "title": "洪荒大劫篇须弥山在哪里 须弥山怎么进",
+      "image": "https://f2.img4399.com/newsm~uploads/userup/1509/2910263642S.jpg",
+      "image_sha256": "f00272f0cfac3489c97a6ee7c1cbae18d2af97db6c68298d8d2f51271f169425",
+      "decision": "The official labelled Buddha island identifies the semantic destination. The runtime matches the existing current-client sumeru-entry crop plus the independent world-map guards; it never clicks the guide annotation or a guessed coordinate."
+    },
+    {
+      "id": "4399-west-continent",
+      "page": "https://m.news.4399.com/gonglue/zmxy4/wenda/702656.html",
+      "title": "洪荒大劫篇西牛贺洲地图在哪里 西牛贺洲有什么BOSS",
+      "image": "https://f2.img4399.com/newsm~uploads/userup/1701/04144431E57.jpg",
+      "image_sha256": "ef4eab0b66c441de3284c23e5570093369bad08398a9d4a8f238976cf323a22e",
+      "decision": "Reference only. The older world map has fewer islands; no unchecked cross-continent task route is enabled from this picture."
+    },
+    {
+      "id": "4399-north-continent",
+      "page": "https://news.4399.com/gonglue/zmxy4/wenda/605453.html",
+      "title": "洪荒大劫篇北俱芦洲在哪里 北俱芦洲怎么进",
+      "decision": "Reference only. The 2016 guide does not establish the current full-map layout or the user's unlocked stages."
+    },
+    {
+      "id": "4399-merchant-2015",
+      "page": "https://news.4399.com/gonglue/zmxy4/wenda/516323.html",
+      "title": "洪荒大劫篇神秘商店在哪里 怎么进入",
+      "images": [
+        "https://f2.img4399.com/newsm~uploads/userup/1505/191103093357.jpg",
+        "https://f2.img4399.com/newsm~uploads/userup/1505/19110320c31.jpg"
+      ],
+      "decision": "Rejected as a runtime template: NPC dialogue with two shop buttons differs from the current top-bar and tabbed shop. The missing mystery-shop entry remains disabled."
+    },
+    {
+      "id": "4399-forum-daily-2025",
+      "page": "https://bbs.4399.cn/thread-view-tid-48456050",
+      "title": "洪荒大劫篇V50.9版本更新公告【太古秘境】",
+      "decision": "Public PC-web-game forum confirms the daily-menu hierarchy. Text evidence only; no arbitrary menu positions or purchasing actions are inferred."
+    },
+    {
+      "id": "4399-forum-daily-2026",
+      "page": "https://bbs.4399.cn/thread-view-tid-51889859",
+      "title": "洪荒大劫篇V55.1版本更新公告【新存档成长活动】",
+      "decision": "Public PC-web-game forum describes daily/adventure entries. Recognition still uses multiple known controls from the reviewed source library."
+    },
+    {
+      "id": "4399-forum-map-changes",
+      "page": "https://bbs.4399.cn/thread-view-tid-48602648",
+      "title": "洪荒大劫篇V51.1版本更新公告【不周山、弥天神域开启扫荡】",
+      "decision": "The update notes changed East-continent stage-icon positions. Historical guide coordinates are therefore not promoted to current task clicks."
+    },
+    {
+      "id": "excluded-mobile-and-login-only",
+      "pages": [
+        "https://www.taptap.cn/app/52646/topic",
+        "https://my.4399.com/forums/mtag-82186"
+      ],
+      "decision": "TapTap results concern the mobile game; the legacy forum redirected to login. Neither supplies usable current desktop-game templates. No login, posting or account interaction was attempted."
+    }
+  ]
+}

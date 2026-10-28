@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "pipelines": [
+    "navigation.json",
+    "battle_outcomes.json"
+  ]
+}

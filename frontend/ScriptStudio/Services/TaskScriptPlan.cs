@@ -8,6 +8,35 @@ namespace MFAAvalonia.Services;
 /// <summary>Turn catalog capabilities and saved bindings into native Pipeline overrides.</summary>
 public static class TaskScriptPlan
 {
+    public static string NormalizeRepeatLimits(string overrides)
+    {
+        var root = JsonNode.Parse(overrides);
+        var changed = false;
+        void Normalize(JsonNode? value)
+        {
+            if (value is JsonArray array)
+            {
+                foreach (var item in array) Normalize(item);
+                return;
+            }
+            if (value is not JsonObject pipeline) return;
+            foreach (var item in pipeline)
+            {
+                if (item.Value is not JsonObject node || node["max_hit"] is not JsonValue limit
+                    || !limit.TryGetValue<long>(out var count)) continue;
+                if (count < -1) throw new ArgumentException("刷取次数只能是正整数或 -1（无限）。");
+                if (count == -1)
+                {
+                    // Maa's documented unlimited max_hit sentinel is UINT_MAX.
+                    node["max_hit"] = uint.MaxValue;
+                    changed = true;
+                }
+            }
+        }
+        Normalize(root);
+        return changed ? root!.ToJsonString() : overrides;
+    }
+
     public static void StopIfUnbound(JsonObject plan, Action<string> log, CancellationToken token)
     {
         if (plan["stop_reason"]?.GetValue<string>() != "unbound_script") return;

@@ -1,0 +1,18 @@
+[
+  {
+    "source": "user-provided-log/quest-taizong-real.png",
+    "source_sha256": "925370ee852b02185fbdd96c9f157cbc5360ecc1bc6c97fb263d925dce9b2d23",
+    "base": [
+      1147,
+      720
+    ],
+    "bbox": [
+      916,
+      62,
+      65,
+      68
+    ],
+    "path": "navigation/panels/quest-close.png",
+    "sha256": "7a5143e72f647f63a11423ea8b834b560d5beff00fb3d3ef50ae6a7a322ce7de"
+  }
+]

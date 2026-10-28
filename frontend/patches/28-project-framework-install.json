@@ -1,0 +1,6 @@
+{
+  "description": "Route project updates and recovery through the shared update engine.",
+  "path": "MFAAvalonia/Helper/VersionChecker.cs",
+  "find": "    public async static Task UpdateMaaFw()\n    {",
+  "replace": "    public async static Task UpdateMaaFw()\n    {\n        if (MFAAvalonia.Services.ProjectUpdater.Enabled)\n        {\n            await MFAAvalonia.Services.ProjectUpdater.CheckAsync();\n            return;\n        }"
+}
