@@ -145,7 +145,7 @@ class BountyCandleTests(unittest.TestCase):
         self.assertTrue(playback['strict_task'])
         self.assertEqual(playback['expected_base'], [1148,720])
         self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
-                         [PREFIX+'阻断提示', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'等待返回'])
+                         [PREFIX+'阻断提示', PREFIX+'拒绝还魂丹', PREFIX+'等待拒绝复活', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'等待返回'])
         self.assertEqual(self.outcome()['status'], 'running')
         self.assertEqual(self.outcome()['recording_sha256'],playback['expected_sha256'])
 
@@ -163,13 +163,19 @@ class BountyCandleTests(unittest.TestCase):
     def test_battle_only_mode_uses_native_exit_and_full_mode_does_not(self):
         self.assertTrue(self.run_phase('begin',exit_mode='battle_only'))
         self.assertEqual(self.context.patches[0][PREFIX+'回放后分流']['next'],
-                         [PREFIX+'阻断提示', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'点击设置'])
+                         [PREFIX+'阻断提示', PREFIX+'拒绝还魂丹', PREFIX+'等待拒绝复活', PREFIX+'战斗失败', PREFIX+'成功返回地图', PREFIX+'点击设置'])
 
     def test_missing_binding_is_fatal_without_latest_fallback_or_capture(self):
         (self.recordings/'.bindings.json').unlink()
         self.assertFalse(self.run_phase('begin'))
         self.assertEqual(self.outcome()['status'],'fatal')
         self.assertEqual(self.context.tasker.controller.calls,0)
+        self.assertFalse(runtime._rounds)
+
+    def test_managed_defeat_requests_restart_without_success_or_native_retry(self):
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertFalse(self.run_phase('battle_failure'))
+        self.assertEqual((self.outcome()['status'],self.outcome()['reason']),('recoverable','battle_failed'))
         self.assertFalse(runtime._rounds)
 
     def test_missing_and_changed_files_never_trigger_recovery(self):

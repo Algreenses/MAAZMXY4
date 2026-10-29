@@ -120,6 +120,41 @@ public static class TaskScriptPlan
         return (entry, pipeline, profile);
     }
 
+    public static (string Entry, JsonObject Pipeline, JsonObject Profile, long Limit) PrepareManaged(
+        JsonObject plan, string originalEntry, string? overrides, GameManagementOptions options)
+    {
+        if (plan["binding"]?["mode"]?.GetValue<string>() != "pipeline")
+            throw new InvalidDataException("托管续跑需要绑定原任务流程中的脚本。");
+        var profile = plan["management_profile"]?.DeepClone() as JsonObject
+            ?? throw new InvalidDataException("该任务没有可确认的单轮边界。");
+        var prepared = Prepare(plan, originalEntry, overrides);
+        var entry = profile["entry"]!.GetValue<string>();
+        var pipeline = prepared.Pipeline;
+        var shared = pipeline["脚本任务设置"]?["action"]?["param"]?["custom_action_param"]?.DeepClone() ?? new JsonObject();
+        var parameters = TaskRecoveryPolicy.MergePipelineOverrides(new JsonArray(
+            profile["parameters"]!.DeepClone(), Parameters(pipeline, entry).DeepClone(), shared).ToJsonString());
+        parameters["phase"] = "begin";
+        parameters["game_management"] = new JsonObject { ["restart_on_failure"] = options.RestartOnFailure };
+        parameters["file"] = plan["recording"]!["path"]!.DeepClone();
+        parameters["expected_recording_file"] = plan["recording"]!["file"]!.DeepClone();
+        parameters["expected_recording_sha256"] = plan["recording"]!["sha256"]!.DeepClone();
+        var destination = Parameters(pipeline, entry); destination.Clear();
+        foreach (var pair in parameters) destination[pair.Key] = pair.Value?.DeepClone();
+        var success = profile["success_node"]!.GetValue<string>();
+        if (pipeline[success] is not JsonObject) pipeline[success] = new JsonObject();
+        pipeline[success]!["next"] = new JsonArray();
+        profile["resume_parameters"] = new JsonObject
+        {
+            ["account_name"] = options.AccountName, ["role_name"] = options.RoleName, ["save_slot"] = options.SaveSlot
+        };
+        var limit = profile["native_repeat"]?.GetValue<bool>() == true
+            ? long.Parse(profile["repeat_limit"]!.ToString(), System.Globalization.CultureInfo.InvariantCulture) : 1;
+        if (limit == -1 || limit == uint.MaxValue) limit = long.MaxValue;
+        if (limit < 1) throw new InvalidDataException("托管任务的刷取次数无效。");
+        pipeline = JsonNode.Parse(NormalizeRepeatLimits(pipeline.ToJsonString()))!.AsObject();
+        return (entry, pipeline, profile, limit);
+    }
+
     private static JsonObject Playback(JsonObject? recording)
     {
         if (recording == null) throw new InvalidDataException("缺少已校验的任务脚本。");

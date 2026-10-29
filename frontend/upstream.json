@@ -47,6 +47,11 @@
     "frontend/patches/32-win32-no-filtered-first-fallback.json",
     "frontend/patches/33-win32-startup-explicit-selection.json",
     "frontend/patches/34-game-database-navigation.json",
-    "frontend/patches/35-game-database-registration.json"
+    "frontend/patches/35-game-database-registration.json",
+    "frontend/patches/36-game-management-card.json",
+    "frontend/patches/37-task-description-in-settings.json",
+    "frontend/patches/38-disable-first-use-tutorial.json",
+    "frontend/patches/39-game-management-lifetime.json",
+    "frontend/patches/40-game-reconnect-preview.json"
   ]
 }

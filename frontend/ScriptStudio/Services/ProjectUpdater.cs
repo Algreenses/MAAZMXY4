@@ -96,7 +96,7 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     public bool AutoDownload { get => _autoDownload; set => SetProperty(ref _autoDownload, value); }
     public bool AllowModified { get => _allowModified; set => SetProperty(ref _allowModified, value); }
     public bool CanDownload => !Busy && _available;
-    public bool CanInstall => !Busy && _staged && !ScriptStudioGuard.IsCapturing &&
+    public bool CanInstall => !Busy && _staged && !ScriptStudioGuard.IsCapturing && ScriptStudioGuard.GameManagementOperations == 0 &&
         !MaaProcessor.Processors.Any(p => p.IsTaskRunActive);
     public string InstallHint => Busy ? "正在处理更新，请等待当前步骤完成。" : CanInstall ? "请先保存编辑内容。安装会退出本目录的助手，并保留个人录制与配置。" :
         _staged ? "请先停止所有实例任务及脚本录制，再安装更新。" : "下载并校验更新包后，可以退出助手安装。";
@@ -197,7 +197,7 @@ public sealed class ProjectUpdateViewModel : ObservableObject
     {
         lock (ScriptStudioGuard.SyncRoot)
         {
-            if (ScriptStudioGuard.IsCapturing || MaaProcessor.Processors.Any(p => p.IsTaskRunActive))
+            if (ScriptStudioGuard.IsCapturing || ScriptStudioGuard.GameManagementOperations != 0 || MaaProcessor.Processors.Any(p => p.IsTaskRunActive))
                 throw new InvalidOperationException("请先停止所有任务及脚本录制。");
             ScriptStudioGuard.UpdateBlockReason = "正在准备安装更新，请等待或取消。";
         }

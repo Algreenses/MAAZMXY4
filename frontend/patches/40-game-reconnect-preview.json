@@ -1,0 +1,6 @@
+{
+  "description": "Suspend live preview and competing auto-connect during a managed window replacement.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    public bool IsConnecting => _isConnecting != 0;",
+  "replace": "    public bool IsConnecting => _isConnecting != 0 || MFAAvalonia.Services.GameManagementService.IsReconnecting(this);"
+}

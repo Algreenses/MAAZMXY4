@@ -100,6 +100,8 @@ public sealed record TaskProcessIdentity(int Pid, long StartedUtcTicks, string E
     }
 }
 
+public sealed record ManagedGameTarget(TaskProcessIdentity Process, nint Window, TaskWindowSize ClientSize);
+
 public readonly record struct TaskWindowSize(int Width, int Height)
 {
     public void Validate()
@@ -123,6 +125,24 @@ public readonly record struct TaskWindowSize(int Width, int Height)
 /// <summary>One outer MFA iteration owns its recovery budget; failures never complete an iteration.</summary>
 public static class TaskRecoveryPolicy
 {
+    /// <summary>Wait for the old job to drain before allowing replacement of a lost game window.</summary>
+    public static async Task<(T Result, bool TargetLost)> ObserveExecutionAsync<T>(Task<T> execution,
+        Func<bool> targetLost, Action stopOldTask, CancellationToken token, TimeSpan? poll = null)
+    {
+        while (!execution.IsCompleted)
+        {
+            token.ThrowIfCancellationRequested();
+            await Task.WhenAny(execution, Task.Delay(poll ?? TimeSpan.FromMilliseconds(500), token));
+            token.ThrowIfCancellationRequested();
+            if (execution.IsCompleted || !targetLost()) continue;
+            stopOldTask();
+            var stopped = await execution.WaitAsync(TimeSpan.FromSeconds(10), token);
+            token.ThrowIfCancellationRequested();
+            return (stopped, true);
+        }
+        return (await execution, false);
+    }
+
     /// <summary>MFA serializes ordered option overrides as an array, even when Maa accepts one object.</summary>
     public static JsonObject MergePipelineOverrides(string? json)
     {
@@ -206,7 +226,7 @@ public static class TaskRecoveryPolicy
         while (outcome.Status == TaskAttemptStatus.Recoverable && options.Enabled)
         {
             token.ThrowIfCancellationRequested();
-            if (outcome.Reason is not ("white_screen" or "window_lost"))
+            if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed"))
                 return TaskAttempt.Fatal("不允许自动恢复的故障：" + outcome.Reason);
             if (restarts >= options.MaxRetries)
                 return TaskAttempt.Fatal("本轮自动恢复次数已用尽。");
@@ -229,7 +249,7 @@ public static class TaskRecoveryPolicy
         {
             "success" when !resume => new(TaskAttemptStatus.Success),
             "ready" when resume => new(TaskAttemptStatus.Ready),
-            "recoverable" when reason is "white_screen" or "window_lost" => new(TaskAttemptStatus.Recoverable, reason),
+            "recoverable" when reason is "white_screen" or "window_lost" or "battle_failed" => new(TaskAttemptStatus.Recoverable, reason),
             "cancelled" => new(TaskAttemptStatus.Cancelled, reason),
             "fatal" => TaskAttempt.Fatal(reason),
             _ => TaskAttempt.Fatal("任务没有留下可验证的成功状态。")

@@ -1,0 +1,6 @@
+{
+  "description": "Release the instance-owned game monitor with its processor.",
+  "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
+  "find": "    public void Dispose()\n    {\n        _isClosed = true;",
+  "replace": "    public void Dispose()\n    {\n        MFAAvalonia.Services.GameManagementService.Release(this);\n        _isClosed = true;"
+}

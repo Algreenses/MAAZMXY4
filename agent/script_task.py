@@ -24,6 +24,7 @@ from task_catalog import custom_parameters
 from navigation.catalog import task_graph
 from navigation import NavigationError
 from navigation.runtime import GraphNavigator
+from navigation.stage_view import restore_stage_view
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -265,7 +266,16 @@ def navigate_round(context, state):
     current = inspect_recording(state['reference'])
     if current['path'] != state['recording']['path'] or current['sha256'] != state['recording']['sha256']:
         raise RecordingChanged('本轮重试期间录制已改变，未开始下一次回放。')
-    return _navigator(context, state).run()
+    try:
+        return _navigator(context, state).run()
+    except NavigationError as error:
+        parameters = state['parameters']
+        navigation = parameters.get('navigation', {})
+        if (error.reason == 'unreachable' and parameters.get('game_management')
+                and navigation.get('kind') == 'stage'
+                and restore_stage_view(context, _navigator(context, state), navigation.get('target_node'))):
+            return _navigator(context, state).run()
+        raise
 
 
 def confirm_return(context, state):
@@ -358,6 +368,10 @@ class ScriptTaskState(CustomAction):
                 return True
             if phase == 'battle_failure':
                 state['battle_failed'] = True
+                if state['parameters'].get('game_management', {}).get('restart_on_failure') is True:
+                    write_status(state, 'recoverable', 'battle_failed', message='挑战失败，交由游戏管理重启；本轮未计次。')
+                    terminal = True
+                    return False
                 write_status(state, 'running', 'battle_failed_returning', message='识别到挑战失败，已停止录制；本次失败不计入次数。')
                 return True
             if phase == 'retry_after_failure':

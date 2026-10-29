@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../ScriptStudio/Services/TaskRecoveryPolicy.cs" Link="TaskRecoveryPolicy.cs" />
+    <Compile Include="../../ScriptStudio/Services/GameManagementPolicy.cs" Link="GameManagementPolicy.cs" />
     <Compile Include="../../ScriptStudio/Services/TaskScriptPlan.cs" Link="TaskScriptPlan.cs" />
     <Compile Include="../../ScriptStudio/Services/StudioCapturePresentation.cs" Link="StudioCapturePresentation.cs" />
     <Compile Include="../../ScriptStudio/Services/Win32WindowSelection.cs" Link="Win32WindowSelection.cs" />

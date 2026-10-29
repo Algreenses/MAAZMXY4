@@ -396,6 +396,92 @@ Sync("Win32 selection never guesses from enumeration order or shared window clas
     Require(Win32WindowSelection.SelectIndex(new[] { windows[1] }, null, null) == -1);
 });
 
+Sync("managed memory threshold needs two samples and produces one pending request", () =>
+{
+    var options = new GameManagementOptions { RestartOnMemory = true };
+    var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
+    Require(!schedule.Observe(options, 1_800_000_000, 1, now));
+    Require(!schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(5)));
+    Require(schedule.Observe(options, 1_800_000_001, 1, now.AddSeconds(10)));
+    Require(schedule.PendingReason == "memory_limit");
+    Require(!schedule.Observe(options, 2_000_000_000, 1, now.AddSeconds(15)));
+});
+Sync("interval is elapsed minutes and a replacement process starts a new interval", () =>
+{
+    var options = new GameManagementOptions { RestartOnInterval = true, IntervalMinutes = 60 };
+    var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
+    Require(!schedule.Observe(options, 0, 1, now));
+    Require(!schedule.Observe(options, 0, 1, now.AddMinutes(59)));
+    Require(schedule.Observe(options, 0, 1, now.AddMinutes(60)));
+    schedule.CompleteRestart(now.AddMinutes(60));
+    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(61)));
+    Require(!schedule.Observe(options, 0, 2, now.AddMinutes(120)));
+    Require(schedule.Observe(options, 0, 2, now.AddMinutes(121)));
+});
+Sync("persistent memory pressure cannot cause an endless restart loop", () =>
+{
+    var options = new GameManagementOptions { RestartOnMemory = true };
+    var schedule = new GameRestartSchedule(); var now = DateTimeOffset.UnixEpoch;
+    for (var attempt = 1; attempt <= 3; attempt++)
+    {
+        Require(!schedule.Observe(options, 2_000_000_000, attempt, now));
+        Require(schedule.Observe(options, 2_000_000_000, attempt, now.AddSeconds(5)));
+        schedule.CompleteRestart(now.AddSeconds(10)); now = now.AddSeconds(30);
+    }
+    Require(!schedule.Observe(options, 2_000_000_000, 4, now));
+    Require(!schedule.Observe(options, 2_000_000_000, 4, now.AddSeconds(5)));
+    Require(schedule.MemoryRecoveryExhausted && schedule.PendingReason == null);
+});
+Test("managed defeat restarts the same round and completes only after confirmation", async () =>
+{
+    var calls = 0; var restarts = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+        _ => Task.FromResult(++calls == 1 ? new TaskAttempt(TaskAttemptStatus.Recoverable, "battle_failed") : Good()),
+        (_, _, _) => { restarts++; return Task.FromResult(Ready()); }, default);
+    Require(result.Status == TaskAttemptStatus.Success && calls == 2 && restarts == 1);
+});
+Sync("management stays disabled by default and requires a target for automation", () =>
+{
+    Require(!GameManagementOptions.Parse("{}").Enabled && !GameManagementFeatures.FirstUseTutorialEnabled);
+    foreach (var json in new[] { "{\"IntervalMinutes\":0}", "{\"IntervalMinutes\":10081}", "{\"RestartOnFailure\":true}" })
+    {
+        try { GameManagementOptions.Parse(json); throw new Exception("Invalid settings accepted"); }
+        catch (InvalidDataException) { }
+    }
+});
+
+Test("lost-window interruption drains the old execution before recovery", async () =>
+{
+    var execution = new TaskCompletionSource<int>(); var stopped = 0;
+    var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execution.Task, () => true,
+        () => { stopped++; execution.SetResult(17); }, default, TimeSpan.FromMilliseconds(1));
+    Require(observed.TargetLost && observed.Result == 17 && stopped == 1);
+});
+Test("user cancellation never requests a game restart", async () =>
+{
+    using var cancel = new CancellationTokenSource(); cancel.Cancel();
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.ObserveExecutionAsync(
+        new TaskCompletionSource<int>().Task, () => true, () => throw new Exception("Unexpected stop/restart"), cancel.Token));
+});
+Sync("managed native quotas stop at one confirmed round and preserve unrelated overrides", () =>
+{
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["management_profile"] = new JsonObject { ["entry"] = "Begin", ["success_node"] = "Done",
+            ["resume_entry"] = "GameManagement_Resume", ["native_repeat"] = true, ["repeat_limit"] = 37,
+            ["parameters"] = new JsonObject { ["phase"] = "begin", ["file"] = "@task", ["navigation"] = new JsonObject { ["kind"] = "stage" } } } };
+    var result = TaskScriptPlan.PrepareManaged(plan, "Start", "{\"Done\":{\"post_delay\":42},\"Counter\":{\"max_hit\":37}}",
+        new GameManagementOptions { RestartOnFailure=true,AccountName="account",RoleName="role" });
+    Require(result.Entry == "Begin" && result.Limit == 37 && result.Pipeline["Done"]!["next"]!.AsArray().Count == 0);
+    Require(result.Pipeline["Done"]!["post_delay"]!.GetValue<int>() == 42);
+    Require(TaskScriptPlan.Parameters(result.Pipeline,"Begin")["expected_recording_sha256"]!.ToString() == Recording()["sha256"]!.ToString());
+    Require(TaskScriptPlan.Parameters(result.Pipeline,"Begin")["game_management"]!["restart_on_failure"]!.GetValue<bool>());
+    plan["management_profile"]!["repeat_limit"] = -1;
+    result = TaskScriptPlan.PrepareManaged(plan,"Start","{\"Counter\":{\"max_hit\":-1}}",new());
+    Require(result.Limit == long.MaxValue && result.Pipeline["Counter"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+    plan["management_profile"]!["native_repeat"] = false;
+    Require(TaskScriptPlan.PrepareManaged(plan,"Start",null,new()).Limit == 1); // MFA owns its outer repetitions.
+});
 var passed = 0;
 foreach (var test in tests)
 {

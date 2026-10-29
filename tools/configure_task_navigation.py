@@ -216,6 +216,16 @@ def configure(root=ROOT):
         inputs=[dict(name='失败重试次数', label='重试次数（0不重开）', pipeline_type='int', default='3',
                      verify='^([0-9]|1[0-9]|20)$', pattern_msg='请输入0至20，0表示不自动重开')],
         pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'max_retries': '{失败重试次数}'}}}}}})
+    marker='\n\n游戏管理：'
+    for task in interface['task']:
+        if task['name'] not in changed: continue
+        task['option']=[name for name in task.get('option',[]) if name!='自动恢复']
+        task['description']=task.get('description','').split(marker)[0]+marker+(
+            '在右侧设置现有造梦盒子程序、历史账号名称和已有存档角色。可分别开启任务失败后重启、'
+            '内存超过1.8 GB重启及按分钟间隔重启；所有状态显示在日志。\n'
+            '内存与定时重启在本轮结束、确认返回后执行；重启后核对账号和存档，再继续剩余轮次。'
+            '已完成次数保留，失败轮次不计次。游戏管理的失败重启优先于本任务的失败重试。\n'
+            '验证码、存档不符、脚本变更及人工停止会停止自动恢复；未启用游戏管理时保持原任务流程。')
     write(interface_path, interface)
     print('已接入公共导航与失败重试：' + '、'.join(changed))
 

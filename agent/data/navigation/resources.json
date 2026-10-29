@@ -2,6 +2,8 @@
   "version": 1,
   "pipelines": [
     "navigation.json",
-    "battle_outcomes.json"
+    "battle_outcomes.json",
+    "game_management.json",
+    "game_management_scroll.json"
   ]
 }

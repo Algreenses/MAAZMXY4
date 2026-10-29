@@ -10,6 +10,7 @@ on:
       - 'tools/migrate_zaomeng_scripts.py'
       - 'tools/import_navigation_library.py'
       - 'tools/configure_task_navigation.py'
+      - 'tools/configure_game_management.py'
       - 'tools/research/**'
       - 'tools/benchmark_task_config.py'
       - 'tools/navigation_privacy_masks.json'
@@ -65,6 +66,9 @@ jobs:
       - name: Offline game database search and page lifecycle checks
         shell: pwsh
         run: dotnet run --project frontend/tests/GameDatabase/GameDatabase.csproj -c Release
+      - name: Game management controls and instance settings without game processes
+        shell: pwsh
+        run: dotnet run --project frontend/tests/GameManagement/GameManagement.csproj -c Release
       - name: Project update transport and installation guard regression
         shell: pwsh
         run: dotnet run --project frontend/tests/ProjectUpdate/ProjectUpdate.csproj -c Release

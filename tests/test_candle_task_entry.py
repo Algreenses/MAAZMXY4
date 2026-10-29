@@ -65,8 +65,8 @@ class CandleTaskEntryTests(unittest.TestCase):
         p = PREFIX
         parameters = custom_parameters(self.nodes[p + '初始化'])
         self.assertEqual(custom_parameters(self.nodes[p + '回放战斗'])['file'], '@task:bounty-candle')
-        self.assertEqual(parameters['routes']['battle_only'], [p+'阻断提示',p+'战斗失败',p+'成功返回地图',p+'点击设置'])
-        self.assertEqual(parameters['routes']['recorded_return'], [p+'阻断提示',p+'战斗失败',p+'成功返回地图',p+'等待返回'])
+        self.assertEqual(parameters['routes']['battle_only'], [p+'阻断提示',p+'拒绝还魂丹',p+'等待拒绝复活',p+'战斗失败',p+'成功返回地图',p+'点击设置'])
+        self.assertEqual(parameters['routes']['recorded_return'], [p+'阻断提示',p+'拒绝还魂丹',p+'等待拒绝复活',p+'战斗失败',p+'成功返回地图',p+'等待返回'])
         self.assertEqual(self.nodes[p + '返回复检']['next'], [p + '成功'])
         self.assertEqual(custom_parameters(self.nodes[p + '成功'])['phase'], 'success')
         self.assertFalse(any(node.get('action', {}).get('param', {}).get('custom_action') == 'loop_count'
@@ -115,7 +115,9 @@ class CandleTaskEntryTests(unittest.TestCase):
             self.assertEqual(saved['TaskItems'][0]['repeat_count'], 9)
             self.assertTrue(saved['TaskItems'][0]['default_check'])
             self.assertEqual(saved['TaskItems'][0]['option'],
-                             instance['TaskItems'][0]['option']+[{'name':'失败自动重试','index':0}])
+                             [instance['TaskItems'][0]['option'][0],{'name':'失败自动重试','index':0}])
+            archived=json.loads((target/result['backup']/'config/instances/default.json').read_text(encoding='utf8'))
+            self.assertEqual(archived,instance)  # Retired restart settings remain recoverable in the migration backup.
             self.assertEqual(json.loads((target / 'interface.json').read_text(encoding='utf8'))['controller'],
                              [{'name': 'personal controller'}])
             installed = json.loads((target / 'resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
