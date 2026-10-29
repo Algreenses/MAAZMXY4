@@ -563,49 +563,18 @@
       "param": {
         "all_of": [
           {
-            "sub_name": "revive_caption",
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": [
-                  "navigation/outcomes/revive-normal-caption.png",
-                  "navigation/outcomes/revive-vip-caption.png"
-                ],
-                "roi": [
-                  200,
-                  170,
-                  800,
-                  390
-                ],
-                "threshold": 0.88
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "navigation/outcomes/revive-cancel-p1-up.png",
-                  "navigation/outcomes/revive-cancel-p1-over.png",
-                  "navigation/outcomes/revive-cancel-p1-down.png",
-                  "navigation/outcomes/revive-cancel-p2-up.png",
-                  "navigation/outcomes/revive-cancel-p2-over.png",
-                  "navigation/outcomes/revive-cancel-p2-down.png"
-                ],
-                "roi": "revive_caption",
-                "roi_offset": [
-                  -200,
-                  50,
-                  400,
-                  200
-                ],
-                "threshold": 0.9
+                "any_of": [
+                  "Result_ReviveLayoutP1",
+                  "Result_ReviveLayoutP2"
+                ]
               }
             }
           }
         ],
-        "box_index": 1
+        "box_index": 0
       }
     },
     "action": {
@@ -615,7 +584,187 @@
       }
     },
     "next": [],
-    "timeout": 5000,
+    "timeout": 15000,
+    "pre_delay": 0,
     "post_delay": 250
+  },
+  "Result_ReviveWindow": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "frame_corner",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Nav_CommonConfirm"
+                ]
+              }
+            }
+          },
+          "Result_RevivePrompt",
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-right.png",
+                "roi": "frame_corner",
+                "roi_offset": [
+                  491,
+                  -6,
+                  20,
+                  12
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-bottom.png",
+                "roi": "frame_corner",
+                "roi_offset": [
+                  -6,
+                  197,
+                  12,
+                  -9
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p1-up.png",
+                  "navigation/outcomes/revive-layout-p1-over.png",
+                  "navigation/outcomes/revive-layout-p1-down.png"
+                ],
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  357,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p2-up.png",
+                  "navigation/outcomes/revive-layout-p2-over.png",
+                  "navigation/outcomes/revive-layout-p2-down.png"
+                ],
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  454,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
   }
 }

@@ -1,0 +1,57 @@
+{
+  "source": "User-provided failure log, 2026-10-29; only shared game UI retained; inventory item and count removed.",
+  "cases": [
+    {
+      "file": "normal-p1-countdown2.png",
+      "source_sha256": "b92277f809290ebdb6bba6a5dd08ecc65ff5aad4422674805f80b3fe644a3e6e",
+      "sha256": "5e79c1e6c33151f6d2118a0c7983c190847f7b1fda369ca0189bae55d5ba4c0c",
+      "retained_dialog": [
+        291,
+        239,
+        853,
+        491
+      ],
+      "redactions": [
+        [
+          350,
+          284,
+          420,
+          355
+        ]
+      ],
+      "cancel_box": [
+        614,
+        416,
+        96,
+        42
+      ],
+      "countdown": 2
+    },
+    {
+      "file": "normal-p1-countdown1.png",
+      "source_sha256": "0e43d7520cb7e013d6c321213dd4bb6f90063364bf38055cba784b5620abd1dd",
+      "sha256": "0e3c6dce35d89b028ad5c1984f96a0c58f9af7f80d0ac64038cbf4f73d21d5c6",
+      "retained_dialog": [
+        291,
+        239,
+        853,
+        491
+      ],
+      "redactions": [
+        [
+          350,
+          284,
+          420,
+          355
+        ]
+      ],
+      "cancel_box": [
+        614,
+        416,
+        96,
+        42
+      ],
+      "countdown": 1
+    }
+  ]
+}

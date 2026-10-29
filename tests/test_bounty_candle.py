@@ -378,7 +378,9 @@ class NativePipelineStructureTests(unittest.TestCase):
         recognition=self.pipeline[PREFIX+'点击前往副本']['recognition']
         self.assertEqual(recognition['type'],'And')
         self.assertEqual(recognition['param']['box_index'],0)
-        checks=[item['recognition'] for item in recognition['param']['all_of']]
+        parts=recognition['param']['all_of']
+        self.assertEqual([item for item in parts if isinstance(item,str)],['Result_NoRevivePrompt'])
+        checks=[item['recognition'] for item in parts if isinstance(item,dict)]
         self.assertEqual([item['param']['expected'] for item in checks[:2]],
                          [['^前往副本$'],['^守卫宝烛$']])
         self.assertEqual(checks[2]['type'],'Or')

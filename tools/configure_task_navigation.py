@@ -50,11 +50,14 @@ def confirmed_outcomes(graph, prefix, parameters, normal_return, outcomes):
     graph[decline]=deepcopy(outcomes['Result_DeclineRevive'])
     # Only the subsequent recognized defeat marks this round as failed. A
     # disappearing prompt, failed click or unknown screen never counts success.
-    graph[decline].update(next=[prefix+'战斗失败'],timeout=8000,on_error=[prefix+'失败'])
+    graph[decline].update(next=[prefix+'战斗失败'],timeout=15000,on_error=[prefix+'失败'])
     # The caption can be visible before its cancel button settles. Hold this
     # branch so settings/return controls behind the modal cannot be selected.
     graph[pending]=deepcopy(outcomes['Result_RevivePrompt'])
-    graph[pending].update(next=[decline,prefix+'战斗失败'],timeout=8000,on_error=[prefix+'失败'])
+    # The game cancels after ten seconds. A layout miss must leave time for
+    # that countdown and the result animation, while still requiring an
+    # actual defeat before this round becomes eligible for retry.
+    graph[pending].update(next=[decline,prefix+'战斗失败'],timeout=15000,on_error=[prefix+'失败'])
     failure_next=[decline,pending,prefix+'失败返回地图',prefix+'失败返回确认']
     graph[prefix+'已确认战斗失败']=node('battle_failure',next=failure_next)
     graph[prefix+'已确认战斗失败']['on_error']=[prefix+'失败']

@@ -82,23 +82,60 @@ def generate(source,root=ROOT):
     for mode,box in [('normal',(250,47,378,72)),('vip',(128,76,422,99))]:
         file=source/f'revive-{mode}-p1/DefineSprite_42_mc_fh/1.png'
         captions.append(crop(file,f'revive-{mode}-caption.png',box))
-    cancel=[]
-    for players,x,y in [('p1',281,162),('p2',361,163)]:
+    layouts={}
+    for players in ('p1','p2'):
+        layouts[players]=[]
         for state in ('up','over','down'):
             folder=f'revive-normal-{players}'+('' if state=='up' else '-'+state)
             file=source/f'{folder}/DefineSprite_42_mc_fh/1.png'
-            cancel.append(crop(file,f'revive-cancel-{players}-{state}.png',(x,y,x+37,y+19),scale_first=True))
+            # Only the top edges and spacing of the button row. Text begins
+            # below this band; countdown digits and glyph rasterization cannot
+            # determine whether a cancel click is allowed.
+            layouts[players].append(crop(file,f'revive-layout-{players}-{state}.png',
+                (30,150,430,161),scale_first=True))
     path=root/'assets/resource/base/pipeline/battle_outcomes.json'
     nodes=json.loads(path.read_text(encoding='utf8'))
     caption=dict(type='TemplateMatch',param=dict(template=captions,roi=[200,170,800,390],threshold=.88))
     nodes['Result_RevivePrompt']=dict(recognition=deepcopy(caption),action=dict(type='DoNothing'),next=[],post_delay=0)
     nodes['Result_NoRevivePrompt']=dict(recognition=dict(type='Custom',param=dict(custom_recognition='battle_no_revive')),
         action=dict(type='DoNothing'),next=[],post_delay=0)
+    readonly=dict(action=dict(type='DoNothing'),next=[],post_delay=0)
+    def reference(name):
+        return dict(type='And',param=dict(all_of=[name]))
+    nodes['Result_ReviveWindow']=dict(recognition=dict(type='And',param=dict(all_of=[
+        dict(sub_name='frame_corner',recognition=reference('Nav_CommonConfirm')),
+        'Result_RevivePrompt',
+        # The offset is valid only for this fixed-size resurrection panel,
+        # not for a resized generic confirmation with the same border skin.
+        dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-right.png',
+            roi='frame_corner',roi_offset=[491,-6,20,12],threshold=.9))),
+        dict(recognition=dict(type='TemplateMatch',param=dict(template='navigation/dialogs/confirm-bottom.png',
+            roi='frame_corner',roi_offset=[-6,197,12,-9],threshold=.9))),
+    ],box_index=0)),**readonly)
+    geometry=[]
+    # FFDec's complete mc_fh rendering places the shared 38x43 corner patch
+    # at (19,21) after 720p scaling. Convert the source button centers once;
+    # runtime points are relative to the freshly matched window, never screen XY.
+    anchor_origin=[19,21]
+    for players,cancel_x in [('p1',269),('p2',349)]:
+        source_box=[cancel_x,155,78,33]
+        dx=round((cancel_x+39)*SCALE-anchor_origin[0])
+        dy=round((155+33/2)*SCALE-anchor_origin[1])
+        name='Result_ReviveLayout'+players.upper()
+        nodes[name]=dict(recognition=dict(type='And',param=dict(all_of=[
+            dict(sub_name='revive_window',recognition=reference('Result_ReviveWindow')),
+            dict(recognition=dict(type='TemplateMatch',param=dict(template=layouts[players],
+                roi='revive_window',roi_offset=[10,155,472,-8],threshold=.9))),
+            dict(recognition=dict(type='DirectHit',param=dict(roi='revive_window',
+                roi_offset=[dx,dy,-37,-42]))),
+        ],box_index=2)),**readonly)
+        geometry.append(dict(layout=players,anchor='Nav_CommonConfirm upper-left patch',
+            anchor_size=[38,43],source_anchor_720=anchor_origin,cancel_offset=[dx,dy],target_size=[1,1],
+            source_cancel_box=source_box))
     nodes['Result_DeclineRevive']=dict(recognition=dict(type='And',param=dict(all_of=[
-        dict(sub_name='revive_caption',recognition=deepcopy(caption)),
-        dict(recognition=dict(type='TemplateMatch',param=dict(template=cancel,roi='revive_caption',
-            roi_offset=[-200,50,400,200],threshold=.9))),
-    ],box_index=1)),action=dict(type='Click',param=dict(target=True)),next=[],timeout=5000,post_delay=250)
+        dict(recognition=dict(type='Or',param=dict(any_of=['Result_ReviveLayoutP1','Result_ReviveLayoutP2']))),
+    ],box_index=0)),action=dict(type='Click',param=dict(target=True)),next=[],timeout=15000,pre_delay=0,post_delay=250)
+    metadata['revive_geometry']=geometry
     for kind,character in [('Failed',95),('Succeeded',50)]:
         variants=[]
         for state in ('1_up','2_over','3_down'):
