@@ -498,3 +498,18 @@ interface.json.bak*
 /agent/adventure_drops.py
 /agent/adventure_drops_action.py
 /assets/resource/base/pipeline/掉落预判.json
+
+# 2.3.9 发布包带进来的运行时文件（不参与源码仓库）
+/client-installation.json
+/launcher-build.json
+/script-studio-build.json
+/update-config.json
+/LICENSE-7zip.txt
+/LICENSE-LGPL-2.1.txt
+/LICENSE-MFAAvalonia.txt
+/NOTICE-7zip.txt
+
+# 九转炼丹（本地私有扩展）
+/agent/jzld/
+/agent/jzld_action.py
+/assets/resource/base/pipeline/九转炼丹.json
