@@ -30,6 +30,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 `upstream.json` 的 `application_icon` 指向仓库根目录 `新图标.ico`。构建时统一替换宿主的 `Assets/logo.ico`，供 Windows EXE 和 Avalonia 内嵌窗口/托盘图标使用；构建记录包含图标 SHA-256，不需要手工修改缓存源码。
 
+源码与日常客户端分开存放时，可使用 `-Install -InstallDirectory <现有客户端目录>`。仍从当前源码树构建，在目标客户端目录检查运行状态、保存安装备份并安装上述前端文件；构建输出必须放在该目标目录之外。资源和 Agent 需另按既有迁移流程同步。
+
 新前端启动未绑定的脚本任务时，只在日志提示绑定方式并走宿主 `STOPPED` 路径，结束本次队列；不弹选择框、不执行回放、不计成功次数或继续重复。已绑定但文件丢失/损坏仍作为实际错误处理。协议通过 `report_unbound` 显式请求正常停止结果，旧调用仍保留严格校验。
 
 安装备份位于 `backup/frontend-script-studio-日期-随机后缀/`。其中 `installation.json` 记录覆盖前已存在和新建的文件；需要恢复时，关闭前端，将备份文件按相同相对路径复制回项目。脚本不会主动关闭任何现有 MFAAvalonia 进程。

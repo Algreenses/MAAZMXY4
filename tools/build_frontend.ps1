@@ -2,6 +2,7 @@
 param(
     [string]$DotnetPath,
     [string]$OutputDirectory,
+    [string]$InstallDirectory,
     [switch]$PrepareOnly,
     [switch]$NoRestore,
     [switch]$Install
@@ -11,6 +12,14 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$installRoot = $projectRoot
+if ($InstallDirectory) {
+    if (-not $Install) { throw '-InstallDirectory requires -Install.' }
+    $installRoot = [IO.Path]::GetFullPath($InstallDirectory).TrimEnd([IO.Path]::DirectorySeparatorChar)
+    if (-not (Test-Path -LiteralPath (Join-Path $installRoot 'interface.json') -PathType Leaf)) {
+        throw 'The installation directory must contain an existing client interface.json.'
+    }
+}
 $manifestPath = Join-Path $projectRoot 'frontend/upstream.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $utf8 = New-Object Text.UTF8Encoding($false)
@@ -38,12 +47,12 @@ function Assert-FrontendStopped {
         if (-not $processPath) {
             throw "Cannot verify the location of running frontend PID $($process.Id). Close it before using -Install."
         }
-        if ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($processPath)).Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        if ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($processPath)).Equals($installRoot, [StringComparison]::OrdinalIgnoreCase)) {
             throw "The project frontend is running (PID $($process.Id)). Close it before using -Install; no process was stopped."
         }
     }
     foreach ($process in @(Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe'" -ErrorAction SilentlyContinue)) {
-        if ($process.CommandLine -and $process.CommandLine.IndexOf((Join-Path $projectRoot 'MFAAvalonia.dll'), [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+        if ($process.CommandLine -and $process.CommandLine.IndexOf((Join-Path $installRoot 'MFAAvalonia.dll'), [StringComparison]::OrdinalIgnoreCase) -ge 0) {
             throw "The project frontend is running through dotnet (PID $($process.ProcessId)). Close it before using -Install."
         }
     }
@@ -197,6 +206,11 @@ if ($LASTEXITCODE -ne 0 -or $sdkVersion -notmatch '^10\.') {
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $projectRoot 'dist/script-studio' }
 elseif (-not [IO.Path]::IsPathRooted($OutputDirectory)) { $OutputDirectory = Join-Path $projectRoot $OutputDirectory }
 $outputRoot = [IO.Path]::GetFullPath($OutputDirectory).TrimEnd([IO.Path]::DirectorySeparatorChar)
+if ($InstallDirectory -and -not $installRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -and
+    ($outputRoot.Equals($installRoot, [StringComparison]::OrdinalIgnoreCase) -or
+     $outputRoot.StartsWith($installRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase))) {
+    throw 'Build output must be outside the separate installation directory.'
+}
 if ($outputRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
     $outputRoot.Equals($sourceRoot, [StringComparison]::OrdinalIgnoreCase) -or
     $outputRoot.StartsWith($sourceRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -232,7 +246,7 @@ Write-Utf8 (Join-Path $outputRoot 'script-studio-build.json') (($buildInfo | Con
 if ($Install) {
     Assert-FrontendStopped
     $backupRelative = 'backup/frontend-script-studio-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 6)
-    $backupRoot = Get-ContainedPath $projectRoot $backupRelative
+    $backupRoot = Get-ContainedPath $installRoot $backupRelative
     New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
     $installedFiles = @()
     foreach ($file in Get-ChildItem -LiteralPath $outputRoot -Recurse -File) {
@@ -241,7 +255,7 @@ if ($Install) {
         # Install frontend binaries only; project resources, Python and user configuration stay outside this list.
         if ($normalized -notmatch '^(MFAAvalonia\.(exe|dll|deps\.json|runtimeconfig\.json)|libloader\.dll|script-studio-build\.json|LICENSE-MFAAvalonia\.txt)$' -and
             $normalized -notmatch '^(libs/|runtimes/win-x64/native/)') { continue }
-        $destination = Get-ContainedPath $projectRoot $relative
+        $destination = Get-ContainedPath $installRoot $relative
         $existed = Test-Path -LiteralPath $destination
         if ($existed) {
             $backupPath = Get-ContainedPath $backupRoot $relative
@@ -252,7 +266,7 @@ if ($Install) {
     }
     Write-Utf8 (Join-Path $backupRoot 'installation.json') (($installedFiles | ConvertTo-Json -Depth 4) + "`n")
     foreach ($entry in $installedFiles) {
-        $destination = Get-ContainedPath $projectRoot $entry.path
+        $destination = Get-ContainedPath $installRoot $entry.path
         New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($destination)) -Force | Out-Null
         Copy-Item -LiteralPath (Get-ContainedPath $outputRoot $entry.path) -Destination $destination -Force
     }
