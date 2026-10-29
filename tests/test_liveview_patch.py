@@ -17,6 +17,13 @@ CONNECTING = '18-liveview-connecting.json'
 SUCCESS = '19-liveview-success-reset.json'
 MISSING_STATE = '20-liveview-missing-frame-state.json'
 MISSING_WARNING = '21-liveview-missing-frame-warning.json'
+TARGET_CHANGE = '41-liveview-target-change.json'
+INVALIDATE = '42-liveview-disconnect-invalidate.json'
+POLL_GENERATION = '43-liveview-poll-generation.json'
+FRAME_FENCE = '44-liveview-frame-fence.json'
+CARD_CHANGE = '45-liveview-card-change.json'
+CARD_STATE = '46-liveview-card-state.json'
+SEQUENCE_WIDTH = '47-liveview-sequence-width.json'
 
 
 def load_patch(name):
@@ -26,7 +33,8 @@ def load_patch(name):
 class LiveViewPatchTests(unittest.TestCase):
     def test_pinned_frontend_build_includes_liveview_patches(self):
         manifest = json.loads((ROOT / 'frontend/upstream.json').read_text(encoding='utf8'))
-        for name in (CONNECTING, SUCCESS, MISSING_STATE, MISSING_WARNING):
+        for name in (CONNECTING, SUCCESS, MISSING_STATE, MISSING_WARNING, TARGET_CHANGE,
+                     INVALIDATE, POLL_GENERATION, FRAME_FENCE, CARD_CHANGE, CARD_STATE, SEQUENCE_WIDTH):
             self.assertIn('frontend/patches/' + name, manifest['patches'])
             patch = load_patch(name)
             self.assertNotEqual(patch['find'], patch['replace'])

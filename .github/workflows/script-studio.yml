@@ -50,6 +50,9 @@ jobs:
         env:
           LIVEVIEW_PATCH_TESTS: '1'
         run: python -m unittest discover -s tests -p "test_liveview_patch.py" -v
+      - name: Live-view target generation and collapsed-card checks
+        shell: pwsh
+        run: dotnet run --project frontend/tests/LiveView/LiveView.csproj -c Release
       - name: Agent process ownership and cleanup regression
         env:
           AGENT_CLEANUP_PATCH_TESTS: '1'

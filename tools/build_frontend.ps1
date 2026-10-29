@@ -89,9 +89,16 @@ if ((Test-Path -LiteralPath $sourceMarker) -and (Get-Content -LiteralPath $sourc
 }
 Write-Utf8 $sourceMarker ($manifest.commit + "`n")
 
-foreach ($patchRelativePath in $manifest.patches) {
-    $patchPath = Get-ContainedPath $projectRoot $patchRelativePath
-    $patch = Get-Content -LiteralPath $patchPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$patchPaths = @($manifest.patches)
+$patchDefinitions = @(
+    foreach ($relativePath in $patchPaths) {
+        $path = Get-ContainedPath $projectRoot $relativePath
+        Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+)
+for ($patchIndex = 0; $patchIndex -lt $patchPaths.Count; $patchIndex++) {
+    $patchRelativePath = $patchPaths[$patchIndex]
+    $patch = $patchDefinitions[$patchIndex]
     $targetPath = Get-ContainedPath $sourceRoot $patch.path
     $text = [IO.File]::ReadAllText($targetPath).Replace("`r`n", "`n")
     $find = $patch.find.Replace("`r`n", "`n")
@@ -100,6 +107,25 @@ foreach ($patchRelativePath in $manifest.patches) {
         Write-Host "Patch already applied: $($patch.description)"
         continue
     }
+    # Later exact patches can replace or extend an earlier fragment.
+    # If their composed result is present, reapplying the earlier fragment would
+    # either fail or undo part of the later patch on a second build.
+    $superseded = $false
+    for ($laterIndex = $patchIndex + 1; $laterIndex -lt $patchPaths.Count; $laterIndex++) {
+        $later = $patchDefinitions[$laterIndex]
+        if ($later.path -ne $patch.path) { continue }
+        $laterFind = $later.find.Replace("`r`n", "`n")
+        $laterReplacement = $later.replace.Replace("`r`n", "`n")
+        $laterCoversEarlier = $laterFind.Contains($replacement) -and $text.Contains($laterReplacement)
+        $laterInsideEarlier = [regex]::Matches($replacement, [regex]::Escape($laterFind)).Count -eq 1 `
+            -and $text.Contains($replacement.Replace($laterFind, $laterReplacement))
+        if ($laterCoversEarlier -or $laterInsideEarlier) {
+            Write-Host "Patch superseded by an already-applied later patch: $($patch.description)"
+            $superseded = $true
+            break
+        }
+    }
+    if ($superseded) { continue }
     if ([regex]::Matches($text, [regex]::Escape($find)).Count -ne 1) {
         $previousProperty = $patch.PSObject.Properties['previous_replacements']
         $previous = @()

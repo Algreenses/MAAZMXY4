@@ -1,0 +1,6 @@
+{
+  "description": "Keep image ordering monotonic across target invalidations without a practical counter overflow.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    private int _liveViewImageCount;\n    private int _liveViewImageNewestCount;\n",
+  "replace": "    private long _liveViewImageCount;\n    private long _liveViewImageNewestCount;\n"
+}

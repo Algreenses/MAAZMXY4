@@ -1,0 +1,6 @@
+{
+  "description": "Observe the actual dashboard-card collapse state, including restored layouts.",
+  "path": "MFAAvalonia/Views/Pages/TaskQueueView.axaml.cs",
+  "find": "        DataContextChanged += OnDataContextChanged;\n    }\n",
+  "replace": "        DataContextChanged += OnDataContextChanged;\n        LiveViewCard.PropertyChanged += (_, change) =>\n        {\n            if (change.Property == MFAAvalonia.Views.UserControls.Dashboard.DashboardCard.IsCollapsedProperty)\n                ApplyLiveViewCardState();\n        };\n    }\n"
+}

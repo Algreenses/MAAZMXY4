@@ -52,6 +52,13 @@
     "frontend/patches/37-task-description-in-settings.json",
     "frontend/patches/38-disable-first-use-tutorial.json",
     "frontend/patches/39-game-management-lifetime.json",
-    "frontend/patches/40-game-reconnect-preview.json"
+    "frontend/patches/40-game-reconnect-preview.json",
+    "frontend/patches/41-liveview-target-change.json",
+    "frontend/patches/42-liveview-disconnect-invalidate.json",
+    "frontend/patches/43-liveview-poll-generation.json",
+    "frontend/patches/44-liveview-frame-fence.json",
+    "frontend/patches/45-liveview-card-change.json",
+    "frontend/patches/46-liveview-card-state.json",
+    "frontend/patches/47-liveview-sequence-width.json"
   ]
 }
