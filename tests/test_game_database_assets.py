@@ -39,6 +39,20 @@ class GameDatabaseAssetsTests(unittest.TestCase):
         variants=by_name['时间祖巫']['config_variants']
         self.assertGreater(len({s['value'] for v in variants for s in v['stats'] if s['label']=='生命'}),1)
 
+    def test_bead_source_conflicts_keep_original_text_and_client_values(self):
+        by_name={e['name']:e for e in self.entries}
+        for level, value in [(9, '0.4'), (10, '0.45')]:
+            entry=by_name[f'{level}级命中莲珠']
+            self.assertTrue(any('官方图鉴原文' in f['label'] and '冲突' in f['label']
+                                and '守护值' in f['value'] for f in entry['facts']))
+            self.assertIn({'label':'命中增幅（比例）', 'value':value},
+                          entry['config_variants'][0]['stats'])
+            self.assertTrue(any(r['kind']=='client' for r in entry['references']))
+        guardian=by_name['10级守护莲珠']
+        self.assertFalse(any('冲突' in f['label'] for f in guardian['facts']))
+        self.assertIn({'label':'守护增幅（比例）', 'value':'0.45'},
+                      guardian['config_variants'][0]['stats'])
+
     def test_icons_are_contained_hashed_and_collected_in_resource_packages(self):
         manifest=json.loads((DATA/'icons.json').read_text(encoding='utf8'))['icons']
         icons={i['path']:i for i in manifest}

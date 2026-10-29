@@ -108744,9 +108744,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958933.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -108806,9 +108824,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958935.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -108837,9 +108873,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958936.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -108899,9 +108953,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958938.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -108961,9 +109033,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958940.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109116,9 +109206,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958945.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109178,9 +109286,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958947.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109209,9 +109335,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958948.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109240,9 +109384,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958949.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109271,9 +109433,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958950.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109302,9 +109482,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958951.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109333,9 +109531,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958952.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109364,9 +109580,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958953.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109395,9 +109629,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958954.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109426,9 +109678,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958955.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109457,9 +109727,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958956.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109488,9 +109776,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958957.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109519,9 +109825,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958958.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109550,9 +109874,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958959.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109581,9 +109923,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958960.html",
           "kind": "official",
           "date": "22-04-15"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109612,9 +109972,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958968.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109643,9 +110021,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958969.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109674,9 +110070,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958970.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109705,9 +110119,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958971.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109736,9 +110168,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958972.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109767,9 +110217,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958973.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109798,9 +110266,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958974.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109829,9 +110315,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958975.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109860,9 +110364,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958976.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109891,9 +110413,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958977.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109922,9 +110462,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958978.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109953,9 +110511,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958979.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -109984,9 +110560,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958980.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110015,9 +110609,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958981.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110046,9 +110658,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958982.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110077,9 +110707,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958983.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110108,9 +110756,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958984.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110139,9 +110805,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958985.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110170,9 +110854,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958986.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110201,9 +110903,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958987.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110232,9 +110952,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958988.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110263,9 +111001,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958989.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110294,9 +111050,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958990.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110325,9 +111099,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958991.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110356,9 +111148,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958992.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110387,9 +111197,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958993.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110418,9 +111246,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958994.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110449,9 +111295,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958995.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110480,9 +111344,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958996.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110511,9 +111393,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958997.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110542,9 +111442,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958998.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110573,9 +111491,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/958999.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110604,9 +111540,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959000.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110635,9 +111589,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959001.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110666,9 +111638,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959002.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110697,9 +111687,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959003.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000001",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.03"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110728,9 +111736,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959004.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000102",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.06"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110759,9 +111785,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959005.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000203",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.1"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110790,9 +111834,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959006.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000304",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.15"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -110821,9 +111883,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/959007.html",
           "kind": "official",
           "date": "22-04-18"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000405",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.2"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111431,9 +112511,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964775.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111462,9 +112560,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964776.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111493,9 +112609,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964777.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111524,9 +112658,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964778.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111555,9 +112707,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964779.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111586,9 +112756,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964780.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111617,9 +112805,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964781.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111648,9 +112854,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964782.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111679,9 +112903,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964783.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111710,9 +112952,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964785.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111741,9 +113001,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964787.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111772,9 +113050,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964788.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111803,9 +113099,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964790.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111834,9 +113148,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964792.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111865,9 +113197,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964793.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111896,9 +113246,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964794.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111927,9 +113295,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964795.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111958,9 +113344,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964796.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -111989,9 +113393,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964797.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112020,9 +113442,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964798.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112051,9 +113491,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964799.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112082,9 +113540,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964800.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112113,9 +113589,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964801.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112144,9 +113638,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964802.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112175,9 +113687,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964803.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112206,9 +113736,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964804.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112237,9 +113785,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964805.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112268,9 +113834,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964806.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112299,9 +113883,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964807.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112330,9 +113932,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964809.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112361,9 +113981,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964810.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112392,9 +114030,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964811.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112423,9 +114079,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964813.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112454,9 +114128,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964814.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000406",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.25"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112485,9 +114177,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964815.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000407",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.3"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -112516,9 +114226,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/964816.html",
           "kind": "official",
           "date": "22-06-10"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000408",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.35"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134008,7 +135736,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992934.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅40%"
         },
         {
@@ -134026,9 +135754,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992934.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134039,7 +135785,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992941.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅45%"
         },
         {
@@ -134057,9 +135803,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992941.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "801000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "生命增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134070,7 +135834,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992942.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂铃上，魂器守护值增幅40%"
         },
         {
@@ -134088,9 +135852,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992942.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134101,7 +135883,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992943.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂铃上，魂器守护值增幅45%"
         },
         {
@@ -134119,9 +135901,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992943.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "802000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔法增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134132,7 +135932,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992944.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅40%"
         },
         {
@@ -134150,9 +135950,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992944.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134163,7 +135981,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992945.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅45%"
         },
         {
@@ -134181,9 +135999,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992945.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "803000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "攻击增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134194,7 +136030,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992946.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅40%"
         },
         {
@@ -134212,9 +136048,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992946.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134225,7 +136079,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992947.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅45%"
         },
         {
@@ -134243,9 +136097,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992947.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "804000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "防御增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134256,7 +136128,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992948.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂铃上，魂器守护值增幅40%"
         },
         {
@@ -134274,9 +136146,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992948.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134287,7 +136177,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992949.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂铃上，魂器守护值增幅45%"
         },
         {
@@ -134305,9 +136195,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992949.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "805000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "魔抗增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134318,7 +136226,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992950.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅40%"
         },
         {
@@ -134336,9 +136244,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992950.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134349,7 +136275,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992951.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅45%"
         },
         {
@@ -134367,9 +136293,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992951.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "806000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "破魔增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134380,7 +136324,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992952.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅40%"
         },
         {
@@ -134398,9 +136342,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992952.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134411,7 +136373,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992953.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂锥上，魂器守护值增幅45%"
         },
         {
@@ -134429,9 +136391,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992953.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "807000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "命中增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134442,7 +136422,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992954.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅40%"
         },
         {
@@ -134460,9 +136440,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992954.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134473,7 +136471,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992955.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅45%"
         },
         {
@@ -134491,9 +136489,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992955.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "808000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "闪避增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134504,7 +136520,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992956.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅40%"
         },
         {
@@ -134522,9 +136538,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992956.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134535,7 +136569,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992957.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅45%"
         },
         {
@@ -134553,9 +136587,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992957.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "809000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "暴击增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134566,7 +136618,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992958.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅40%"
         },
         {
@@ -134584,9 +136636,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992958.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134597,7 +136667,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992959.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂珏上，魂器守护值增幅45%"
         },
         {
@@ -134615,9 +136685,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992959.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "810000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "韧性增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134628,7 +136716,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992960.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅40%"
         },
         {
@@ -134646,9 +136734,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992960.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134659,7 +136765,7 @@
       "source_url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992961.html",
       "facts": [
         {
-          "label": "用途",
+          "label": "用途（官方图鉴原文，与客户端配置冲突）",
           "value": "可镶嵌在魂环上，魂器守护值增幅45%"
         },
         {
@@ -134677,9 +136783,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992961.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "811000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "幸运增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134708,9 +136832,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992962.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000509",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.4"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {
@@ -134739,9 +136881,27 @@
           "url": "https://news.4399.com/gonglue/zmxy4/zhuangbei/992963.html",
           "kind": "official",
           "date": "24-05-14"
+        },
+        {
+          "title": "官方客户端配置（基准值，非实战结算）",
+          "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/data/cg1_20261019_1.swf",
+          "kind": "client",
+          "date": "2026-10-19"
         }
       ],
-      "config_variants": [],
+      "config_variants": [
+        {
+          "id": "812000510",
+          "level": "",
+          "locations": [],
+          "stats": [
+            {
+              "label": "守护增幅（比例）",
+              "value": "0.45"
+            }
+          ]
+        }
+      ],
       "wiki_facts": []
     },
     {

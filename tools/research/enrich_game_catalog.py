@@ -27,6 +27,7 @@ STATS = {'hpMax':'生命', 'mpMax':'魔法', 'atk':'攻击', 'phyDef':'防御', 
          'reMP':'回魔', 'suckBlood':'吸血', 'backLash':'反伤', 'spiritHit':'魂击率'}
 BASE = 'https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/'
 WIKI = 'https://rotating-stars.github.io/zmxy4-helpPages/'
+CONFIG_SHA256 = '57139ad6c4cac1476f57b165cdd9d6fdc4b4aab61ce0e1905cfa8b253da9e45c'
 
 
 def records(path):
@@ -39,6 +40,8 @@ def enrich(catalog, assets, wiki):
     origin = next(s for s in manifest if s['name']=='config')
     if hashlib.sha256((assets/origin['file']).read_bytes()).hexdigest() != origin['sha256']:
         raise ValueError('Configuration source checksum changed')
+    if origin['sha256'] != CONFIG_SHA256:
+        raise ValueError('Importer metadata is pinned to the 2026-10-19 client configuration; update it before importing another snapshot')
     config = assets/'config'
     resources = {e['resourcesId']: e for e in records(config/'Resource.xml')}
     by_name = defaultdict(list)
@@ -47,6 +50,9 @@ def enrich(catalog, assets, wiki):
             if kind=='Boss' and row.get('boss')!='1':
                 continue
             by_name[(kind,row['name'])].append(row)
+    beads = defaultdict(list)
+    for row in records(config/'SoulBead.xml'):
+        beads[row.get('name', '')].append(row)
     locations = defaultdict(set)
     for row in records(config/'Dungeon.xml'):
         for ident in re.split('[;,]', row.get('monsterID','')):
@@ -71,6 +77,23 @@ def enrich(catalog, assets, wiki):
             if values:
                 e['config_variants'].append(dict(id=row['id'], level=row.get('level',row.get('userLevel','')),
                     locations=sorted(locations[row['id']]) if e['category']=='Boss' else [], stats=values))
+        # The official guide has copied the guardian attribute into several
+        # high-level bead descriptions. Keep the source text, flag an explicit
+        # mismatch and show the independently sourced client configuration.
+        bead_rows = beads.get(e['name'], []) if e['category']=='道具' else []
+        if len(bead_rows)==1:
+            bead = bead_rows[0]
+            label = STATS.get(bead.get('attribute', ''))
+            value = bead.get('attributeT1', '')
+            if label and value and value not in ('0', '-1'):
+                e['config_variants'].append(dict(id=bead['id'], level='', locations=[],
+                    stats=[dict(label=label+'增幅（比例）', value=value)]))
+                for fact in e['facts']:
+                    if fact['label'] != '用途':
+                        continue
+                    mentioned = {stat for stat in STATS.values() if stat+'值' in fact['value']}
+                    if mentioned and label not in mentioned:
+                        fact['label'] = '用途（官方图鉴原文，与客户端配置冲突）'
         if e['config_variants']:
             e['references'].append(dict(title='官方客户端配置（基准值，非实战结算）',url=origin['url'],kind='client',date='2026-10-19'))
         # An exact, unambiguous name/resource join is required for item artwork.
