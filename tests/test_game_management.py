@@ -168,9 +168,9 @@ class AdventureBoundaryTests(unittest.TestCase):
         self.assertTrue(self.adventure.AdventureInit().run(None,SimpleNamespace(custom_action_param=json.dumps(params))))
 
     def test_only_recognized_adventure_result_confirms_the_boundary(self):
-        self.assertEqual(json.loads(self.path.read_text())['status'],'running')
+        self.assertEqual(json.loads(self.path.read_text(encoding='utf8'))['status'],'running')
         self.adventure._log_result(None,'冒险成功 获得75积分','冒险成功')
-        state=json.loads(self.path.read_text())
+        state=json.loads(self.path.read_text(encoding='utf8'))
         self.assertEqual((state['status'],state['reason']),('success','adventure_finished'))
 
     def test_stalled_adventure_reports_fatal_and_never_continues_ocr_or_input(self):
@@ -179,7 +179,7 @@ class AdventureBoundaryTests(unittest.TestCase):
              patch.object(self.adventure,'_locate_options',side_effect=AssertionError('Must stop before reading/clicking')):
             self.assertIsNone(self.adventure.AdventureRead()._analyze(None,SimpleNamespace(image=None)))
             self.assertIsNone(self.adventure.AdventureRead()._analyze(None,SimpleNamespace(image=None)))
-        state=json.loads(self.path.read_text())
+        state=json.loads(self.path.read_text(encoding='utf8'))
         self.assertEqual((state['status'],state['reason']),('fatal','adventure_stalled'))
 
 
