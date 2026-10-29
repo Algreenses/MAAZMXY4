@@ -17,13 +17,15 @@ namespace MFAAvalonia.Services;
 public static class TaskRecovery
 {
     public static async Task<MaaJobStatus> RunAsync(MaaProcessor processor, string entry, string? overrides, JsonObject profile,
-        Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token)
+        Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token,
+        GameManagementOptions? management = null, ManagedGameTarget? verifiedTarget = null)
     {
         try
         {
             var pipeline = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
             var parameters = InitializerParameters(pipeline, entry);
-            var options = TaskRecoveryOptions.Read(parameters);
+            var options = management == null ? TaskRecoveryOptions.Read(parameters)
+                : new TaskRecoveryOptions(management.RestartOnFailure, 3, management.SaveSlot, management.ExePath);
             var resumeEntry = profile["resume_entry"]?.GetValue<string>();
             if (options.Enabled && string.IsNullOrWhiteSpace(resumeEntry))
                 throw new InvalidDataException("该任务没有配置恢复入口。");
@@ -32,7 +34,11 @@ public static class TaskRecovery
                 throw new InvalidDataException("该任务不支持所选存档。");
             TaskRecoveryPolicy.CompleteParameters(parameters, options, false);
             var session = new RecoverySession(processor, pipeline, options, execute, entry, resumeEntry, profile);
-            if (options.Enabled) session.CaptureTarget();
+            if (options.Enabled)
+            {
+                if (verifiedTarget != null) session.UseVerifiedTarget(verifiedTarget);
+                else session.CaptureTarget();
+            }
             var outcome = await TaskRecoveryPolicy.RunRoundAsync(options,
                 ct => session.RunEntryAsync(entry, false, ct), session.RecoverAsync, token);
             if (outcome.Status == TaskAttemptStatus.Cancelled)
@@ -50,6 +56,67 @@ public static class TaskRecovery
         }
     }
 
+    public static ManagedGameTarget CaptureManagedTarget(MaaProcessor processor, string exePath)
+    {
+        if (!OperatingSystem.IsWindows() || processor.ViewModel?.CurrentController != MaaControllerTypes.Win32
+            || processor.ViewModel.CurrentDevice is not DesktopWindowInfo selected || selected.Handle == IntPtr.Zero)
+            throw new ArgumentException("目标窗口已消失，请先启动并连接造梦盒子。");
+        if (!File.Exists(exePath)) throw new FileNotFoundException("游戏EXE不存在。", exePath);
+        var pid = WindowPid(selected.Handle);
+        if (pid == 0) throw new ArgumentException("目标窗口已消失。");
+        var identity = Identity(pid); identity.RequireConfiguredPath(exePath);
+        RequireUnshared(processor, pid);
+        var size = ClientSize(selected.Handle); size.Validate();
+        return new(identity, selected.Handle, size);
+    }
+
+    private static void RequireUnshared(MaaProcessor processor, int pid) =>
+        TaskRecoveryPolicy.RequireExclusivePid(pid, MaaProcessor.Processors
+            .Where(other => other != processor && (other.IsTaskRunActive || GameManagementService.HasArmedSession(other)))
+            .Select(other => other.ViewModel?.CurrentDevice is DesktopWindowInfo device ? WindowPid(device.Handle) : 0));
+
+    public static async Task<TaskAttempt> ManageAsync(MaaProcessor processor, GameManagementOptions options,
+        string operation, Func<string?, string?, CancellationToken, Task<MaaJobStatus>> execute, CancellationToken token)
+    {
+        options.Validate(requireTarget: true, requireLogin: operation != "close");
+        if (!OperatingSystem.IsWindows() || processor.ViewModel?.CurrentController != MaaControllerTypes.Win32)
+            throw new InvalidOperationException("游戏管理需要先选择 Win32 造梦盒子控制器。");
+        using var reconnection = GameManagementService.SuppressReconnection(processor);
+        var profile = new JsonObject
+        {
+            ["resume_parameters"] = new JsonObject
+            {
+                ["account_name"] = options.AccountName, ["role_name"] = options.RoleName,
+                ["save_slot"] = options.SaveSlot, ["allow_existing_map"] = operation == "connect"
+            }
+        };
+        var session = new RecoverySession(processor, new JsonObject(),
+            new TaskRecoveryOptions(true, 3, options.SaveSlot, options.ExePath), execute,
+            "GameManagement_Resume", "GameManagement_Resume", profile);
+        if (operation == "start")
+        {
+            await session.StopInputsAndAgentAsync(token);
+            await session.StartSelectedProcessAsync(token);
+            await session.BindUniqueWindowAsync(token);
+            await session.ReconnectAsync(token);
+            return await session.ResumeAsync(options.SaveSlot, token);
+        }
+        session.CaptureTarget();
+        if (operation == "connect")
+        {
+            await session.ReconnectAsync(token);
+            return await session.ResumeAsync(options.SaveSlot, token);
+        }
+        if (operation == "close")
+        {
+            await session.StopInputsAndAgentAsync(token);
+            await session.StopSelectedProcessAsync(token);
+            return new(TaskAttemptStatus.Ready);
+        }
+        if (operation != "restart") throw new InvalidOperationException("未知的盒子管理操作。");
+        return await TaskRecoveryPolicy.RestartAsync(session, options.SaveSlot, token);
+    }
+
     private static JsonObject InitializerParameters(JsonObject pipeline, string nodeName)
     {
         if (pipeline[nodeName] is not JsonObject node) pipeline[nodeName] = node = new();
@@ -65,26 +132,32 @@ public static class TaskRecovery
         private TaskProcessIdentity? _target;
         private IntPtr _window;
         private readonly TaskRecordingRevision _revision = new();
-        private TaskWindowSize _clientSize;
+        private TaskWindowSize _clientSize = new(1147, 720);
 
         public void CaptureTarget()
         {
-            if (!OperatingSystem.IsWindows() || processor.ViewModel?.CurrentController != MaaControllerTypes.Win32
-                || processor.ViewModel.CurrentDevice is not DesktopWindowInfo selected || selected.Handle == IntPtr.Zero)
-                throw new InvalidOperationException("自动恢复仅支持明确选择的Win32游戏窗口。");
-            if (!File.Exists(options.ExePath)) throw new FileNotFoundException("游戏EXE不存在。", options.ExePath);
-            _window = selected.Handle;
-            var pid = WindowPid(_window);
-            _target = Identity(pid);
-            _target.RequireConfiguredPath(options.ExePath);
-            EnsureUnshared(pid);
-            _clientSize = ClientSize(_window);
-            _clientSize.Validate();
+            UseVerifiedTarget(CaptureManagedTarget(processor, options.ExePath));
+        }
+
+        public void UseVerifiedTarget(ManagedGameTarget snapshot)
+        {
+            snapshot.Process.RequireConfiguredPath(options.ExePath);
+            snapshot.ClientSize.Validate();
+            var selected = processor.ViewModel?.CurrentDevice as DesktopWindowInfo;
+            var selectedPid = selected == null ? 0 : WindowPid(selected.Handle);
+            if (selectedPid != 0 && selectedPid != snapshot.Process.Pid)
+                throw new InvalidOperationException("所选窗口已改变，未恢复之前的游戏进程。");
+            try { snapshot.Process.RequireSame(Identity(snapshot.Process.Pid)); }
+            catch (ArgumentException) { } // The verified process may already have exited.
+            EnsureUnshared(snapshot.Process.Pid);
+            _target = snapshot.Process; _window = snapshot.Window; _clientSize = snapshot.ClientSize;
         }
 
         public async Task<TaskAttempt> RunEntryAsync(string entry, bool resume, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
+            if (!resume && options.Enabled && IsLostTarget())
+                return new(TaskAttemptStatus.Recoverable, "window_lost");
             var runId = Guid.NewGuid().ToString();
             var directory = Path.Combine(AppPaths.DataRoot, "debug", "task-runs");
             Directory.CreateDirectory(directory);
@@ -105,7 +178,19 @@ public static class TaskRecovery
             parameters["status_path"] = statusPath;
             _revision.Apply(parameters);
             MaaJobStatus status;
-            try { status = await execute(entry, copy.ToJsonString(), token); }
+            try
+            {
+                var execution = execute(entry, copy.ToJsonString(), token);
+                if (options.Enabled)
+                {
+                    var observed = await TaskRecoveryPolicy.ObserveExecutionAsync(execution, IsLostTarget,
+                        () => { processor.AddLog("游戏管理：目标窗口已丢失，停止旧任务后重新建立连接。"); processor.MaaTasker?.Stop(); }, token);
+                    token.ThrowIfCancellationRequested();
+                    if (observed.TargetLost) return new(TaskAttemptStatus.Recoverable, "window_lost");
+                    status = observed.Result;
+                }
+                else status = await execution;
+            }
             catch (OperationCanceledException) { throw; }
             catch (Exception error)
             {
@@ -137,6 +222,7 @@ public static class TaskRecovery
             token.ThrowIfCancellationRequested();
             if (_target == null) return TaskAttempt.Fatal("没有经过校验的恢复目标。");
             processor.AddLog($"任务：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
+            using var reconnection = GameManagementService.SuppressReconnection(processor);
             return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
         }
 
@@ -262,9 +348,7 @@ public static class TaskRecovery
 
         private void EnsureUnshared(int pid)
         {
-            TaskRecoveryPolicy.RequireExclusivePid(pid, MaaProcessor.Processors
-                .Where(other => other != processor && other.IsTaskRunActive)
-                .Select(other => other.ViewModel?.CurrentDevice is DesktopWindowInfo device ? WindowPid(device.Handle) : 0));
+            RequireUnshared(processor, pid);
         }
 
         private bool IsLostTarget()

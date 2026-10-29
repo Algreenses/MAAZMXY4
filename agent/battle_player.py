@@ -573,7 +573,7 @@ class BattlePlay(CustomAction):
                 self._log('[battle_play] 结果监测停止：' + str(monitor.error))
                 return False
             if monitor.branch is not None and not context.tasker.stopping:
-                self._log('[battle_play] 已识别通关结果，释放输入后进入结果处理。')
+                self._log('[battle_play] 已识别战斗结果或复活提示，释放输入后进入对应处理。')
                 return bool(context.override_next(argv.node_name, monitor.branch))
         if not completed:
             return False

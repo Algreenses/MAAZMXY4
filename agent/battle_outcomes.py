@@ -9,9 +9,9 @@ import time
 
 class BattleOutcomeMonitor:
     def __init__(self, context, policy):
-        if not isinstance(policy, dict) or set(policy) - {'failed_next', 'succeeded_next', 'default_next', 'interval_ms'}:
+        if not isinstance(policy, dict) or set(policy) - {'failed_next', 'succeeded_next', 'default_next', 'interval_ms', 'revive_next'}:
             raise ValueError('战斗结果监测配置无效。')
-        for field in ('failed_next', 'succeeded_next', 'default_next'):
+        for field in ('failed_next', 'succeeded_next', 'default_next', *(['revive_next'] if 'revive_next' in policy else [])):
             value = policy.get(field)
             if not isinstance(value, list) or not value or len(value) > 20 or any(not isinstance(n, str) or not n for n in value):
                 raise ValueError('战斗结果监测缺少有效的后续节点。')
@@ -49,6 +49,20 @@ class BattleOutcomeMonitor:
                 if frame is None or getattr(frame, 'ndim', 0) != 3 or frame.shape[2] < 3:
                     raise RuntimeError('战斗结果截图无效，已停止回放。')
                 frame = frame.copy()
+                if 'revive_next' in self.policy:
+                    revive = self.context.run_recognition('Result_RevivePrompt', frame)
+                    if revive is None:
+                        raise ValueError('缺少复活弹窗识别资源，请更新完整客户端。')
+                    if revive.hit:
+                        # This is an interruption, not yet a confirmed defeat.
+                        # Playback owns key release and the native guarded click.
+                        self.branch = list(self.policy['revive_next'])
+                        return
+                confirmation = self.context.run_recognition('Nav_CommonConfirm', frame)
+                if confirmation is None:
+                    raise ValueError('缺少确认浮窗识别资源，请更新完整客户端。')
+                if confirmation.hit:
+                    raise ValueError('检测到确认浮窗，已停止回放；请处理浮窗后再继续。')
                 failed = self.context.run_recognition('Result_Failed', frame)
                 succeeded = self.context.run_recognition('Result_Succeeded', frame)
                 if failed is None or succeeded is None:

@@ -1,0 +1,645 @@
+{
+  "GameManagement_StartGame": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-start.png",
+                "roi": [
+                  458,
+                  595,
+                  236,
+                  90
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/login-logo.png",
+                "roi": [
+                  23,
+                  19,
+                  276,
+                  178
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_SavePage": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": "bounty-candle/save-header.png",
+        "roi": [
+          458,
+          77,
+          251,
+          80
+        ],
+        "method": 1,
+        "threshold": 0.045
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "post_delay": 0,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_MapReady": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "post_delay": 0,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_ResumeMap": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "bounty-candle/pause-cloudy.png",
+                        "method": 1,
+                        "threshold": 0.045
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "任务.png"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "post_delay": 350,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  154,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-1.png",
+                "roi": [
+                  257,
+                  163,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  154,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-2.png",
+                "roi": [
+                  583,
+                  163,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          213,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot3": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  328,
+                  272,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-3.png",
+                "roi": [
+                  257,
+                  280,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          418,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_Slot4": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "[Ll][Vv][.· :]*[0-9]+"
+                ],
+                "roi": [
+                  655,
+                  272,
+                  230,
+                  56
+                ],
+                "threshold": 0.65
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-header.png",
+                "roi": [
+                  458,
+                  77,
+                  251,
+                  80
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "bounty-candle/save-4.png",
+                "roi": [
+                  583,
+                  280,
+                  85,
+                  94
+                ],
+                "method": 1,
+                "threshold": 0.045
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          744,
+          330,
+          1,
+          1
+        ]
+      }
+    },
+    "post_delay": 400,
+    "next": [],
+    "timeout": 3000
+  },
+  "GameManagement_BoxLogin": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游4$"
+                ],
+                "roi": [
+                  80,
+                  510,
+                  360,
+                  130
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游5$"
+                ],
+                "roi": [
+                  420,
+                  510,
+                  380,
+                  130
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^账号$"
+                ],
+                "roi": [
+                  350,
+                  240,
+                  170,
+                  110
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^密码$"
+                ],
+                "roi": [
+                  350,
+                  310,
+                  170,
+                  110
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "GameManagement_OpenAccounts": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游4$"
+                ],
+                "roi": [
+                  80,
+                  510,
+                  360,
+                  130
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^造梦西游5$"
+                ],
+                "roi": [
+                  420,
+                  510,
+                  380,
+                  130
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^账号$"
+                ],
+                "roi": [
+                  350,
+                  240,
+                  170,
+                  110
+                ],
+                "threshold": 0.75
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^密码$"
+                ],
+                "roi": [
+                  350,
+                  310,
+                  170,
+                  110
+                ],
+                "threshold": 0.75
+              }
+            }
+          }
+        ]
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          604,
+          165,
+          4,
+          4
+        ]
+      }
+    },
+    "next": [],
+    "post_delay": 300
+  },
+  "GameManagement_Blocking": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "expected": [
+          "验证码|密码错误|账号.*不正确|登录失败|登陆失败|安全验证|异地登录|账号不存在"
+        ],
+        "roi": [
+          0,
+          0,
+          1147,
+          720
+        ],
+        "threshold": 0.75
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "GameManagement_Resume": {
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "game_management_login"
+      }
+    },
+    "next": [],
+    "post_delay": 0
+  }
+}

@@ -60,7 +60,7 @@ LOG_PATH = os.path.join(LOG_DIR, "adventure.log")
 
 QUESTION_NODE = "生存大冒险_识别题干"
 # 改动 agent 代码后改这个值，日志里就能确认「agent 到底加载了哪一版」
-AGENT_VERSION = "2026-10-27-phase"
+AGENT_VERSION = "2026-10-29-managed-boundary"
 CHARACTER_NODE = "生存大冒险_角色"
 ATTR_NODE_FMT = "生存大冒险_属性_{}"
 OPTION_NODE_FMT = "生存大冒险_选项_{}"
@@ -833,6 +833,10 @@ def _log_result(context: Context, question: str, mark: str) -> None:
         if STATE.finished:
             return
         STATE.finished = True
+    managed_checkpoint = getattr(STATE, 'management_checkpoint', None)
+    if managed_checkpoint is not None:
+        from script_task import write_status
+        write_status(managed_checkpoint, 'success', 'adventure_finished')
     if STATE.score_by_q:
         mine = STATE.total_score()
         hit = re.search(r"获得\s*(\d+)\s*积分", question or "")
@@ -896,6 +900,12 @@ class AdventureInit(CustomAction):
         # 只接受显式传入的属性；没有传入就保持空账本，完全以界面 OCR 为准
         # （角色是随机出现的，写死默认值反而会在 OCR 失败时给出错误判断）
         param = _as_dict(getattr(argv, "custom_action_param", None))
+        STATE.management_checkpoint = None
+        if param.get('management_checkpoint') is not None:
+            from script_task import _new_state, write_status
+            checkpoint = _new_state(param['management_checkpoint'])
+            write_status(checkpoint, 'running', 'adventure_round')
+            STATE.management_checkpoint = checkpoint
         attrs: Dict[str, int] = {}
         for name in logic.ATTRS:
             value = _to_int(param.get(name))
@@ -1030,6 +1040,9 @@ class AdventureRead(CustomRecognition):
             return None
 
     def _analyze(self, context: Context, argv: CustomRecognition.AnalyzeArg):
+        managed_checkpoint = getattr(STATE, 'management_checkpoint', None)
+        if managed_checkpoint is not None and managed_checkpoint.get('status') == 'fatal':
+            return None
         # 空转提示：游戏崩溃/断线回登录页时，这里会一轮轮空跑。
         # 只打一行日志方便定位，不改任何流程（是否退出仍由结算节点决定）。
         _now_ts = time.monotonic()
@@ -1038,6 +1051,12 @@ class AdventureRead(CustomRecognition):
             if _idle > 180:
                 STATE.idle_warned = True
                 _log(f"已经 {int(_idle)} 秒没有进展，可能已离开答题界面（游戏卡住/断线？）")
+                managed_checkpoint = getattr(STATE, 'management_checkpoint', None)
+                if managed_checkpoint is not None:
+                    from script_task import write_status
+                    write_status(managed_checkpoint, 'fatal', 'adventure_stalled',
+                                 message='答题连续三分钟无进展，停止并保留当前局；不自动重启。')
+                    return None
 
         image = getattr(argv, "image", None)
         # 点击行位置同样优先用运行时实测值，避免坐标偏移导致点错行

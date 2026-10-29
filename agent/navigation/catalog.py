@@ -15,6 +15,11 @@ def task_graph(context, parameters, *, targets=None):
     for node in nodes:
         if node['id'] != 'task_map' and 'task_map' not in node.setdefault('obscures', []):
             node['obscures'].append('task_map')
+        if node['id'] == 'settings_menu':
+            node['recognition'] = ['Nav_SettingsMenu']
+    for item in edges:
+        if item['source'] == 'settings_menu' and item['target'] == 'task_map':
+            item['entry'] = 'Nav_SettingsContinue'
     nodes += [
         dict(id='quest_panel', label='任务面板', recognition=['Nav_QuestPanel'], obscures=list(maps)),
         dict(id='accepted_bounties', label='已接悬赏任务', recognition=['Nav_AcceptedBounties'],
@@ -43,15 +48,24 @@ def task_graph(context, parameters, *, targets=None):
             for node in nodes:
                 if node['id'] not in maps + ['task_destination'] and set(node.get('obscures', [])) & set(maps):
                     node.setdefault('obscures', []).append('task_destination')
+    nodes.append(dict(id='settings_subpanel', label='声音、详细或伤害设置',
+        recognition=['Nav_SettingsSubpanel'],
+        obscures=[node['id'] for node in nodes if node['id'] != 'profile_sell']))
     for ident, label, detector in [('challenge_failed', '挑战失败', 'Result_Failed'),
                                     ('challenge_succeeded', '挑战成功', 'Result_Succeeded')]:
         nodes.append(dict(id=ident, label=label, recognition=[detector],
-            obscures=[node['id'] for node in nodes if node['id'] not in ('challenge_failed', 'challenge_succeeded')]))
-    normal_ids=[node['id'] for node in nodes if node['id'] not in ('challenge_failed','challenge_succeeded')]
+            obscures=[node['id'] for node in nodes if node['id'] not in ('challenge_failed', 'challenge_succeeded','profile_sell')]))
+    normal_ids=[node['id'] for node in nodes if node['id'] not in ('challenge_failed','challenge_succeeded','profile_sell')]
     nodes.append(dict(id='paused_task_map',label='任务地图已暂停',recognition=['Nav_PausedTaskMap'],obscures=normal_ids))
     for node in nodes:
         if node['id'] in ('challenge_failed','challenge_succeeded'):
             node['obscures'].append('paused_task_map')
+    nodes.append(dict(id='common_confirm',label='确认浮窗（需先处理）',recognition=['Nav_CommonConfirm'],
+        obscures=[node['id'] for node in nodes if node['id']!='profile_sell']))
+    for node in nodes:
+        if node['id']=='profile_sell':node.setdefault('obscures',[]).append('common_confirm')
+    nodes.append(dict(id='revive_prompt',label='还魂丹或免费复活确认',
+        recognition=['Result_RevivePrompt'],obscures=[node['id'] for node in nodes]))
 
     def edge(source, target, entry, label):
         edges.append(dict(id=source+'__'+target, source=source, target=target, entry=entry,
@@ -59,12 +73,14 @@ def task_graph(context, parameters, *, targets=None):
 
     for source in maps:
         edge(source, 'quest_panel', 'Nav_OpenQuest', '打开人物界面的任务面板')
+    edge('settings_subpanel', 'settings_menu', 'Nav_CloseSettingsSubpanel', '关闭已确认的设置子窗口')
     edge('paused_task_map','task_map','Nav_ResumeTaskMap','恢复已确认的任务地图')
     edge('quest_panel', 'accepted_bounties', 'Nav_SelectBountyTab', '切换悬赏任务')
     for source in ('quest_panel', 'accepted_bounties'):
         edge(source, 'task_map', 'Nav_CloseQuest', '关闭已确认的任务面板')
     edge('challenge_failed', 'task_map', 'Result_FailedReturn', '从挑战失败返回地图')
     edge('challenge_succeeded', 'task_map', 'Result_SucceededReturn', '从挑战成功返回地图')
+    edge('revive_prompt','challenge_failed','Result_DeclineRevive','拒绝复活并确认失败结果')
     if kind == 'bounty':
         title = config.get('title')
         if not isinstance(title, str) or not title or len(title) > 100:
@@ -72,6 +88,7 @@ def task_graph(context, parameters, *, targets=None):
         definitions['Nav_ChooseBounty'] = dict(recognition=dict(type='And', param=dict(all_of=[
             dict(recognition=dict(type='OCR', param=dict(expected=['^'+re.escape(title)+'$'], roi=[180, 175, 320, 370]))),
             dict(recognition=dict(type='OCR', param=dict(expected=['悬赏任务'], roi=[180, 90, 500, 100]))),
+            'Result_NoRevivePrompt',
         ], box_index=0)), action=dict(type='Click', param=dict(target=True)), next=[], timeout=10000, post_delay=350)
         edge('accepted_bounties', 'task_destination', 'Nav_ChooseBounty', '选择已接悬赏：'+title)
     elif kind == 'stage':

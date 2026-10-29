@@ -17,6 +17,17 @@ def read_document(path):
     # Same comment grammar as the repository's schema validator. Keep quoted
     # URLs and escape sequences intact while accepting resource JSONC files.
     source = path.read_text(encoding='utf-8-sig')
+    # Published resources are ordinary JSON. Let the standard decoder handle
+    # them directly; only JSONC needs the slower comment-aware character scan.
+    # Do not cache mutable task/instance data: edits must be visible next call.
+    try:
+        value = json.loads(source)
+    except json.JSONDecodeError:
+        value = None
+    else:
+        if not isinstance(value, dict):
+            raise ValueError('任务配置必须是对象：' + str(path))
+        return value
     result, index, quoted, escaped = [], 0, False, False
     while index < len(source):
         char = source[index]
@@ -157,11 +168,34 @@ def task_catalog(root, bindings=None, *, overrides=None):
         playback = _playback_nodes(graph, entry)
         modes = ['pipeline', 'replace'] if playback else ['replace']
         binding = bindings.get(ident)
+        management_profile = None
+        # Discover one confirmed round from the existing graph. The host may
+        # stop at this boundary for maintenance without resetting native quotas.
+        pending, reachable = [entry], set()
+        while pending:
+            current = pending.pop()
+            if current in reachable or current not in graph: continue
+            reachable.add(current)
+            pending.extend(node_links(graph, graph[current]))
+        begins = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'begin'
+                  and _action_parameters(graph[n]).get('custom_action') == 'script_task_state'
+                  and custom_parameters(graph[n]).get('navigation')]
+        successes = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'success'
+                     and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
+        if len(begins) == 1 and len(successes) == 1:
+            counters = [n for n in node_links(graph, graph[successes[0]]) if n in graph
+                        and _action_parameters(graph[n]).get('custom_action') == 'loop_count']
+            counter = counters[0] if len(counters) == 1 else None
+            management_profile = dict(entry=begins[0], parameters=deepcopy(custom_parameters(graph[begins[0]])),
+                success_node=successes[0], resume_entry='GameManagement_Resume',
+                repeat_limit=graph[counter].get('max_hit', 1) if counter else 1,
+                native_repeat=counter is not None)
         item = dict(id=ident, name=name, label=definition.get('label') or name,
                           entry=entry, playback_nodes=playback, modes=modes,
                           playback_parameters={node: deepcopy(custom_parameters(graph[node])) for node in playback},
                           playback_routes={node: deepcopy(custom_parameters(graph[node]).get('script_binding', {})) for node in playback},
-                          binding=deepcopy(binding), profile=profile)
+                          binding=deepcopy(binding), profile=profile, management_profile=management_profile,
+                          management_completion_only=_action_parameters(graph.get(entry,{})).get('custom_action')=='adventure_init')
         if (name, entry) in seen:
             # Library capabilities cover saved variants. Execution below always
             # uses the overrides supplied by the running instance, never another one.

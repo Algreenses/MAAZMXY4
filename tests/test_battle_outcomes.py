@@ -37,6 +37,35 @@ class MemoryContext:
 
 
 class BattleOutcomeTests(unittest.TestCase):
+    def test_common_confirmation_stops_before_a_result_behind_it(self):
+        context=MemoryContext()
+        context.frame=Pixels(['Nav_CommonConfirm','Result_Failed'])
+        monitor=BattleOutcomeMonitor(context,POLICY)
+        monitor.start()
+        self.assertIsNotNone(monitor.error)
+        self.assertIsNone(monitor.branch)
+        self.assertIsNone(monitor._thread)
+        monitor.close()
+
+    def test_revive_prompt_interrupts_before_underlying_result_and_never_sends_input(self):
+        context=MemoryContext()
+        context.frame=Pixels(['Result_RevivePrompt','Result_Failed','Result_Succeeded'])
+        observed=[]
+        recognize=context.run_recognition
+        context.run_recognition=lambda n,f:(observed.append(n),recognize(n,f))[1]
+        monitor=BattleOutcomeMonitor(context,{**POLICY,'revive_next':['Decline','Failed']})
+        monitor.start()
+        self.assertEqual(monitor.branch,['Decline','Failed'])
+        self.assertEqual(observed,['Result_RevivePrompt'])
+        self.assertIsNone(monitor.error)
+        self.assertIsNone(monitor._thread)
+        monitor.close()
+
+    def test_revive_detection_is_opt_in_and_requires_explicit_safe_branch(self):
+        for value in (None,[],[''], 'Decline'):
+            with self.subTest(value=value),self.assertRaises(ValueError):
+                BattleOutcomeMonitor(MemoryContext(),{**POLICY,'revive_next':value})
+
     def test_initial_outcome_and_same_frame_detection_need_no_worker(self):
         for name, branch in [('Result_Failed','Failed'), ('Result_Succeeded','Won')]:
             with self.subTest(name=name):

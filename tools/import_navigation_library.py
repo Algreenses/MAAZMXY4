@@ -102,7 +102,8 @@ def import_library(source, destination):
         base=list(size), bbox=pause_box, path=pause_relative,
         sha256=hashlib.sha256(pause_path.read_bytes()).hexdigest())])
     pause_recognition = dict(type='TemplateMatch', param=dict(template=[
-        'bounty-candle/pause.png', 'bounty-candle/pause-cloudy.png', pause_relative], threshold=.9))
+        'bounty-candle/pause.png', 'bounty-candle/pause-cloudy.png', pause_relative], threshold=.9,
+        roi=[300,300,550,120]))
     pipeline, probes, missing = {}, {}, {}
     for key, definition in original['probes'].items():
         name = 'Nav_Probe_' + key
@@ -207,6 +208,9 @@ def import_library(source, destination):
             node.update(next=names[i+1:i+2], timeout=item['timeout_ms'], post_delay=delay)
             if click:
                 node['action'] = dict(type='Click', param=dict(target=True))
+                if source_id != 'profile_sell':
+                    node['recognition'] = dict(type='And', param=dict(all_of=[
+                        dict(recognition=node['recognition']), 'Result_NoRevivePrompt'], box_index=0))
             pipeline[names[i]] = node
         edge = {k: deepcopy(item[k]) for k in ('id', 'source', 'target', 'label', 'cost', 'timeout_ms')}
         edge.update(source=source_id, target=target_id, entry=names[0], max_attempts=2)
@@ -216,15 +220,18 @@ def import_library(source, destination):
     # restoring this known menu; no blind click on an unknown paused screen.
     pipeline['Nav_ResumeDaily'] = dict(recognition=dict(type='And', param=dict(all_of=[
         dict(recognition=deepcopy(pause_recognition)),
-        dict(recognition=deepcopy(pipeline['Nav_Probe_daily_menu_scene']['recognition']))], box_index=0)),
+        dict(recognition=deepcopy(pipeline['Nav_Probe_daily_menu_scene']['recognition'])),
+        'Result_NoRevivePrompt'], box_index=0)),
         action=dict(type='Click', param=dict(target=True)), next=[], timeout=10000, post_delay=350)
     edges.append(dict(id='daily_expanded__resume', source='daily_expanded', target='daily_menu',
         label='恢复已确认的日常活动菜单', entry='Nav_ResumeDaily', cost=1, timeout_ms=10000, max_attempts=2))
     graph = dict(version=1, targets=['world'], nodes=nodes, edges=edges,
         max_steps=30, max_seconds=120, settle_ms=300, locate_attempts=3)
     write_json(destination / 'agent/data/navigation/graph.json', graph)
-    write_json(destination / 'agent/data/navigation/resources.json', dict(version=1,
-        pipelines=['navigation.json', 'battle_outcomes.json']))
+    resources_path = destination / 'agent/data/navigation/resources.json'
+    resources = json.loads(resources_path.read_text(encoding='utf8')) if resources_path.exists() else dict(version=1, pipelines=[])
+    resources['pipelines'] = list(dict.fromkeys(['navigation.json', 'battle_outcomes.json', *resources['pipelines']]))
+    write_json(resources_path, resources)
     write_json(destination / 'agent/data/navigation/source-catalog.json', original)
     write_json(destination / 'agent/data/navigation/library.json', dict(version=1, base=list(size),
         source_project='ZaoMengScript', source_manifest_sha256=hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
@@ -320,7 +327,7 @@ def import_outcomes(failed, succeeded, destination):
     definitions['Nav_OpenQuest'] = dict(recognition=deepcopy(definitions['Nav_TaskMap']['recognition']),
         action=dict(type='Click', param=dict(target=True)), next=[], timeout=10000, post_delay=350)
     pause = dict(type='And',param=dict(all_of=[
-        dict(recognition=dict(type='TemplateMatch',param=dict(template='bounty-candle/pause.png',threshold=.9))),
+        dict(recognition=dict(type='TemplateMatch',param=dict(template='bounty-candle/pause.png',threshold=.9,roi=[300,300,550,120]))),
         dict(recognition=deepcopy(definitions['Nav_TaskMap']['recognition']))],box_index=0))
     definitions['Nav_PausedTaskMap']=dict(recognition=pause,action=dict(type='DoNothing'),next=[],post_delay=0)
     definitions['Nav_ResumeTaskMap']=dict(recognition=deepcopy(pause),action=dict(type='Click',param=dict(target=True)),

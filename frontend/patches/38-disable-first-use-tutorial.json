@@ -1,0 +1,6 @@
+{
+  "description": "Temporarily disable first-use teaching tips without rewriting user completion preferences.",
+  "path": "MFAAvalonia/Views/UserControls/TeachingTipOverlay.axaml.cs",
+  "find": "    public void StartTutorial(List<TutorialStep> steps)\n    {\n",
+  "replace": "    public void StartTutorial(List<TutorialStep> steps)\n    {\n        if (!MFAAvalonia.Services.GameManagementFeatures.FirstUseTutorialEnabled) return;\n"
+}

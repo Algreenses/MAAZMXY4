@@ -1,0 +1,30 @@
+{
+  "source": {
+    "name": "systemset",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/systemset_20260824_1.swf",
+    "file": "systemset_20260824_1.swf",
+    "sha256": "2aa50421abb959a7ee227954de6d18e39ff8e72fffaeb2422b17bf1a2e358a5b",
+    "bytes": 228040
+  },
+  "cases": [
+    {
+      "file": "sound.png",
+      "sha256": "4dcd12503d45c90ff9a887ed69ba95aad5410c5897351880721e05b35f7022a3",
+      "source_frame": "systemset/sprites/DefineSprite_34_soundSet/1.png",
+      "source_frame_sha256": "06a1450ea73fed765db2df218a03dad4d2494088a0b164c5c5532e084030ed6f"
+    },
+    {
+      "file": "detail.png",
+      "sha256": "f6a1e4061ac092c96e3f32cb33ea1edd0d763e176d37ce7baa584f4bc17c2ebb",
+      "source_frame": "systemset/sprites/DefineSprite_47_detailSet/1.png",
+      "source_frame_sha256": "fa1942ed3bd7cb64b0ae5e0d9dbf9fe74e927d1d8746c37d2c196c0fe2573874"
+    },
+    {
+      "file": "damage.png",
+      "sha256": "e6c75d2581e6c9cbaa7e7cad9df73dd5e73580ed2b35ac509a0713ef9a9c6c85",
+      "source_frame": "systemset/sprites/DefineSprite_73_battleSet/1.png",
+      "source_frame_sha256": "38ca1418f8c007278abf7f0fad0b0ed06367065e5e67196bd5d5a1d72a9bf9bd"
+    }
+  ],
+  "method": "Complete FFDec sprite exports, independent BICUBIC scaling; no live game."
+}

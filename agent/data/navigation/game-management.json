@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "box_version": "1.9",
+  "application_id": "dusk.zmBox",
+  "stage": [
+    940,
+    590
+  ],
+  "normalized_stage": [
+    1147,
+    720
+  ],
+  "public_source_commit": "05e4975f61c5fe137552bd06ca97ee3cfa80279b",
+  "sources": [
+    {
+      "url": "https://gitee.com/duskeye/zmBox/blob/05e4975f61c5fe137552bd06ca97ee3cfa80279b/src/com/zmbox/view/LoginLayer.as",
+      "purpose": "login labels and account ComboBox placement"
+    },
+    {
+      "url": "https://gitee.com/duskeye/zmBox/blob/05e4975f61c5fe137552bd06ca97ee3cfa80279b/src/com/zmbox/mediator/LoginMediator.as",
+      "purpose": "saved-account selection, login and captcha behavior"
+    }
+  ],
+  "app_swf_sha256": "d7a179998b6fc07e7a5efc87bdacb21399d5ac48f7ac5e87ef2f0743d5ee99db",
+  "notes": [
+    "No password, saved account cache, token, or user profile is read or copied.",
+    "Account selection coordinates require the complete recognized box login page.",
+    "Game start, save slots and map recognizers reuse existing bounty-candle sources.",
+    "Current v5870 sets townID from curRecord.areaId and sends changes through scene.playerHandler.changeArea. Scroll offsets are not persisted; two large maps use bounded native terrain-guarded drags."
+  ],
+  "saved_area_evidence": [
+    {
+      "path": "controllers/StartGameCmd.as",
+      "sha256": "1666be8374d0a35c1c460a50685132cd87904567262cd1a6c3ac25a0d2b8a1ea"
+    },
+    {
+      "path": "controllers/ChangeSceneCmd.as",
+      "sha256": "620be8ce5b468401c5db752b9c0b248192218a7a90615f097252ccc2c1f06035"
+    },
+    {
+      "path": "viewers/container/TownMap.as",
+      "sha256": "4a44dffe61f9306cde6a327830e35a68d473504ab68d39a64704431a1bc8045d"
+    }
+  ]
+}

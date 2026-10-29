@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -101,6 +102,9 @@ class NativeCandleRecognitionTests(unittest.TestCase):
         log.mkdir(parents=True, exist_ok=True)
         Tasker.set_log_dir(log)
         controller, resource, tasker = PixelsOnly(), Resource(), Tasker()
+        sys.path.insert(0,str(ROOT/'agent'))
+        from battle_ui import NoRevivePrompt
+        resource.register_custom_recognition('battle_no_revive',NoRevivePrompt())
         self.assertTrue(controller.post_connection().wait().succeeded)
         self.assertTrue(controller.set_screenshot_use_raw_size(True))
         self.assertTrue(resource.post_bundle(ROOT / 'assets/resource/base').wait().succeeded)
@@ -214,6 +218,8 @@ class NativeCandleRecognitionTests(unittest.TestCase):
             canonical = json.loads((ROOT/'assets/resource/base/pipeline/悬赏（守卫宝烛）.json').read_text(encoding='utf8'))
             parameters = {**canonical[PREFIX+'初始化']['action']['param']['custom_action_param'], **parameters}
             controller, resource, tasker = SimulatedGame(), Resource(), Tasker()
+            from battle_ui import NoRevivePrompt
+            resource.register_custom_recognition('battle_no_revive',NoRevivePrompt())
             self.assertTrue(controller.post_connection().wait().succeeded)
             self.assertTrue(controller.set_screenshot_use_raw_size(True))
             self.assertTrue(resource.post_bundle(ROOT / 'assets/resource/base').wait().succeeded)

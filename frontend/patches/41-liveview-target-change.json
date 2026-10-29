@@ -1,0 +1,6 @@
+{
+  "description": "Invalidate the previous window immediately when the selected Win32 target changes.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    partial void OnCurrentDeviceChanged(object? value)\n    {\n",
+  "replace": "    partial void OnCurrentDeviceChanged(object? value)\n    {\n        // A new Win32 selection must not retain the prior window's frame\n        // while the old tasker is stopping on a background thread.\n        if (!_isSyncing && value is DesktopWindowInfo target\n            && target.Handle != Processor.Config.DesktopWindow.HWnd)\n        {\n            if (IsConnected) SetConnected(false);\n            else InvalidateLiveViewImage();\n        }\n"
+}

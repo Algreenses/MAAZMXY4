@@ -1,0 +1,884 @@
+{
+  "version": 1,
+  "maps": [
+    {
+      "task": "伽岚（万世冥阁）",
+      "target": "伽岚（万世冥阁）-关卡入口",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 3,
+      "drag_node": "GameManagement_town5_Drag",
+      "source": {
+        "name": "town5",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+        "file": "town5_20260202_1.swf",
+        "sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+        "bytes": 1643657,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "source_bounds": [
+        0.0,
+        0.0,
+        1500.0,
+        590.0
+      ],
+      "excluded_stage_bounds": [
+        [
+          199.0,
+          54.0,
+          373.0,
+          228.0
+        ],
+        [
+          68.0,
+          79.0,
+          242.0,
+          253.0
+        ],
+        [
+          178.0,
+          162.0,
+          342.0,
+          336.0
+        ],
+        [
+          22.35,
+          239.5,
+          186.35,
+          402.5
+        ],
+        [
+          147.0,
+          326.0,
+          309.0,
+          489.0
+        ],
+        [
+          285.8,
+          254.8,
+          447.8,
+          417.8
+        ],
+        [
+          687.0,
+          96.0,
+          881.0,
+          290.0
+        ],
+        [
+          750.0,
+          246.0,
+          944.0,
+          360.0
+        ],
+        [
+          877.0,
+          196.0,
+          1071.0,
+          340.0
+        ],
+        [
+          888.0,
+          50.0,
+          1092.0,
+          254.0
+        ],
+        [
+          1081.25,
+          125.35,
+          1275.25,
+          319.35
+        ],
+        [
+          1137.0,
+          -5.0,
+          1331.0,
+          189.0
+        ],
+        [
+          1271.7,
+          294.3,
+          1397.7,
+          413.3
+        ],
+        [
+          1284.0,
+          386.0,
+          1411.0,
+          494.0
+        ],
+        [
+          1087.8,
+          330.95,
+          1214.8,
+          438.95
+        ],
+        [
+          879.5,
+          416.5,
+          1099.5,
+          596.5
+        ]
+      ],
+      "fixture": "town5.png",
+      "crops": [
+        [
+          480,
+          370,
+          555,
+          435
+        ],
+        [
+          540,
+          370,
+          615,
+          435
+        ],
+        [
+          600,
+          350,
+          675,
+          415
+        ],
+        [
+          660,
+          290,
+          735,
+          355
+        ],
+        [
+          720,
+          370,
+          795,
+          435
+        ],
+        [
+          780,
+          370,
+          855,
+          435
+        ]
+      ]
+    },
+    {
+      "task": "贪妄（金蟾宝宫）",
+      "target": "贪妄（金蟾宝宫）-关卡入口",
+      "town": "town6",
+      "axis": "y",
+      "max_steps": 12,
+      "drag_node": "GameManagement_town6_Drag",
+      "source": {
+        "name": "town6",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town6_20260803_1.swf",
+        "file": "town6_20260803_1.swf",
+        "sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec",
+        "bytes": 590585,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "source_bounds": [
+        0.0,
+        0.0,
+        940.0,
+        2714.0
+      ],
+      "excluded_stage_bounds": [
+        [
+          560.0,
+          2466.0,
+          863.0,
+          2644.0
+        ],
+        [
+          369.0,
+          2373.0,
+          593.0,
+          2569.0
+        ],
+        [
+          59.0,
+          2340.0,
+          358.0,
+          2572.0
+        ]
+      ],
+      "fixture": "town6.png",
+      "crops": [
+        [
+          430,
+          270,
+          505,
+          335
+        ],
+        [
+          430,
+          355,
+          505,
+          420
+        ],
+        [
+          750,
+          440,
+          825,
+          505
+        ],
+        [
+          550,
+          525,
+          625,
+          590
+        ],
+        [
+          550,
+          610,
+          625,
+          675
+        ],
+        [
+          670,
+          695,
+          745,
+          760
+        ],
+        [
+          710,
+          780,
+          785,
+          845
+        ],
+        [
+          630,
+          865,
+          705,
+          930
+        ],
+        [
+          430,
+          950,
+          505,
+          1015
+        ],
+        [
+          550,
+          1035,
+          625,
+          1100
+        ],
+        [
+          510,
+          1120,
+          585,
+          1185
+        ],
+        [
+          630,
+          1205,
+          705,
+          1270
+        ],
+        [
+          430,
+          1290,
+          505,
+          1355
+        ],
+        [
+          590,
+          1375,
+          665,
+          1440
+        ],
+        [
+          430,
+          1460,
+          505,
+          1525
+        ],
+        [
+          710,
+          1545,
+          785,
+          1610
+        ],
+        [
+          710,
+          1630,
+          785,
+          1695
+        ],
+        [
+          550,
+          1715,
+          625,
+          1780
+        ],
+        [
+          430,
+          1800,
+          505,
+          1865
+        ],
+        [
+          750,
+          1885,
+          825,
+          1950
+        ],
+        [
+          710,
+          1970,
+          785,
+          2035
+        ],
+        [
+          590,
+          2055,
+          665,
+          2120
+        ],
+        [
+          510,
+          2140,
+          585,
+          2205
+        ],
+        [
+          470,
+          2225,
+          545,
+          2290
+        ],
+        [
+          630,
+          2310,
+          705,
+          2375
+        ],
+        [
+          630,
+          2395,
+          705,
+          2460
+        ]
+      ]
+    },
+    {
+      "task": "无冥（孤魂岭）",
+      "target": "无冥（孤魂岭）-关卡入口",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 3,
+      "drag_node": "GameManagement_town5_DragBack",
+      "source": {
+        "name": "town5",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+        "file": "town5_20260202_1.swf",
+        "sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+        "bytes": 1643657,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "source_bounds": [
+        0.0,
+        0.0,
+        1500.0,
+        590.0
+      ],
+      "excluded_stage_bounds": [
+        [
+          199.0,
+          54.0,
+          373.0,
+          228.0
+        ],
+        [
+          68.0,
+          79.0,
+          242.0,
+          253.0
+        ],
+        [
+          178.0,
+          162.0,
+          342.0,
+          336.0
+        ],
+        [
+          22.35,
+          239.5,
+          186.35,
+          402.5
+        ],
+        [
+          147.0,
+          326.0,
+          309.0,
+          489.0
+        ],
+        [
+          285.8,
+          254.8,
+          447.8,
+          417.8
+        ],
+        [
+          687.0,
+          96.0,
+          881.0,
+          290.0
+        ],
+        [
+          750.0,
+          246.0,
+          944.0,
+          360.0
+        ],
+        [
+          877.0,
+          196.0,
+          1071.0,
+          340.0
+        ],
+        [
+          888.0,
+          50.0,
+          1092.0,
+          254.0
+        ],
+        [
+          1081.25,
+          125.35,
+          1275.25,
+          319.35
+        ],
+        [
+          1137.0,
+          -5.0,
+          1331.0,
+          189.0
+        ],
+        [
+          1271.7,
+          294.3,
+          1397.7,
+          413.3
+        ],
+        [
+          1284.0,
+          386.0,
+          1411.0,
+          494.0
+        ],
+        [
+          1087.8,
+          330.95,
+          1214.8,
+          438.95
+        ],
+        [
+          879.5,
+          416.5,
+          1099.5,
+          596.5
+        ]
+      ],
+      "fixture": "town5.png",
+      "crops": [
+        [
+          480,
+          370,
+          555,
+          435
+        ],
+        [
+          540,
+          370,
+          615,
+          435
+        ],
+        [
+          600,
+          350,
+          675,
+          415
+        ],
+        [
+          660,
+          290,
+          735,
+          355
+        ],
+        [
+          720,
+          370,
+          795,
+          435
+        ],
+        [
+          780,
+          370,
+          855,
+          435
+        ]
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "path": "navigation/scroll/town5-00.png",
+      "crop": [
+        480,
+        370,
+        555,
+        435
+      ],
+      "sha256": "21a79f9c01ce8df89472ae8470768a30ad52770099361cdf1e38bb63c6777927",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town5-01.png",
+      "crop": [
+        540,
+        370,
+        615,
+        435
+      ],
+      "sha256": "bbd831c9d95b944cf41e6bc7997825107ef897387264b859bf6f742d3b7a060e",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town5-02.png",
+      "crop": [
+        600,
+        350,
+        675,
+        415
+      ],
+      "sha256": "f1fc09efc052b3133d4ed10d6ae2046c40ed003f6209088891836fed0b538f8b",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town5-03.png",
+      "crop": [
+        660,
+        290,
+        735,
+        355
+      ],
+      "sha256": "ab753eea630374c230a8397f6fcb6b7c5f4dff49a0a2214229b1bfbb6574fee1",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town5-04.png",
+      "crop": [
+        720,
+        370,
+        795,
+        435
+      ],
+      "sha256": "34105eb56051a8e43f4c0e02fbc3c7384c3115cefbe489814d7a315325aa8f41",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town5-05.png",
+      "crop": [
+        780,
+        370,
+        855,
+        435
+      ],
+      "sha256": "6d9ca9dfbcb13203c5e6130d3ef67060786d38a01e5c0cce1141f8eb893ddcf8",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    },
+    {
+      "path": "navigation/scroll/town6-00.png",
+      "crop": [
+        430,
+        270,
+        505,
+        335
+      ],
+      "sha256": "2fca3504fa2d5962290e0e8b9580f90001e61abf979fab9012a6d8ba0cf66131",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-01.png",
+      "crop": [
+        430,
+        355,
+        505,
+        420
+      ],
+      "sha256": "327dde157f7a9747b606a6b3ce01d012b4affaf21f9eda917a338876cf8cb3bd",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-02.png",
+      "crop": [
+        750,
+        440,
+        825,
+        505
+      ],
+      "sha256": "4d9d90dfab644199ba039bad8c7c1fcd3f15b95ad39c0aa58b23576152d1f973",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-03.png",
+      "crop": [
+        550,
+        525,
+        625,
+        590
+      ],
+      "sha256": "65090b64bcf231c7baf72d0b4d85064c5536c39ec692015adc4f45b2641dc31e",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-04.png",
+      "crop": [
+        550,
+        610,
+        625,
+        675
+      ],
+      "sha256": "e49785852a1819b8e54fed5c26681d18651bb03ede96fef85317cb08706cc8af",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-05.png",
+      "crop": [
+        670,
+        695,
+        745,
+        760
+      ],
+      "sha256": "257d1129958cb1274c0c25243ea4fa3c9309c74eee0387017dc7cb196084e21b",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-06.png",
+      "crop": [
+        710,
+        780,
+        785,
+        845
+      ],
+      "sha256": "3446435f5a78744f2efac941186af1982eaaffbec3c59a5971c9fc333b9773e5",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-07.png",
+      "crop": [
+        630,
+        865,
+        705,
+        930
+      ],
+      "sha256": "1ac7a008863d3d1eab3ff5ac0645016686d23a26b1b93ed9388549ad73b84e80",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-08.png",
+      "crop": [
+        430,
+        950,
+        505,
+        1015
+      ],
+      "sha256": "5dec55260940f642675bf2501fe40088003facc1191e02f140f8f23a16848851",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-09.png",
+      "crop": [
+        550,
+        1035,
+        625,
+        1100
+      ],
+      "sha256": "d945be3569b33a25c53a2f66fd3ea346d883baa71aee90e3a3ad22ca4453a778",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-10.png",
+      "crop": [
+        510,
+        1120,
+        585,
+        1185
+      ],
+      "sha256": "6ac08e2334b34b35576210fa4fbfd2d0219c9644d425b79f289da184869d9340",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-11.png",
+      "crop": [
+        630,
+        1205,
+        705,
+        1270
+      ],
+      "sha256": "b0bb586ebd338aee630e7e6b85695eb90b0c976cec1f51eb113ca342003c4be0",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-12.png",
+      "crop": [
+        430,
+        1290,
+        505,
+        1355
+      ],
+      "sha256": "1188829997fb695fb6136b8c06cd2e6066ff793976262f32377e2baf3a5f6f3b",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-13.png",
+      "crop": [
+        590,
+        1375,
+        665,
+        1440
+      ],
+      "sha256": "777efde150de2f4318e0f3c2145c5266fdc500a46634859981d60816572da596",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-14.png",
+      "crop": [
+        430,
+        1460,
+        505,
+        1525
+      ],
+      "sha256": "d6d76b8bcfd7b6d4a02e15ab7156dde932263752298eef28749a18e01af5f214",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-15.png",
+      "crop": [
+        710,
+        1545,
+        785,
+        1610
+      ],
+      "sha256": "8cad3c43a954856a28ad5262f7c66acb6918d087e515ce0a00a37cdccd2b0a1e",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-16.png",
+      "crop": [
+        710,
+        1630,
+        785,
+        1695
+      ],
+      "sha256": "0aac4309864ca28533de217d1451c193d348061cde2b91e02df8d12284bfa588",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-17.png",
+      "crop": [
+        550,
+        1715,
+        625,
+        1780
+      ],
+      "sha256": "3f79807cf2b5b7a9942c9950c196db8999dda24e2aeb2c2ba2636c49e17efc88",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-18.png",
+      "crop": [
+        430,
+        1800,
+        505,
+        1865
+      ],
+      "sha256": "f4f2897339a7e9970e950eff7c565015dcdb71db98733f210aacf419425f8a5c",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-19.png",
+      "crop": [
+        750,
+        1885,
+        825,
+        1950
+      ],
+      "sha256": "60271fd8451a990d3794862621642d18e1769d02a510838aea96200186312aeb",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-20.png",
+      "crop": [
+        710,
+        1970,
+        785,
+        2035
+      ],
+      "sha256": "612f7ec9ee358241eab0b83c90eb294a14899f230feb7f84988be2a3868ff467",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-21.png",
+      "crop": [
+        590,
+        2055,
+        665,
+        2120
+      ],
+      "sha256": "316b0920bf3c925210dfefce8268d0b9a2e351a945f2a45da1e9ea104bce502c",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-22.png",
+      "crop": [
+        510,
+        2140,
+        585,
+        2205
+      ],
+      "sha256": "aff0adc27f1137476b4cd358ae4830a077d6091b7d92a2b62884556d9c19bc7b",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-23.png",
+      "crop": [
+        470,
+        2225,
+        545,
+        2290
+      ],
+      "sha256": "520fe1004df2b2332008c564894fc826b01c764d5a04eefe4f3e455bd057cdf3",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-24.png",
+      "crop": [
+        630,
+        2310,
+        705,
+        2375
+      ],
+      "sha256": "dc704316924ec74eef2cb3407612faaf645ad77dc52bff9ad599b63653048ce0",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/town6-25.png",
+      "crop": [
+        630,
+        2395,
+        705,
+        2460
+      ],
+      "sha256": "a5bbd19aef90b06ca1f5506111d450f37c3ebfdfa68454501429b3b444403427",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec"
+    },
+    {
+      "path": "navigation/scroll/normal-mode.png",
+      "sha256": "03ede6fe8abacb45dbebbf2c3e678c44969625664d3bf0b29f4d4d2055ce60f1",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
+    }
+  ],
+  "state_evidence": "TownMap.changeTown reuses cached levels_container; Drag.onMouseMove clamps its live position to [-(width-940),0] and [-(height-590),0]. s47 is left of s61 in town5. Legacy task entries used unrestricted TemplateMatch and the matched click box. Terrain crops exclude every clickable stage bound; no screen coordinate is retained between frames."
+}

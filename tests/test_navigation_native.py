@@ -15,6 +15,8 @@ class NativeNavigationTests(unittest.TestCase):
         sys.path.insert(0, str(ROOT/'agent'))
         os.environ.setdefault('MAAFW_BINARY_PATH', str(ROOT/'runtimes/win-x64/native'))
         from maa.tasker import Tasker
+        from battle_ui import NoRevivePrompt
+        cls.no_revive = NoRevivePrompt
         cls.log = ROOT/'.runtime-cache/native-navigation'
         cls.log.mkdir(parents=True, exist_ok=True)
         Tasker.set_log_dir(cls.log)
@@ -100,6 +102,7 @@ class NativeNavigationTests(unittest.TestCase):
                 return True
 
         resource,tasker=Resource(),Tasker()
+        resource.register_custom_recognition('battle_no_revive',self.no_revive())
         self.assertTrue(controller.post_connection().wait().succeeded)
         controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded)
@@ -155,6 +158,7 @@ class NativeNavigationTests(unittest.TestCase):
                 nav=GraphNavigator(context,graph,capture=lambda:controller.screencap(),check=lambda:None)
                 return nav.run()=='task_destination'
         resource,tasker=Resource(),Tasker()
+        resource.register_custom_recognition('battle_no_revive',self.no_revive())
         self.assertTrue(controller.post_connection().wait().succeeded)
         controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded)
@@ -218,6 +222,7 @@ class NativeNavigationTests(unittest.TestCase):
                 return True
 
         controller, resource, tasker = PixelsOnly(), Resource(), Tasker()
+        resource.register_custom_recognition('battle_no_revive',self.no_revive())
         self.assertTrue(controller.post_connection().wait().succeeded)
         controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded)
@@ -313,6 +318,7 @@ class NativeNavigationTests(unittest.TestCase):
             player.RECORDING_DIR=str(library)
             player._toast=lambda *_args:None
             controller, resource, tasker=Game(),Resource(),Tasker()
+            resource.register_custom_recognition('battle_no_revive',self.no_revive())
             self.assertTrue(controller.post_connection().wait().succeeded)
             controller.set_screenshot_use_raw_size(True)
             self.assertTrue(resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded)

@@ -44,6 +44,10 @@ ScriptStudioGuard.UpdateBlockReason = "installing";
 try { ScriptStudioGuard.BeginCapture(); throw new Exception("Recording was allowed during installation"); }
 catch (InvalidOperationException) { }
 ScriptStudioGuard.UpdateBlockReason = "";
+ScriptStudioGuard.GameManagementOperations = 1;
+try { ScriptStudioGuard.BeginCapture(); throw new Exception("Recording was allowed during game reconnect"); }
+catch (InvalidOperationException) { }
+ScriptStudioGuard.GameManagementOperations = 0;
 ScriptStudioGuard.BeginCapture(); ScriptStudioGuard.EndCapture();
 Console.WriteLine("PASS install guard protects recording and shared task-start gate");
 return 0;

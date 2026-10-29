@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
+    <Compile Include="../../ScriptStudio/Services/GameManagementPolicy.cs" Link="GameManagementPolicy.cs" />
+    <Compile Include="../../ScriptStudio/Views/UserControls/GameManagementView.cs" Link="GameManagementView.cs" />
+  </ItemGroup>
+</Project>

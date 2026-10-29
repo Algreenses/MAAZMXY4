@@ -1,0 +1,6 @@
+{
+  "description": "Avoid perpetual idle rendering while preserving task status and active indicators.",
+  "path": "MFAAvalonia/Views/Pages/MonitorView.axaml",
+  "find": "Selector=\"Ellipse.RunningPulse\"",
+  "replace": "Selector=\"Ellipse.RunningPulse[IsVisible=True]\""
+}

@@ -16,6 +16,19 @@ class GraphNavigator:
         self.deadline = None
         self.steps, self.attempts = 0, {}
         self.nodes = {node['id']: node for node in graph['nodes']}
+        self.obscures = {}
+        for ident, node in self.nodes.items():
+            hidden, pending = set(), list(node.get('obscures', []))
+            while pending:
+                child = pending.pop()
+                if child not in hidden:
+                    hidden.add(child)
+                    pending.extend(self.nodes.get(child, {}).get('obscures', []))
+            self.obscures[ident] = hidden
+        # This changes evaluation order, not state-selection priority. Only a
+        # positively identified overlay may suppress its declared backgrounds;
+        # unrelated candidates still run and remain subject to ambiguity checks.
+        self.probes = sorted(self.nodes.values(), key=lambda n:len(self.obscures[n['id']]), reverse=True)
 
     def _check(self):
         self.check()
@@ -48,12 +61,17 @@ class GraphNavigator:
             for name, reason in self.graph.get('abort', {}).items():
                 if hit(name):
                     raise NavigationError(reason, reason='blocked')
-            for node in self.nodes.values():
+            hidden = set()
+            for node in self.probes:
+                if node['id'] in hidden:
+                    continue
                 if not all(hit(name) for name in node['recognition']):
                     continue
                 if node.get('any') and not any(hit(name) for name in node['any']):
                     continue
-                any(hit(name) for name in node.get('exclude', []))
+                if any(hit(name) for name in node.get('exclude', [])):
+                    continue
+                hidden.update(self.obscures[node['id']])
             try:
                 state = select_state(self.graph, hits)
             except NavigationError as error:
@@ -81,7 +99,8 @@ class GraphNavigator:
             raise NavigationError('导航操作未确认：' + edge['label'], reason='transition_failed')
 
     def run(self):
-        self.deadline = self.clock() + self.graph['max_seconds']
+        if self.deadline is None:
+            self.deadline = self.clock() + self.graph['max_seconds']
         current = self.locate()
         while current not in self.graph['targets']:
             self._check()

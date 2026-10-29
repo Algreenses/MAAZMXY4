@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "repository": "https://github.com/AperturePlus/ZaoMengXiYou-4",
+  "source_revision": "86a00f893f19f19b38754e5d9a062c05f00f4864",
+  "ffdec": "https://github.com/jindrapetrik/jpexs-decompiler/releases/tag/version26.4.0",
+  "sources": [
+    {
+      "id": "main",
+      "file": "造梦西游4_联盟修复前.swf",
+      "source_path": "patch_union/source/造梦西游4_联盟修复前.swf",
+      "sha256": "f6e04fd8139ff3873cd2bcb63488ab7805d524c1188daa235891ac8fed6e8147"
+    },
+    {
+      "id": "launcher",
+      "file": "游戏启动_原始只读副本.swf",
+      "source_path": "patch_launcher_no_password/source/游戏启动_原始只读副本.swf",
+      "sha256": "cdd0efb78852435c6b9bbbc0ee1f2df3c54167b74b732bd452b7277c4dd7c0f1"
+    }
+  ]
+}

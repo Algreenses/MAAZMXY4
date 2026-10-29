@@ -107,5 +107,32 @@ class NavigationRuntimeTests(unittest.TestCase):
         with self.assertRaises(TimeoutError): self.navigator().run()
         self.assertFalse(self.context.actions)
 
+    def test_relocalizing_after_recovery_does_not_reset_the_total_deadline(self):
+        self.context.hits={'goal'}
+        nav=self.navigator()
+        self.assertEqual(nav.run(),'goal')
+        self.clock=11
+        with self.assertRaises(TimeoutError):nav.run()
+
+    def test_confirmed_modal_skips_only_the_states_it_obscures(self):
+        self.graph['nodes'].append(dict(id='modal',label='modal',recognition=['modal'],
+                                       obscures=['start','other','goal']))
+        self.context.hits={'modal','start','goal'}
+        self.assertEqual(self.navigator().locate(),'modal')
+        self.assertEqual([name for name,_ in self.context.recognitions],['modal'])
+
+    def test_unrelated_overlay_remains_ambiguous(self):
+        self.graph['nodes'] += [dict(id=n,label=n,recognition=[n],obscures=['start','goal'])
+                                for n in ('modal_a','modal_b')]
+        self.context.hits={'modal_a','modal_b','start'}
+        with self.assertRaises(NavigationError) as error:self.navigator().locate()
+        self.assertEqual(error.exception.reason,'ambiguous')
+
+    def test_excluded_modal_must_not_suppress_the_background(self):
+        self.graph['nodes'].append(dict(id='modal',label='modal',recognition=['modal'],
+            exclude=['not_modal'],obscures=['start','other','goal']))
+        self.context.hits={'modal','not_modal','start'}
+        self.assertEqual(self.navigator().locate(),'start')
+
 
 if __name__ == '__main__': unittest.main()

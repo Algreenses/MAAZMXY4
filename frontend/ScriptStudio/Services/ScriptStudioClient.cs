@@ -17,9 +17,11 @@ public static class ScriptStudioGuard
     public static object SyncRoot { get; } = new();
     public static bool IsCapturing { get; set; }
     public static string UpdateBlockReason { get; set; } = "";
+    public static int GameManagementOperations { get; set; }
     public static void ThrowIfCapturing()
     {
         if (!string.IsNullOrEmpty(UpdateBlockReason)) throw new InvalidOperationException(UpdateBlockReason);
+        if (GameManagementOperations != 0) throw new InvalidOperationException("游戏管理正在重建连接，请稍候再开始任务或录制。");
         if (IsCapturing) throw new InvalidOperationException("请先在脚本工具中停止录制，再开始任务。");
     }
     public static void BeginCapture()

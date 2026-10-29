@@ -1,0 +1,54 @@
+{
+  "source": {
+    "name": "material",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/material_20260907_1.swf",
+    "file": "material_20260907_1.swf",
+    "sha256": "93eff4dc532c051dc3e5471c49480308b19731b3157ed1e0504e998548d0cb56",
+    "bytes": 2778682
+  },
+  "cases": [
+    {
+      "file": "confirm-290-1.png",
+      "width": 290,
+      "height": 180,
+      "button_frame": 1,
+      "sha256": "b8bc0a78e1d057acb26557e1c35f2df99e974408fd159c3afdca082ac5b36f31"
+    },
+    {
+      "file": "confirm-290-2.png",
+      "width": 290,
+      "height": 180,
+      "button_frame": 2,
+      "sha256": "925f9d415d9fffe9cd1a71b49c2ca23e12cd18497f54bc362f299b8fc7158e9f"
+    },
+    {
+      "file": "confirm-290-3.png",
+      "width": 290,
+      "height": 180,
+      "button_frame": 3,
+      "sha256": "068842ccbc2ba559495f4f8ea7aecce7817899dbbe0091460c24cccd73c4d765"
+    },
+    {
+      "file": "confirm-440-1.png",
+      "width": 440,
+      "height": 260,
+      "button_frame": 1,
+      "sha256": "f40ac87413d3d5bfca10daf67e9516b0bf0c4baf659719ea4bc262842f9f913c"
+    },
+    {
+      "file": "confirm-440-2.png",
+      "width": 440,
+      "height": 260,
+      "button_frame": 2,
+      "sha256": "26c7e268d8ac0a2ee113bf782226a50f74f5d7b5483ab6f5d7a2eec5c67cbf89"
+    },
+    {
+      "file": "confirm-440-3.png",
+      "width": 440,
+      "height": 260,
+      "button_frame": 3,
+      "sha256": "76955c69b5e6154b99fa2eafdc3cb2d4d20d79194253911a9f841de07766dfd8"
+    }
+  ],
+  "method": "Offline skin composition following WarnBar.render and Scale9Image; no live game."
+}

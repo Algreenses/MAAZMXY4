@@ -1,0 +1,6 @@
+{
+  "description": "Synchronize the current instance with the live-view card state.",
+  "path": "MFAAvalonia/Views/Pages/TaskQueueView.axaml.cs",
+  "find": "        LiveViewCard.IsVisible = vm.EnableLiveView;\n",
+  "replace": "        vm.IsLiveViewExpanded = !LiveViewCard.IsCollapsed;\n        LiveViewCard.IsVisible = vm.EnableLiveView;\n"
+}

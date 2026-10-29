@@ -135,6 +135,13 @@ class NavigationAssetsTests(unittest.TestCase):
         self.assertIn('agent/data/navigation/graph.json',files)
         self.assertIn('resource/base/pipeline/navigation.json',files)
         self.assertIn('resource/base/pipeline/battle_outcomes.json',files)
+        for name in ('common_ui','settings'):
+            self.assertIn('resource/base/pipeline/navigation_'+name+'.json',files)
+        for name in ('common-ui','settings-ui'):
+            data=read(ROOT/'agent/data/navigation'/f'{name}.json')
+            for asset in data['assets']:
+                self.assertIn('resource/base/image/'+asset['path'],files)
+        self.assertFalse(any(name.startswith(('tests/','tools/')) or name.endswith('.swf') for name in files))
         self.assertIn('resource/base/image/navigation/outcomes/failed-return.png',files)
         self.assertFalse(any(Path(name).name.casefold()=='agents.md' for name in files))
 

@@ -1,0 +1,354 @@
+{
+  "version": 1,
+  "source_version": "v.20261019.00:01",
+  "viewport": [
+    940,
+    590
+  ],
+  "processing": "FFDec sprite frames; placement scale; short-edge 720; largest alpha>=235 rectangle; native TemplateMatch.",
+  "state_evidence": "MovieClipButton: frame 1 normal, frame 2 first-enterable, frame 3 hover. No game execution.",
+  "stages": [
+    {
+      "task": "朱电（琉璃宫）",
+      "stage_id": 26,
+      "town": "town2",
+      "sprite_id": 72,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town2_20250407_1.swf",
+      "source_sha256": "2d6dabb469d495511080c48ef053cbd013dc37794551d326f5d7eeab64c324c4",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s26-frame1.png",
+          "crop": [
+            62,
+            76,
+            84,
+            21
+          ],
+          "scale": [
+            1.1593183118644068,
+            1.1593183118644068
+          ],
+          "sha256": "5040ff9ace85a0d915aa5e72867ef2f6f54079302cb8e1bfc59b951962566683",
+          "source_frame_sha256": "9587d944b56bc6930665c96cd31cde55a80d97936d3ba619e9faf2bf2d91bee9"
+        },
+        {
+          "frame": 2,
+          "path": "navigation/stages/s26-frame2.png",
+          "crop": [
+            62,
+            76,
+            87,
+            20
+          ],
+          "scale": [
+            1.1593183118644068,
+            1.1593183118644068
+          ],
+          "sha256": "e58c0324d7f6a89d6c668830e6b2cd3b3ad45b98e81a396cf4b71ebed537681c",
+          "source_frame_sha256": "36089ef239c93d6d7b29397f554d90cab035abbafa23dd4ebd8afe70731a660a"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s26-frame3.png",
+          "crop": [
+            56,
+            63,
+            69,
+            46
+          ],
+          "scale": [
+            1.1593183118644068,
+            1.1593183118644068
+          ],
+          "sha256": "23ce6b8c7bb9ab2dfd518bf6799fa94025bc33e57cfc721cc70f3311e9532829",
+          "source_frame_sha256": "648e3c7f5a22fb981747dbc866ee225d650635c9b75544e2d6b84088c6169a9f"
+        }
+      ]
+    },
+    {
+      "task": "烛时（钟晷极地）",
+      "stage_id": 38,
+      "town": "town3",
+      "sprite_id": 70,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town3_20161219_1.swf",
+      "source_sha256": "035f5058f32bab9d4b7f72eb6485b4699543e4edf3cc09ccbc73ce128dd6909b",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s38-frame1.png",
+          "crop": [
+            64,
+            30,
+            77,
+            72
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "cb5b90fb5419563b621e7193dd07f734ee35409e43f8d1811f7037ecdbe09c0d",
+          "source_frame_sha256": "0ef214e498b2872f6b8f8fe2ba13887bded103d44ddc0730a5402f3eebc4c8c4"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s38-frame3.png",
+          "crop": [
+            45,
+            43,
+            83,
+            90
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "d825013fdfccbf2059b851fd70a4842400d45a12d92b9bf536325e20ab5941b5",
+          "source_frame_sha256": "9be250d6e21e9364c3fe4dfbb2dab725c4c1fc2842965f52425cfe00b7335a24"
+        }
+      ]
+    },
+    {
+      "task": "摩多（七叶树窟）",
+      "stage_id": 43,
+      "town": "town4",
+      "sprite_id": 16,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+      "source_sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s43-frame1.png",
+          "crop": [
+            94,
+            25,
+            41,
+            66
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "f0bd6a76099102498ef2eda24c3ee0ea42b5bbbc88a52052b6e560d7a012a3a1",
+          "source_frame_sha256": "cf316ff2ee7a1c509d7e94f4045bcc3849fc4073b9788be7b1f3a20a545e614c"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s43-frame3.png",
+          "crop": [
+            38,
+            26,
+            97,
+            90
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "8410d97dc14224173d35bb9ff2328dc857e68e063e35d723f0d670317a66226a",
+          "source_frame_sha256": "063ade8d240794c446aa8dad8cfa4198ee20a73834fbf365f51b6edfb38ea10b"
+        }
+      ]
+    },
+    {
+      "task": "摩多（幕山）",
+      "stage_id": 45,
+      "town": "town4",
+      "sprite_id": 30,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town4_20230508_1.swf",
+      "source_sha256": "a8c8bd45d78368734c985dca10a499453350dc0b004e4806987c30d28c6d4d39",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s45-frame1.png",
+          "crop": [
+            61,
+            40,
+            51,
+            64
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "0a96e53663b323ceb6d32e87cc87e2ce90ea3c4b2c04372641971cba71045966",
+          "source_frame_sha256": "70ed6cb8cf4afba5e07cd3b57e0dc64feab56f723209f088bdb51ec32491b802"
+        },
+        {
+          "frame": 2,
+          "path": "navigation/stages/s45-frame2.png",
+          "crop": [
+            56,
+            45,
+            57,
+            59
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "75b7ebef937e34ba9ff0ba63d875d869b29708c5f4d603c516b18b536bdee838",
+          "source_frame_sha256": "a35a9d86bcc1bda809c7c03dd748e8a674aaa267fe0fa95d2b85902164f79caf"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s45-frame3.png",
+          "crop": [
+            60,
+            38,
+            56,
+            70
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "1e7114ba2435eee85b8ca03d4105c6c410ff3bb9a313ab7753a47eb7155ece4e",
+          "source_frame_sha256": "da3c0d01201099cc9264b140d7481e2b5e7b86befac5736fcefe8ace71db6289"
+        }
+      ]
+    },
+    {
+      "task": "无冥（孤魂岭）",
+      "stage_id": 47,
+      "town": "town5",
+      "sprite_id": 34,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s47-frame1.png",
+          "crop": [
+            44,
+            65,
+            89,
+            50
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "2671581fa6ae9bc199e02d4eb979ec0e1698991aec377deef6def4ee5be27a06",
+          "source_frame_sha256": "10e87859e07b7935133b06488a1d9d589977a8b7fe49b725d0473832b5e9ac06"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s47-frame3.png",
+          "crop": [
+            53,
+            53,
+            85,
+            82
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "f312315a5f4e9cdc4e0b797066d035717f97dacc5002a60b0b691745651d6071",
+          "source_frame_sha256": "d99002b6e1b4e2816c03786b2670e7466fe74f23fa177017e70f2ed6987db7a3"
+        }
+      ]
+    },
+    {
+      "task": "伽岚（万世冥阁）",
+      "stage_id": 61,
+      "town": "town5",
+      "sprite_id": 261,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+      "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s61-frame1.png",
+          "crop": [
+            42,
+            33,
+            57,
+            29
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "ff35f285ca816745ac9911099535de506f355d25408b87dae5fabc36ea4c5f5b",
+          "source_frame_sha256": "848ef552abbb09373bd7bcabcfbcb06c1c5a681b25e505404be6b815845e51b6"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s61-frame3.png",
+          "crop": [
+            28,
+            88,
+            100,
+            44
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "0e8780147f810c64adac13823fc32018cc437e1edeb380773314080e64332a92",
+          "source_frame_sha256": "fe01a3bdf6c93bbe52facf8df44ab251eaced941b2e2095108bd46f8d0833078"
+        }
+      ]
+    },
+    {
+      "task": "贪妄（金蟾宝宫）",
+      "stage_id": 65,
+      "town": "town6",
+      "sprite_id": 34,
+      "source_url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town6_20260803_1.swf",
+      "source_sha256": "f0d1b11d210ad3183ee1274dfd63908e4656b5058fb5090d23b3443617487fec",
+      "variants": [
+        {
+          "frame": 1,
+          "path": "navigation/stages/s65-frame1.png",
+          "crop": [
+            134,
+            147,
+            100,
+            85
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "ba7eea9fa5983a3ee6ad4360194dfc31a28685e190d7e09a3cdfe9973e9d7c3d",
+          "source_frame_sha256": "6f8f0f3c1f1093e7d64e21139de4c0db681fb2250d1ad32ab0ee33ae226d2407"
+        },
+        {
+          "frame": 2,
+          "path": "navigation/stages/s65-frame2.png",
+          "crop": [
+            134,
+            147,
+            100,
+            85
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "65ecb1d8abdfef5ce0362ff0f0b367679a730633ff58a4556655f8db0fd45b6f",
+          "source_frame_sha256": "f7cf50ae5bb217a50fe1c89079a24e357fea5b11066725edc5c7bf68c9bb30ea"
+        },
+        {
+          "frame": 3,
+          "path": "navigation/stages/s65-frame3.png",
+          "crop": [
+            134,
+            119,
+            100,
+            90
+          ],
+          "scale": [
+            1.2203389830508475,
+            1.2203389830508475
+          ],
+          "sha256": "b9b66a3721c83e233a9560f52d31188f24928e07401a5816258a29707709b56b",
+          "source_frame_sha256": "c723c5fcc04ac0b3eab7f6b96fec59dabfc1a4e08e9b7f8e2d2ab8e4b94b17c9"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+[
+  {
+    "file": "normal-p1-up.png",
+    "mode": "normal",
+    "players": "p1",
+    "state": "up",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "3a5f9b4776a9a735764d9b812ff74cc3f1424b5a6b9ade5f4da0248904dea94f"
+  },
+  {
+    "file": "normal-p1-over.png",
+    "mode": "normal",
+    "players": "p1",
+    "state": "over",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "7702f9ebd680eb9c128b4555da60140dce0ec650e0b56e7ca3e24fbaa75ca7d8"
+  },
+  {
+    "file": "normal-p1-down.png",
+    "mode": "normal",
+    "players": "p1",
+    "state": "down",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "269167a2b0288831043235972517e7ce03130ace346adce4817071e54aef22bc"
+  },
+  {
+    "file": "normal-p2-up.png",
+    "mode": "normal",
+    "players": "p2",
+    "state": "up",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "521d1f2403c557a8d14af8613f0b822e3a2d27291ae19addffb23957d9a46fc5"
+  },
+  {
+    "file": "normal-p2-over.png",
+    "mode": "normal",
+    "players": "p2",
+    "state": "over",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "66530a78a20dc4f615c960d2de341c61435500c36130955731c74c16894cb72e"
+  },
+  {
+    "file": "normal-p2-down.png",
+    "mode": "normal",
+    "players": "p2",
+    "state": "down",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "c6e5ab577b6391e7ce334f50eaea266324cab493108cb654e954ba992937a97f"
+  },
+  {
+    "file": "vip-p1-up.png",
+    "mode": "vip",
+    "players": "p1",
+    "state": "up",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "8b6b233d5eae768b8593b9572430dfda44a0a5415d274ec1f4281912d8974bc2"
+  },
+  {
+    "file": "vip-p1-over.png",
+    "mode": "vip",
+    "players": "p1",
+    "state": "over",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "8c25abff5d05e1b6d1beba0b3171b1949795efc31f2fc8d53da77341cf6fdbbc"
+  },
+  {
+    "file": "vip-p1-down.png",
+    "mode": "vip",
+    "players": "p1",
+    "state": "down",
+    "cancel_box": [
+      628,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "8b6115856512bcac03db9f886595ea9a71fb6751745c8be0f4cfa9898d5de0e1"
+  },
+  {
+    "file": "vip-p2-up.png",
+    "mode": "vip",
+    "players": "p2",
+    "state": "up",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "cab52f15d99912e756224cb2ed1176cf400a76874d1ddd2e5b6358c981c2be20"
+  },
+  {
+    "file": "vip-p2-over.png",
+    "mode": "vip",
+    "players": "p2",
+    "state": "over",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "3ddefa477fda994567c9e33372fb0148d415da69a83bbd37b64ae594cb9d9b81"
+  },
+  {
+    "file": "vip-p2-down.png",
+    "mode": "vip",
+    "players": "p2",
+    "state": "down",
+    "cancel_box": [
+      726,
+      429,
+      95,
+      40
+    ],
+    "source_frame_sha256": "22db458d2182a16808bc68e4d318c906e0664e5e4c9c0e829068505bdf0b2d66"
+  }
+]

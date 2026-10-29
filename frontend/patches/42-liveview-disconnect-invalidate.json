@@ -1,0 +1,6 @@
+{
+  "description": "Clear the disconnected image and advance the frame generation.",
+  "path": "MFAAvalonia/ViewModels/Pages/TaskQueueViewModel.cs",
+  "find": "    partial void OnIsConnectedChanged(bool value)\n    {\n        OnPropertyChanged(nameof(IsLiveViewVisible));\n        ResetLiveViewNoImageWarning();\n",
+  "replace": "    private readonly MFAAvalonia.Services.LiveViewFrameGate _liveViewFrameGate = new();\n    // Accessed only on the UI thread. A delayed clear must not erase a new frame.\n    private long _liveViewDisplayedGeneration = -1;\n\n    private void InvalidateLiveViewImage()\n    {\n        var generation = _liveViewFrameGate.Invalidate();\n        DispatcherHelper.PostOnMainThread(() =>\n        {\n            if (!_liveViewFrameGate.CanClear(generation, _liveViewDisplayedGeneration, Volatile.Read(ref _isDisposed) != 0)) return;\n            LiveViewImage = null;\n            DisposeLiveViewBitmaps();\n            _liveViewDisplayedGeneration = -1;\n            LiveViewFps = 0;\n        });\n    }\n\n    partial void OnIsConnectedChanged(bool value)\n    {\n        OnPropertyChanged(nameof(IsLiveViewVisible));\n        ResetLiveViewNoImageWarning();\n        if (!value) InvalidateLiveViewImage();\n"
+}

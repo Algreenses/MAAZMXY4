@@ -26,11 +26,31 @@ public static class ScriptTaskExecution
             }, token)).AsObject();
             token.ThrowIfCancellationRequested();
             TaskScriptPlan.StopIfUnbound(plan, message => processor.AddLog(message), token);
+            var management = GameManagementService.For(processor);
+            if ((management.Options.Enabled || management.IsArmed) && plan["management_completion_only"]?.GetValue<bool>() == true)
+            {
+                stopOnFailure();
+                if (plan["binding"]?["mode"]?.GetValue<string>() == "replace")
+                    throw new InvalidOperationException("替代答题任务的录制没有结算检查点，不能自动重启。");
+                return await management.RunCompletionOnlyAsync(entry, overrides, execute, token);
+            }
             if (plan["handled"]?.GetValue<bool>() != true) return await execute(entry, overrides, token);
             stopOnFailure();
+            if (management.Options.Enabled || management.IsArmed)
+            {
+                if (plan["binding"]?["mode"]?.GetValue<string>() == "replace")
+                    throw new InvalidOperationException("替代任务脚本没有地图恢复边界，请使用原任务流程绑定或关闭游戏管理。");
+                return await management.RunAsync(plan, entry, overrides, execute, token);
+            }
             var prepared = TaskScriptPlan.Prepare(plan, entry, overrides);
             if (prepared.Profile != null)
+            {
+                // The visible game-management switches replace the old hidden
+                // per-task restart option; retain its saved data for migration.
+                TaskScriptPlan.Parameters(prepared.Pipeline, prepared.Entry)["recovery"] =
+                    new JsonObject { ["enabled"] = false, ["max_retries"] = 3, ["save_slot"] = 1, ["exe_path"] = "" };
                 return await TaskRecovery.RunAsync(processor, prepared.Entry, prepared.Pipeline.ToJsonString(), prepared.Profile, execute, token);
+            }
             return await execute(prepared.Entry, prepared.Pipeline.ToJsonString(), token);
         }
         catch (OperationCanceledException) { throw; }

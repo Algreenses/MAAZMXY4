@@ -1,0 +1,6 @@
+{
+  "description": "Avoid perpetual idle rendering while preserving task status and active indicators.",
+  "path": "MFAAvalonia/Views/UserControls/InstanceTabBar.axaml",
+  "find": "Selector=\"Ellipse.PulseAnimation\"",
+  "replace": "Selector=\"Ellipse.PulseAnimation[IsVisible=True]\""
+}

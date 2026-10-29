@@ -10,6 +10,9 @@ on:
       - 'tools/migrate_zaomeng_scripts.py'
       - 'tools/import_navigation_library.py'
       - 'tools/configure_task_navigation.py'
+      - 'tools/configure_game_management.py'
+      - 'tools/research/**'
+      - 'tools/benchmark_task_config.py'
       - 'tools/navigation_privacy_masks.json'
       - 'tools/sync_task_assets.py'
       - 'tools/build_update.py'
@@ -31,11 +34,15 @@ on:
 jobs:
   verify:
     runs-on: windows-latest
+    env:
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install development-only catalogue parser dependencies
+        run: python -m pip install beautifulsoup4==4.15.0 requests==2.34.2
       - name: Offline recording, import, editing and playback tests
         run: python -m unittest discover -s tests -p "test_*.py" -v
       - uses: actions/setup-dotnet@v4
@@ -45,6 +52,9 @@ jobs:
         env:
           LIVEVIEW_PATCH_TESTS: '1'
         run: python -m unittest discover -s tests -p "test_liveview_patch.py" -v
+      - name: Live-view target generation and collapsed-card checks
+        shell: pwsh
+        run: dotnet run --project frontend/tests/LiveView/LiveView.csproj -c Release
       - name: Agent process ownership and cleanup regression
         env:
           AGENT_CLEANUP_PATCH_TESTS: '1'
@@ -58,6 +68,12 @@ jobs:
       - name: Script worker disconnect and protocol fault injection
         shell: pwsh
         run: dotnet run --project frontend/tests/StudioClient/StudioClient.csproj -c Release
+      - name: Offline game database search and page lifecycle checks
+        shell: pwsh
+        run: dotnet run --project frontend/tests/GameDatabase/GameDatabase.csproj -c Release
+      - name: Game management controls and instance settings without game processes
+        shell: pwsh
+        run: dotnet run --project frontend/tests/GameManagement/GameManagement.csproj -c Release
       - name: Project update transport and installation guard regression
         shell: pwsh
         run: dotnet run --project frontend/tests/ProjectUpdate/ProjectUpdate.csproj -c Release

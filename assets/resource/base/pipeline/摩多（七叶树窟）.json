@@ -57,19 +57,32 @@
   },
   "摩多（七叶树窟）-点击设置": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": [
-          "设置.png"
-        ]
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "设置.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
-    "pre_delay": 2000,
+    "pre_delay": 0,
     "action": {
       "type": "Click"
     },
     "timeout": 8000,
     "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-等待拒绝复活",
       "摩多（七叶树窟）-战斗失败",
       "摩多（七叶树窟）-成功返回地图",
       "摩多（七叶树窟）-返回地图"
@@ -112,10 +125,10 @@
   },
   "摩多（七叶树窟）-返回地图": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "返回地图"
+        "all_of": [
+          "Nav_SettingsReturn"
         ]
       }
     },
@@ -179,11 +192,64 @@
   },
   "摩多（七叶树窟）-关卡入口": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": [
-          "七叶树窟.png"
-        ]
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "七叶树窟.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s43-frame1.png",
+                          "navigation/stages/s43-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
       }
     },
     "pre_delay": 80,
@@ -230,6 +296,11 @@
             ],
             "succeeded_next": [
               "摩多（七叶树窟）-已确认战斗成功"
+            ],
+            "revive_next": [
+              "摩多（七叶树窟）-拒绝还魂丹",
+              "摩多（七叶树窟）-等待拒绝复活",
+              "摩多（七叶树窟）-战斗失败"
             ]
           },
           "settings_node": "脚本任务设置",
@@ -240,11 +311,15 @@
           "route_node": "摩多（七叶树窟）-回放后分流",
           "routes": {
             "recorded_return": [
+              "摩多（七叶树窟）-拒绝还魂丹",
+              "摩多（七叶树窟）-等待拒绝复活",
               "摩多（七叶树窟）-战斗失败",
               "摩多（七叶树窟）-成功返回地图",
               "摩多（七叶树窟）-脚本返回确认"
             ],
             "battle_only": [
+              "摩多（七叶树窟）-拒绝还魂丹",
+              "摩多（七叶树窟）-等待拒绝复活",
               "摩多（七叶树窟）-战斗失败",
               "摩多（七叶树窟）-成功返回地图",
               "摩多（七叶树窟）-点击设置"
@@ -289,6 +364,8 @@
       "type": "DoNothing"
     },
     "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-等待拒绝复活",
       "摩多（七叶树窟）-战斗失败",
       "摩多（七叶树窟）-成功返回地图",
       "摩多（七叶树窟）-点击设置"
@@ -301,16 +378,26 @@
   },
   "摩多（七叶树窟）-战斗失败": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/outcomes/failed-title.png",
-        "roi": [
-          200,
-          120,
-          780,
-          380
-        ],
-        "threshold": 0.9
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
       }
     },
     "action": {
@@ -323,6 +410,8 @@
       }
     },
     "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-等待拒绝复活",
       "摩多（七叶树窟）-失败返回地图",
       "摩多（七叶树窟）-失败返回确认"
     ],
@@ -335,16 +424,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/failed-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/failed-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/failed-return-1_up.png",
+                          "navigation/outcomes/failed-return-2_over.png",
+                          "navigation/outcomes/failed-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -362,7 +480,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -389,16 +508,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/succeeded-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/succeeded-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/succeeded-return-1_up.png",
+                          "navigation/outcomes/succeeded-return-2_over.png",
+                          "navigation/outcomes/succeeded-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -416,7 +564,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -504,6 +653,8 @@
       "type": "DoNothing"
     },
     "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-等待拒绝复活",
       "摩多（七叶树窟）-战斗失败",
       "摩多（七叶树窟）-成功返回地图"
     ],
@@ -527,6 +678,8 @@
       }
     },
     "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-等待拒绝复活",
       "摩多（七叶树窟）-失败返回地图",
       "摩多（七叶树窟）-失败返回确认"
     ],
@@ -549,6 +702,72 @@
     ],
     "timeout": 15000,
     "post_delay": 0,
+    "on_error": [
+      "摩多（七叶树窟）-失败"
+    ]
+  },
+  "摩多（七叶树窟）-拒绝还魂丹": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  "Result_ReviveLayoutP1",
+                  "Result_ReviveLayoutP2"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "摩多（七叶树窟）-战斗失败"
+    ],
+    "timeout": 15000,
+    "pre_delay": 0,
+    "post_delay": 250,
+    "on_error": [
+      "摩多（七叶树窟）-失败"
+    ]
+  },
+  "摩多（七叶树窟）-等待拒绝复活": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/outcomes/revive-normal-caption.png",
+          "navigation/outcomes/revive-vip-caption.png"
+        ],
+        "roi": [
+          200,
+          170,
+          800,
+          390
+        ],
+        "threshold": 0.88
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "摩多（七叶树窟）-拒绝还魂丹",
+      "摩多（七叶树窟）-战斗失败"
+    ],
+    "post_delay": 0,
+    "timeout": 15000,
     "on_error": [
       "摩多（七叶树窟）-失败"
     ]

@@ -4,6 +4,8 @@
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
+下一版本另有原生“游戏数据库”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
+
 ## 源码与构建
 
 `upstream.json` 固定与本机 Core 2.14.0 对应的 MFAAvalonia 提交、源码归档 SHA-256 和构建入口。`ScriptStudio/` 内的文件按 MFAAvalonia Core 项目目录布局存放。构建脚本将其复制到下载源码的 `MFAAvalonia/` 下，纯 C# `UserControl` 也可使用，不要求额外的 `.axaml` 文件。
@@ -27,6 +29,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 源码归档和解压目录位于 `.runtime-cache/`，编译产物位于 `dist/script-studio/`，均不提交 Git。默认构建产物是前端，不包含游戏资源项目、录制文件和内嵌 Python；运行时应与项目发布目录组合。`-Install` 只安装前端程序、托管依赖和对应 Win32 原生依赖，不覆盖 `interface.json`、`resource/`、`agent/`、`config/`、`recordings/` 或 Python 目录。
 
 `upstream.json` 的 `application_icon` 指向仓库根目录 `新图标.ico`。构建时统一替换宿主的 `Assets/logo.ico`，供 Windows EXE 和 Avalonia 内嵌窗口/托盘图标使用；构建记录包含图标 SHA-256，不需要手工修改缓存源码。
+
+源码与日常客户端分开存放时，可使用 `-Install -InstallDirectory <现有客户端目录>`。仍从当前源码树构建，在目标客户端目录检查运行状态、保存安装备份并安装上述前端文件；构建输出必须放在该目标目录之外。资源和 Agent 需另按既有迁移流程同步。
 
 新前端启动未绑定的脚本任务时，只在日志提示绑定方式并走宿主 `STOPPED` 路径，结束本次队列；不弹选择框、不执行回放、不计成功次数或继续重复。已绑定但文件丢失/损坏仍作为实际错误处理。协议通过 `report_unbound` 显式请求正常停止结果，旧调用仍保留严格校验。
 
@@ -79,7 +83,7 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 
 - `01-script-studio-navigation.json`：在共享 `RootViewContent.axaml` 的现有侧栏加入页面。
 - `02-script-studio-registration.json`：接入现有 DI 和 ViewLocator 映射。
-- `03-script-studio-task-guard.json`：在两个任务启动入口共用的 `TryBeginTaskRun()` 内，与录制端使用同一把锁，防止录制与界面、定时或其它实例启动任务并行。冲突通过原有 Toast 与日志反馈。
+- `03-script-studio-task-guard.json`：在两个任务启动入口共用的 `TryBeginTaskRun()` 内，与录制端使用同一把锁，防止录制、盒子重连与界面、定时或其它实例启动任务并行。冲突通过现有日志反馈。
 - `04-selected-win32-controller.json`、`05-selected-controller-resource.json`：有多个 Win32 配置时，窗口、资源及任务使用当前命名控制器的筛选规则，支持同类型控制器使用不同窗口与资源设置。
 - `06-task-script-execution.json`：在现有 MFA 任务队列入口查询通用任务绑定，保留任务内回放或明确替代整个任务；支持配置声明的有界恢复，失败与取消停止后续重复。`07-win32-recovery-rebind.json` 在重启后绑定经过校验的唯一窗口，避免旧设备变更回调与显式重连竞态。
 - `08-task-stop-race.json`：停止操作捕获同一执行器引用，避免恢复释放执行器时出现空引用竞态。
@@ -89,6 +93,12 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 - `14-shared-recording-windows.json`：录制页复用当前任务页的窗口发现、控制器筛选与已选窗口顺序，适配通用 Win32 控制器；刷新只读窗口信息，不连接或切换设备。
 - `15-manual-frontend-version-check.json`、`16-manual-frontend-download.json`：前端按项目完整客户端手动分发，阻止通用前端更新覆盖工作台；资源更新逻辑保持原样。
 - `17-manual-frontend-help.json`：在软件版本旁提供“前端升级说明”，复用已有命令展示升级方式。
+- `36-game-management-card.json`、`37-task-description-in-settings.json`：游戏管理替换原任务说明卡片，原 Markdown 说明控件移入任务设置，保留布局标识和绑定。
+- `38-disable-first-use-tutorial.json`：以功能开关暂时跳过首次指引，不改写用户的完成标记。
+- `39-game-management-lifetime.json`、`40-game-reconnect-preview.json`：实例释放时结束监测，重连期间沿用实时预览的连接暂停机制。
+- `48`—`52`：移除任务页装饰脉冲、光带和更新提示的无限渐变；运行图标只在自身可见时动画。实例下拉列表的子图标也绑定运行状态，避免只隐藏父容器后动画仍然计时。保留静态状态提示和运行中的指示器，不改渲染后端或全局帧率。
+
+游戏管理使用每实例设置与低频进程采样，原生任务队列继续持有输入；自动维护、同轮恢复和答题整局边界见[游戏管理说明](../docs/zh_cn/游戏管理.md)。`TaskScriptPlan.PrepareManaged` 和任务目录发现器保留原计次所有权，不另建输入执行器。`frontend/tests/GameManagement/` 用真实控件及替身服务检查布局和设置，不启动任何游戏进程。
 
 默认录制包位于 `agent/recordings`。`recording_store.py` 负责首次入库、默认标记、复制、带恢复副本的删除与绑定原子更新；编辑和回放仍使用原有录制模型及文件。`agent/task-migrations.json` 声明退役入口，完整任务同步只移除名称和入口均匹配的旧条目，无关自定义任务保留。
 

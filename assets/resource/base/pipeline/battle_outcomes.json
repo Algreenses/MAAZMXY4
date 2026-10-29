@@ -26,16 +26,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/failed-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/failed-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/failed-return-1_up.png",
+                          "navigation/outcomes/failed-return-2_over.png",
+                          "navigation/outcomes/failed-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -53,7 +82,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -95,16 +125,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/succeeded-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/succeeded-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/succeeded-return-1_up.png",
+                          "navigation/outcomes/succeeded-return-2_over.png",
+                          "navigation/outcomes/succeeded-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -122,7 +181,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -219,9 +279,20 @@
   },
   "Nav_OpenQuest": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "任务.png"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
     "action": {
@@ -248,7 +319,13 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.9,
+                "roi": [
+                  300,
+                  300,
+                  550,
+                  120
+                ]
               }
             }
           },
@@ -284,7 +361,13 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.9,
+                "roi": [
+                  300,
+                  300,
+                  550,
+                  120
+                ]
               }
             }
           },
@@ -295,7 +378,8 @@
                 "template": "任务.png"
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -312,17 +396,28 @@
   },
   "Nav_SelectBountyTab": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "^悬赏任务$"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^悬赏任务$"
+                ],
+                "roi": [
+                  180,
+                  85,
+                  500,
+                  100
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "roi": [
-          180,
-          85,
-          500,
-          100
-        ]
+        "box_index": 0
       }
     },
     "action": {
@@ -410,7 +505,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -424,5 +520,251 @@
     "next": [],
     "timeout": 10000,
     "post_delay": 350
+  },
+  "Result_RevivePrompt": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/outcomes/revive-normal-caption.png",
+          "navigation/outcomes/revive-vip-caption.png"
+        ],
+        "roi": [
+          200,
+          170,
+          800,
+          390
+        ],
+        "threshold": 0.88
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_NoRevivePrompt": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "battle_no_revive"
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_DeclineRevive": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  "Result_ReviveLayoutP1",
+                  "Result_ReviveLayoutP2"
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [],
+    "timeout": 15000,
+    "pre_delay": 0,
+    "post_delay": 250
+  },
+  "Result_ReviveWindow": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "frame_corner",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Nav_CommonConfirm"
+                ]
+              }
+            }
+          },
+          "Result_RevivePrompt",
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-right.png",
+                "roi": "frame_corner",
+                "roi_offset": [
+                  491,
+                  -6,
+                  20,
+                  12
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/dialogs/confirm-bottom.png",
+                "roi": "frame_corner",
+                "roi_offset": [
+                  -6,
+                  197,
+                  12,
+                  -9
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p1-up.png",
+                  "navigation/outcomes/revive-layout-p1-over.png",
+                  "navigation/outcomes/revive-layout-p1-down.png"
+                ],
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  357,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
+  },
+  "Result_ReviveLayoutP2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_window",
+            "recognition": {
+              "type": "And",
+              "param": {
+                "all_of": [
+                  "Result_ReviveWindow"
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-layout-p2-up.png",
+                  "navigation/outcomes/revive-layout-p2-over.png",
+                  "navigation/outcomes/revive-layout-p2-down.png"
+                ],
+                "roi": "revive_window",
+                "roi_offset": [
+                  10,
+                  155,
+                  472,
+                  -8
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "DirectHit",
+              "param": {
+                "roi": "revive_window",
+                "roi_offset": [
+                  454,
+                  188,
+                  -37,
+                  -42
+                ]
+              }
+            }
+          }
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [],
+    "post_delay": 0
   }
 }
