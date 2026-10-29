@@ -1,0 +1,128 @@
+[
+  {
+    "task": "朱电（琉璃宫）",
+    "file": "s26-f1.png",
+    "stage": 26,
+    "frame": 1
+  },
+  {
+    "task": "朱电（琉璃宫）",
+    "file": "s26-f2.png",
+    "stage": 26,
+    "frame": 2
+  },
+  {
+    "task": "朱电（琉璃宫）",
+    "file": "s26-f3.png",
+    "stage": 26,
+    "frame": 3
+  },
+  {
+    "task": "烛时（钟晷极地）",
+    "file": "s38-f1.png",
+    "stage": 38,
+    "frame": 1
+  },
+  {
+    "task": "烛时（钟晷极地）",
+    "file": "s38-f2.png",
+    "stage": 38,
+    "frame": 2
+  },
+  {
+    "task": "烛时（钟晷极地）",
+    "file": "s38-f3.png",
+    "stage": 38,
+    "frame": 3
+  },
+  {
+    "task": "摩多（七叶树窟）",
+    "file": "s43-f1.png",
+    "stage": 43,
+    "frame": 1
+  },
+  {
+    "task": "摩多（七叶树窟）",
+    "file": "s43-f2.png",
+    "stage": 43,
+    "frame": 2
+  },
+  {
+    "task": "摩多（七叶树窟）",
+    "file": "s43-f3.png",
+    "stage": 43,
+    "frame": 3
+  },
+  {
+    "task": "摩多（幕山）",
+    "file": "s45-f1.png",
+    "stage": 45,
+    "frame": 1
+  },
+  {
+    "task": "摩多（幕山）",
+    "file": "s45-f2.png",
+    "stage": 45,
+    "frame": 2
+  },
+  {
+    "task": "摩多（幕山）",
+    "file": "s45-f3.png",
+    "stage": 45,
+    "frame": 3
+  },
+  {
+    "task": "无冥（孤魂岭）",
+    "file": "s47-f1.png",
+    "stage": 47,
+    "frame": 1
+  },
+  {
+    "task": "无冥（孤魂岭）",
+    "file": "s47-f2.png",
+    "stage": 47,
+    "frame": 2
+  },
+  {
+    "task": "无冥（孤魂岭）",
+    "file": "s47-f3.png",
+    "stage": 47,
+    "frame": 3
+  },
+  {
+    "task": "伽岚（万世冥阁）",
+    "file": "s61-f1.png",
+    "stage": 61,
+    "frame": 1
+  },
+  {
+    "task": "伽岚（万世冥阁）",
+    "file": "s61-f2.png",
+    "stage": 61,
+    "frame": 2
+  },
+  {
+    "task": "伽岚（万世冥阁）",
+    "file": "s61-f3.png",
+    "stage": 61,
+    "frame": 3
+  },
+  {
+    "task": "贪妄（金蟾宝宫）",
+    "file": "s65-f1.png",
+    "stage": 65,
+    "frame": 1
+  },
+  {
+    "task": "贪妄（金蟾宝宫）",
+    "file": "s65-f2.png",
+    "stage": 65,
+    "frame": 2
+  },
+  {
+    "task": "贪妄（金蟾宝宫）",
+    "file": "s65-f3.png",
+    "stage": 65,
+    "frame": 3
+  }
+]
