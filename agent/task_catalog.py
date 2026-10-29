@@ -17,6 +17,17 @@ def read_document(path):
     # Same comment grammar as the repository's schema validator. Keep quoted
     # URLs and escape sequences intact while accepting resource JSONC files.
     source = path.read_text(encoding='utf-8-sig')
+    # Published resources are ordinary JSON. Let the standard decoder handle
+    # them directly; only JSONC needs the slower comment-aware character scan.
+    # Do not cache mutable task/instance data: edits must be visible next call.
+    try:
+        value = json.loads(source)
+    except json.JSONDecodeError:
+        value = None
+    else:
+        if not isinstance(value, dict):
+            raise ValueError('任务配置必须是对象：' + str(path))
+        return value
     result, index, quoted, escaped = [], 0, False, False
     while index < len(source):
         char = source[index]
