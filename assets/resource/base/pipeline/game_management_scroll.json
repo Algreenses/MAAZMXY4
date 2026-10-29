@@ -133,19 +133,102 @@
     "post_delay": 350,
     "timeout": 3000
   },
-  "GameManagement_NormalMap": {
+  "GameManagement_town5_TerrainBack": {
     "recognition": {
       "type": "TemplateMatch",
       "param": {
-        "template": "navigation/scroll/normal-mode.png",
-        "roi": [
-          980,
-          580,
-          167,
-          140
+        "template": [
+          "navigation/scroll/town5-00.png",
+          "navigation/scroll/town5-01.png",
+          "navigation/scroll/town5-02.png",
+          "navigation/scroll/town5-03.png",
+          "navigation/scroll/town5-04.png",
+          "navigation/scroll/town5-05.png"
         ],
-        "threshold": 0.88,
-        "green_mask": true
+        "roi": [
+          60,
+          140,
+          480,
+          425
+        ],
+        "threshold": 0.9
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": []
+  },
+  "GameManagement_town5_DragBack": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_TaskMap",
+          "GameManagement_NormalMap",
+          "GameManagement_town5_TerrainBack",
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 2
+      }
+    },
+    "action": {
+      "type": "Swipe",
+      "param": {
+        "begin": true,
+        "end": true,
+        "end_offset": [
+          440,
+          0,
+          0,
+          0
+        ],
+        "duration": 450
+      }
+    },
+    "next": [],
+    "post_delay": 350,
+    "timeout": 3000
+  },
+  "GameManagement_NormalMap": {
+    "recognition": {
+      "type": "Or",
+      "param": {
+        "any_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/scroll/normal-mode.png",
+                "roi": [
+                  980,
+                  580,
+                  167,
+                  140
+                ],
+                "threshold": 0.88,
+                "green_mask": true
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^切至噩梦$"
+                ],
+                "roi": [
+                  900,
+                  560,
+                  247,
+                  160
+                ],
+                "threshold": 0.85
+              }
+            }
+          }
+        ]
       }
     },
     "action": {

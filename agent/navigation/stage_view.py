@@ -1,4 +1,5 @@
-"""Restore visible stage icons on two source-calibrated, scrollable normal maps."""
+"""Restore visible stage icons on source-calibrated, scrollable normal maps."""
+from functools import lru_cache
 import json
 from pathlib import Path
 
@@ -7,9 +8,13 @@ from .graph import NavigationError
 DATA = Path(__file__).resolve().parents[1] / 'data/navigation/stage-scroll.json'
 
 
+@lru_cache(maxsize=1)
+def _recipes():
+    return {item['target']: item for item in json.loads(DATA.read_text(encoding='utf8'))['maps']}
+
+
 def restore_stage_view(context, navigator, target):
-    recipe = next((item for item in json.loads(DATA.read_text(encoding='utf8'))['maps']
-                   if item['target'] == target), None)
+    recipe = _recipes().get(target)
     if recipe is None:
         return False
     # Each step re-localizes the whole scene before the native action performs
@@ -24,6 +29,7 @@ def restore_stage_view(context, navigator, target):
             return False
         frame = navigator.capture()
         target_hit = context.run_recognition(target, frame)
+        navigator._check()
         if target_hit is None:
             raise ValueError('缺少关卡识别资源。')
         if target_hit.hit:
@@ -31,7 +37,9 @@ def restore_stage_view(context, navigator, target):
         if step == recipe['max_steps']:
             return False
         guard = context.run_recognition(recipe['drag_node'], frame)
+        navigator._check()
         if guard is None or not guard.hit:
+            navigator.log('大地图视野未恢复：未确认地图、普通模式或可拖动地形，已停止。')
             return False
         navigator.log(f"恢复大地图视野：{recipe['task']}（{step+1}/{recipe['max_steps']}）")
         result = context.run_task('GameManagement_ScrollInvoke', {'GameManagement_ScrollInvoke': dict(

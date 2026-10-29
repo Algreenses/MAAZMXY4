@@ -1,5 +1,6 @@
 """Extract non-interactive map terrain for bounded, recognized post-login drags."""
 from functools import lru_cache
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -95,6 +96,25 @@ def generate(source,root=ROOT):
             next=[],post_delay=350,timeout=3000)
         metadata['maps'].append(dict(task=task,target=task+'-关卡入口',town=town,axis=axis,max_steps=steps,drag_node=drag_node,
             source=origin,source_bounds=full_bounds,excluded_stage_bounds=excluded,fixture=town+'.png',crops=crops))
+    # TownMap keeps levels_container's position when revisiting a cached town.
+    # s47 is on the left, s61 on the right: neither has a fixed screen position.
+    # Reuse the same non-interactive terrain; mirror only the safe drag region
+    # and direction. A fresh native match determines both gesture endpoints.
+    reverse_terrain='GameManagement_town5_TerrainBack'
+    nodes[reverse_terrain]=deepcopy(nodes['GameManagement_town5_Terrain'])
+    nodes[reverse_terrain]['recognition']['param']['roi']=[60,140,480,425]
+    reverse_drag='GameManagement_town5_DragBack'
+    nodes[reverse_drag]=deepcopy(nodes['GameManagement_town5_Drag'])
+    nodes[reverse_drag]['recognition']['param']['all_of'][2]=reverse_terrain
+    nodes[reverse_drag]['action']['param']['end_offset']=[440,0,0,0]
+    reverse_recipe=deepcopy(metadata['maps'][0])
+    reverse_recipe.update(task='无冥（孤魂岭）',target='无冥（孤魂岭）-关卡入口',drag_node=reverse_drag)
+    metadata['maps'].append(reverse_recipe)
+    metadata['state_evidence']=(
+        'TownMap.changeTown reuses cached levels_container; Drag.onMouseMove clamps its live position '
+        'to [-(width-940),0] and [-(height-590),0]. s47 is left of s61 in town5. '
+        'Legacy task entries used unrestricted TemplateMatch and the matched click box. '
+        'Terrain crops exclude every clickable stage bound; no screen coordinate is retained between frames.')
     normal=next((source/'town5'/'sprites').glob('DefineSprite_453*'))/'1.png'
     with Image.open(normal) as original:
         image=original.convert('RGBA').resize((round(original.width*SCALE),round(original.height*SCALE)),Image.Resampling.LANCZOS)
@@ -104,7 +124,13 @@ def generate(source,root=ROOT):
         fixture.save(fixture_root/'normal-mode.png')
     relative='navigation/scroll/normal-mode.png'
     metadata['assets'].append(dict(path=relative,sha256=hashlib.sha256(target.read_bytes()).hexdigest(),source_sha256=sources['town5']['sha256']))
-    nodes['GameManagement_NormalMap']=dict(recognition=dict(type='TemplateMatch',param=dict(template=relative,roi=[980,580,167,140],threshold=.88,green_mask=True)),action=dict(type='DoNothing'),next=[])
+    # The normal-mode switch says where a click WOULD go: 切至噩梦. It is
+    # recognition only. Preserve the sprite threshold and add a strict text
+    # alternative for clients whose button rasterization differs from SWF.
+    nodes['GameManagement_NormalMap']=dict(recognition=dict(type='Or',param=dict(any_of=[
+        dict(recognition=dict(type='TemplateMatch',param=dict(template=relative,roi=[980,580,167,140],threshold=.88,green_mask=True))),
+        dict(recognition=dict(type='OCR',param=dict(expected=['^切至噩梦$'],roi=[900,560,247,160],threshold=.85))),
+    ])),action=dict(type='DoNothing'),next=[])
     (root/'assets/resource/base/pipeline/game_management_scroll.json').write_text(json.dumps(nodes,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
     (root/'agent/data/navigation/stage-scroll.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2)+'\n',encoding='utf8',newline='\n')
     resources=root/'agent/data/navigation/resources.json';value=json.loads(resources.read_text(encoding='utf8'))

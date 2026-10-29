@@ -13,6 +13,56 @@ from navigation.stage_view import DATA, restore_stage_view
 
 
 class StageScrollTests(unittest.TestCase):
+    def test_horizontal_targets_keep_opposite_native_match_relative_drags(self):
+        data = json.loads(DATA.read_text(encoding='utf8'))
+        nodes = json.loads((ROOT / 'assets/resource/base/pipeline/game_management_scroll.json').read_text(encoding='utf8'))
+        recipes = {item['task']: item for item in data['maps']}
+        for task, dx in [('伽岚（万世冥阁）', -440), ('无冥（孤魂岭）', 440)]:
+            node = nodes[recipes[task]['drag_node']]
+            guard = node['recognition']['param']
+            self.assertEqual(guard['all_of'][:2], ['Nav_TaskMap', 'GameManagement_NormalMap'])
+            self.assertEqual(guard['all_of'][3], 'Result_NoRevivePrompt')
+            self.assertEqual(guard['box_index'], 2)
+            action = node['action']['param']
+            self.assertIs(action['begin'], True)
+            self.assertIs(action['end'], True)
+            self.assertEqual(action['end_offset'], [dx, 0, 0, 0])
+            x, y, w, h = nodes[guard['all_of'][2]]['recognition']['param']['roi']
+            self.assertGreaterEqual(x + dx, 0)
+            self.assertLessEqual(x + w + dx, 1101)
+            self.assertLess(y + h, 600)
+
+    def test_cancellation_after_recognition_prevents_pending_drag(self):
+        recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]
+        cancelled = False
+        def check():
+            if cancelled: raise InterruptedError('cancelled during recognition')
+        def recognize(name, frame):
+            nonlocal cancelled
+            cancelled = name == recipe['drag_node']
+            return SimpleNamespace(hit=cancelled)
+        actions = []
+        context = SimpleNamespace(run_recognition=recognize, run_task=lambda *args: actions.append(args))
+        navigator = SimpleNamespace(clock=lambda: 0, _check=check, locate=lambda: 'task_map',
+                                    capture=lambda: None, log=lambda _: None, _settle=lambda: None)
+        with self.assertRaises(InterruptedError): restore_stage_view(context, navigator, recipe['target'])
+        self.assertFalse(actions)
+
+    def test_relocalizes_after_drag_and_never_uses_a_saved_target_box(self):
+        recipe = json.loads(DATA.read_text(encoding='utf8'))['maps'][0]
+        frames = iter(['before', 'after'])
+        seen, actions = [], []
+        def recognize(name, frame):
+            seen.append((name, frame))
+            return SimpleNamespace(hit=name == recipe['drag_node'] or frame == 'after')
+        context = SimpleNamespace(run_recognition=recognize, run_task=lambda *args:
+            actions.append(args) or SimpleNamespace(status=SimpleNamespace(succeeded=True)))
+        navigator = SimpleNamespace(clock=lambda: 0, _check=lambda: None, locate=lambda: 'task_map',
+                                    capture=lambda: next(frames), log=lambda _: None, _settle=lambda: None)
+        self.assertTrue(restore_stage_view(context, navigator, recipe['target']))
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(seen[-1], (recipe['target'], 'after'))
+
     def test_landmarks_exclude_clickable_stages_and_have_pinned_sources(self):
         data = json.loads(DATA.read_text(encoding='utf8'))
         for asset in data['assets']:
@@ -53,7 +103,7 @@ class StageScrollTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS') == '1', 'opt-in Maa memory controller')
 class StageScrollNativeTests(unittest.TestCase):
-    def test_two_full_maps_restore_target_and_reject_wrong_mode_map_and_prompt(self):
+    def test_scroll_targets_restore_and_reject_wrong_mode_map_and_prompt(self):
         import numpy as np
         from maa.controller import CustomController
         from maa.custom_action import CustomAction
@@ -107,13 +157,15 @@ class StageScrollNativeTests(unittest.TestCase):
             def run(self, context, argv):
                 try:
                     for recipe in recipes:
-                        controller.recipe = recipe; controller.offset = 0; controller.gestures = []
+                        controller.recipe = recipe
+                        controller.offset = round((1500-940)*720/590) if recipe['drag_node'].endswith('Back') else 0
+                        controller.gestures = []
                         frame = controller.screencap()
                         assert not context.run_recognition(recipe['target'], frame).hit, recipe['town']
                         assert context.run_recognition(recipe['drag_node'], frame).hit, ('initial guard', recipe['town'])
                         wrong_mode = frame.copy(); wrong_mode[580:720, 980:1147] = 0
                         assert not context.run_recognition(recipe['drag_node'], wrong_mode).hit, 'wrong mode'
-                        other = next(r for r in recipes if r != recipe)
+                        other = next(r for r in recipes if r['town'] != recipe['town'])
                         assert not context.run_recognition(other['drag_node'], frame).hit, 'wrong map'
                         prompt = read_png_bgr(ROOT / 'tests/fixtures/navigation/revival/normal-p1-up.png')
                         # Preserve recognized map/mode/terrain under the modal.
@@ -142,7 +194,7 @@ class StageScrollNativeTests(unittest.TestCase):
         self.assertTrue(tasker.bind(resource, controller))
         self.assertTrue(tasker.post_task('__ScrollInspect').wait().succeeded, '\n'.join(errors))
         self.assertEqual(errors, [])
-        self.assertEqual(len(checks), 2, checks)
+        self.assertEqual(len(checks), len(recipes), checks)
         print('SCROLL', checks)
 
 

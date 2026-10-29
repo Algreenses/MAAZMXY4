@@ -360,6 +360,165 @@
           2460
         ]
       ]
+    },
+    {
+      "task": "无冥（孤魂岭）",
+      "target": "无冥（孤魂岭）-关卡入口",
+      "town": "town5",
+      "axis": "x",
+      "max_steps": 3,
+      "drag_node": "GameManagement_town5_DragBack",
+      "source": {
+        "name": "town5",
+        "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/ui/town5_20260202_1.swf",
+        "file": "town5_20260202_1.swf",
+        "sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd",
+        "bytes": 1643657,
+        "referer": "https://www.4399.com/flash/zmhj.htm?g=4"
+      },
+      "source_bounds": [
+        0.0,
+        0.0,
+        1500.0,
+        590.0
+      ],
+      "excluded_stage_bounds": [
+        [
+          199.0,
+          54.0,
+          373.0,
+          228.0
+        ],
+        [
+          68.0,
+          79.0,
+          242.0,
+          253.0
+        ],
+        [
+          178.0,
+          162.0,
+          342.0,
+          336.0
+        ],
+        [
+          22.35,
+          239.5,
+          186.35,
+          402.5
+        ],
+        [
+          147.0,
+          326.0,
+          309.0,
+          489.0
+        ],
+        [
+          285.8,
+          254.8,
+          447.8,
+          417.8
+        ],
+        [
+          687.0,
+          96.0,
+          881.0,
+          290.0
+        ],
+        [
+          750.0,
+          246.0,
+          944.0,
+          360.0
+        ],
+        [
+          877.0,
+          196.0,
+          1071.0,
+          340.0
+        ],
+        [
+          888.0,
+          50.0,
+          1092.0,
+          254.0
+        ],
+        [
+          1081.25,
+          125.35,
+          1275.25,
+          319.35
+        ],
+        [
+          1137.0,
+          -5.0,
+          1331.0,
+          189.0
+        ],
+        [
+          1271.7,
+          294.3,
+          1397.7,
+          413.3
+        ],
+        [
+          1284.0,
+          386.0,
+          1411.0,
+          494.0
+        ],
+        [
+          1087.8,
+          330.95,
+          1214.8,
+          438.95
+        ],
+        [
+          879.5,
+          416.5,
+          1099.5,
+          596.5
+        ]
+      ],
+      "fixture": "town5.png",
+      "crops": [
+        [
+          480,
+          370,
+          555,
+          435
+        ],
+        [
+          540,
+          370,
+          615,
+          435
+        ],
+        [
+          600,
+          350,
+          675,
+          415
+        ],
+        [
+          660,
+          290,
+          735,
+          355
+        ],
+        [
+          720,
+          370,
+          795,
+          435
+        ],
+        [
+          780,
+          370,
+          855,
+          435
+        ]
+      ]
     }
   ],
   "assets": [
@@ -721,5 +880,5 @@
       "source_sha256": "73d93449bfc5d9223930b426d0a2d17e784f53b0e5e8b99105a1cb71f18bb3cd"
     }
   ],
-  "state_evidence": "Native town areas are restored from curRecord.areaId; levels_container starts at its authored position. Terrain crops exclude every clickable stage bound."
+  "state_evidence": "TownMap.changeTown reuses cached levels_container; Drag.onMouseMove clamps its live position to [-(width-940),0] and [-(height-590),0]. s47 is left of s61 in town5. Legacy task entries used unrestricted TemplateMatch and the matched click box. Terrain crops exclude every clickable stage bound; no screen coordinate is retained between frames."
 }

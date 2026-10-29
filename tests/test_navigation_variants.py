@@ -23,6 +23,12 @@ class StageVariantAssetsTests(unittest.TestCase):
             self.assertEqual(node['recognition']['param']['box_index'],1)
             self.assertEqual(node['action'],{'type':'Click'})
             self.assertEqual(node['on_error'],[stage['task']+'-失败'])
+            if stage['town'] == 'town5':
+                # Both legacy and SWF states must follow a movable icon across
+                # the viewport, instead of assuming its initial map position.
+                alternatives = node['recognition']['param']['all_of'][1]['recognition']['param']['any_of']
+                for choice in alternatives:
+                    self.assertNotIn('roi', choice['recognition']['param'])
 
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS')=='1','opt-in memory-only native recognition')

@@ -118,7 +118,7 @@ def generate(source, root=ROOT):
             dict(recognition=dict(type='Or', param=dict(any_of=[
                 dict(recognition=deepcopy(original_recognition)),
                 dict(recognition=dict(type='TemplateMatch', param=dict(template=variants,
-                    threshold=.82, roi=[0,115,1045,500], method=5))),
+                    threshold=.82, **({} if town == 'town5' else dict(roi=[0,115,1045,500])), method=5))),
             ]))),
         ], box_index=1))
         write_json(path, pipeline)

@@ -271,8 +271,9 @@ def navigate_round(context, state):
     except NavigationError as error:
         parameters = state['parameters']
         navigation = parameters.get('navigation', {})
-        if (error.reason == 'unreachable' and parameters.get('game_management')
-                and navigation.get('kind') == 'stage'
+        # A map can keep its dragged position between ordinary rounds too.
+        # Viewport restoration is navigation, independent of process restart.
+        if (error.reason == 'unreachable' and navigation.get('kind') == 'stage'
                 and restore_stage_view(context, _navigator(context, state), navigation.get('target_node'))):
             return _navigator(context, state).run()
         raise

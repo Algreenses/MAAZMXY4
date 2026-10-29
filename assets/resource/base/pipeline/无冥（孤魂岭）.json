@@ -222,12 +222,6 @@
                           "navigation/stages/s47-frame3.png"
                         ],
                         "threshold": 0.82,
-                        "roi": [
-                          0,
-                          115,
-                          1045,
-                          500
-                        ],
                         "method": 5
                       }
                     }

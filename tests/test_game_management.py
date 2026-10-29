@@ -92,7 +92,7 @@ class GameManagementTests(unittest.TestCase):
         self.assertLess(roi(first)['roi'][1],roi(third)['roi'][1])
         with self.assertRaises(ValueError):login.login_overrides('name','role',5)
 
-    def test_scroll_fallback_is_only_for_managed_unreachable_stage_navigation(self):
+    def test_scroll_fallback_is_independent_of_game_process_management(self):
         NavigationError = runtime.NavigationError
         recording = dict(path='bound.json', sha256='a'*64)
         state = dict(reference='@task:fixture', recording=recording,
@@ -105,11 +105,27 @@ class GameManagementTests(unittest.TestCase):
              patch.object(runtime, 'restore_stage_view', return_value=True) as restore:
             self.assertEqual(runtime.navigate_round(None, state), 'task_destination')
             self.assertEqual(restore.call_count, 1)
-        state['parameters'].pop('game_management')
-        with patch.object(runtime, '_check'), patch.object(runtime, 'inspect_recording', return_value=recording), \
-             patch.object(runtime, '_navigator', return_value=first), patch.object(runtime, 'restore_stage_view') as restore:
-            with self.assertRaises(NavigationError): runtime.navigate_round(None, state)
-            restore.assert_not_called()
+        for management in (None, {}, {'restart_on_failure': False}):
+            state['parameters']['game_management'] = management
+            with self.subTest(management=management), patch.object(runtime, '_check'), \
+                 patch.object(runtime, 'inspect_recording', return_value=recording), \
+                 patch.object(runtime, '_navigator', side_effect=[first, object(), restored]), \
+                 patch.object(runtime, 'restore_stage_view', return_value=True) as restore:
+                self.assertEqual(runtime.navigate_round(None, state), 'task_destination')
+                restore.assert_called_once()
+
+    def test_scroll_does_not_recover_non_stage_or_other_navigation_failures(self):
+        recording = dict(path='bound.json', sha256='a'*64)
+        for kind, reason in [('bounty', 'unreachable'), ('stage', 'unknown'),
+                             ('stage', 'blocked'), ('stage', 'budget')]:
+            state = dict(reference='bound', recording=recording,
+                         parameters=dict(navigation=dict(kind=kind, target_node='target')))
+            nav = SimpleNamespace(run=lambda: (_ for _ in ()).throw(runtime.NavigationError('stopped', reason=reason)))
+            with self.subTest(kind=kind, reason=reason), patch.object(runtime, '_check'), \
+                 patch.object(runtime, 'inspect_recording', return_value=recording), \
+                 patch.object(runtime, '_navigator', return_value=nav), patch.object(runtime, 'restore_stage_view') as restore:
+                with self.assertRaises(runtime.NavigationError): runtime.navigate_round(None, state)
+                restore.assert_not_called()
 
     def test_release_collection_contains_management_and_no_test_frames(self):
         spec = importlib.util.spec_from_file_location('managed_package', ROOT/'tools/build_update.py')
