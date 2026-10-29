@@ -94,6 +94,7 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 - `36-game-management-card.json`、`37-task-description-in-settings.json`：游戏管理替换原任务说明卡片，原 Markdown 说明控件移入任务设置，保留布局标识和绑定。
 - `38-disable-first-use-tutorial.json`：以功能开关暂时跳过首次指引，不改写用户的完成标记。
 - `39-game-management-lifetime.json`、`40-game-reconnect-preview.json`：实例释放时结束监测，重连期间沿用实时预览的连接暂停机制。
+- `48`—`52`：移除任务页装饰脉冲、光带和更新提示的无限渐变；运行图标只在自身可见时动画。实例下拉列表的子图标也绑定运行状态，避免只隐藏父容器后动画仍然计时。保留静态状态提示和运行中的指示器，不改渲染后端或全局帧率。
 
 游戏管理使用每实例设置与低频进程采样，原生任务队列继续持有输入；自动维护、同轮恢复和答题整局边界见[游戏管理说明](../docs/zh_cn/游戏管理.md)。`TaskScriptPlan.PrepareManaged` 和任务目录发现器保留原计次所有权，不另建输入执行器。`frontend/tests/GameManagement/` 用真实控件及替身服务检查布局和设置，不启动任何游戏进程。
 

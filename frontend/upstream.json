@@ -59,6 +59,11 @@
     "frontend/patches/44-liveview-frame-fence.json",
     "frontend/patches/45-liveview-card-change.json",
     "frontend/patches/46-liveview-card-state.json",
-    "frontend/patches/47-liveview-sequence-width.json"
+    "frontend/patches/47-liveview-sequence-width.json",
+    "frontend/patches/48-idle-task-animations.json",
+    "frontend/patches/49-idle-tab-animation.json",
+    "frontend/patches/50-idle-monitor-animation.json",
+    "frontend/patches/51-idle-update-animation.json",
+    "frontend/patches/52-idle-tab-child-visibility.json"
   ]
 }
