@@ -1,15 +1,30 @@
 """Native recognition on independently rendered SWF states; never desktop input."""
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
 import unittest
+import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 FIXTURES=ROOT/'tests/fixtures/navigation/stage-states'
 
 
 class StageVariantAssetsTests(unittest.TestCase):
+    def test_generated_json_uses_stable_lf_bytes_on_every_platform(self):
+        path = ROOT / 'tools/research/import_stage_variants.py'
+        spec = importlib.util.spec_from_file_location('stage_variants_generator', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / 'generated.json'
+            module.write_json(output, {'关卡': ['普通', '悬停']})
+            first = output.read_bytes()
+            self.assertNotIn(b'\r\n', first)
+            module.write_json(output, json.loads(first.decode('utf8')))
+            self.assertEqual(output.read_bytes(), first)
+
     def test_sources_and_templates_are_hashed_and_clicks_stay_guarded(self):
         data=json.loads((ROOT/'agent/data/navigation/stage-variants.json').read_text(encoding='utf8'))
         self.assertEqual(len(data['stages']),7)

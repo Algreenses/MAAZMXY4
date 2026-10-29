@@ -10,9 +10,6 @@ import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-import numpy as np
-from PIL import Image
-
 ROOT = Path(__file__).resolve().parents[2]
 STAGES = [
     ('朱电（琉璃宫）', 'town2', 26), ('烛时（钟晷极地）', 'town3', 38),
@@ -53,10 +50,15 @@ def opaque_rectangle(alpha):
 
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf8')
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf8', newline='\n')
 
 
 def generate(source, root=ROOT):
+    # These are development-only extraction dependencies; JSON formatting and
+    # its cross-platform regression check do not require the image stack.
+    import numpy as np
+    from PIL import Image
+
     sources = {s['name']: s for s in json.loads((source / 'manifest.json').read_text(encoding='utf8'))}
     metadata = dict(version=1, source_version='v.20261019.00:01', viewport=[940, 590],
         processing='FFDec sprite frames; placement scale; short-edge 720; largest alpha>=235 rectangle; native TemplateMatch.',
