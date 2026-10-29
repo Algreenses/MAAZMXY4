@@ -375,7 +375,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -767,10 +768,21 @@
   },
   "悬赏（守卫宝烛）-点击设置": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "设置.png",
-        "threshold": 0.8
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "设置.png",
+                "threshold": 0.8
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
     "action": {
@@ -791,16 +803,16 @@
     "post_delay": 1000,
     "on_error": [
       "悬赏（守卫宝烛）-退出结果复核"
-    ]
+    ],
+    "pre_delay": 0
   },
   "悬赏（守卫宝烛）-返回地图": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "^返回地图$"
-        ],
-        "threshold": 0.75
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
       }
     },
     "action": {

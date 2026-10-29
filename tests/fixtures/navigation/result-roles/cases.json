@@ -1,0 +1,348 @@
+{
+  "source": {
+    "name": "gameOver",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/gameOver_20260914_1.swf",
+    "file": "gameOver_20260914_1.swf",
+    "sha256": "786a54a207e8573f09ccf2a54588e21aa08514193109922b6dfa39f401b8123b",
+    "bytes": 2997107
+  },
+  "cases": [
+    {
+      "outcome": "succeeded",
+      "role_frame": 1,
+      "button_state": "up",
+      "file": "succeeded-role1-up.png",
+      "source_frame_sha256": "c5ac37f462c0682509334dc35c533bd144dee13fdb626c829ef499582fec8c1d",
+      "sha256": "c3bb3b59ec2720b2a64c20784efdcef3e4306d4e66f79ef060d66a4083163271"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 1,
+      "button_state": "over",
+      "file": "succeeded-role1-over.png",
+      "source_frame_sha256": "1d9b2883b30efd7ab1409ba00ee1f82f739714b4b22e39332f61fbdf2c4f4c47",
+      "sha256": "754a5782a40be24747c2dcbbf40aa7431bc3eff8a041b9e8dfbc2a6b9da54e5e"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 1,
+      "button_state": "down",
+      "file": "succeeded-role1-down.png",
+      "source_frame_sha256": "c9cb85cb3702fc5d73fcaca7292f40cbeaa39afedf25355e980232ad5b21bb1b",
+      "sha256": "822fb96ffa7c56b63a7d8215f7fa6de8462b27c4a1425bbac2e8af5085397f6d"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 2,
+      "button_state": "up",
+      "file": "succeeded-role2-up.png",
+      "source_frame_sha256": "08a074707461290fca7725f7c73277ef20b3130266d52de54a90fdc6bf86eeac",
+      "sha256": "316ba6fb5d6a6fb67740ff7549e93f55add18a32ad8037e0dfe364c5f0e4e292"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 2,
+      "button_state": "over",
+      "file": "succeeded-role2-over.png",
+      "source_frame_sha256": "f6d4d20b27a9e6acdcd55e60bbfac1a3b12c1657eb8f48aa1d4e95e14eedd9fd",
+      "sha256": "c55f6f6ac370a007408d5fdcd41c63d9c6799b13b5061c87d038e81cd202d268"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 2,
+      "button_state": "down",
+      "file": "succeeded-role2-down.png",
+      "source_frame_sha256": "66983ea7f17253e35db5c89f0464a3eb52fa847c196da55a99c2c39aa27dbb1f",
+      "sha256": "5ee4a4bcd76c2484d9f83b4c54ee5ea6504cf7cc3acb6098326dd56a649daa15"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 3,
+      "button_state": "up",
+      "file": "succeeded-role3-up.png",
+      "source_frame_sha256": "721df10c52819e4207295c7fcb86e732ffc87d484cf3d03c3cc224e73cad6187",
+      "sha256": "bb629c908e5d9579e8dec79ec8e01736bf04ec5b46028cd4e30118a7583b063d"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 3,
+      "button_state": "over",
+      "file": "succeeded-role3-over.png",
+      "source_frame_sha256": "ff0e42d13fe30a11a6567a0a98e5716d5ea46cc65c5610bb998a3821036fddaa",
+      "sha256": "866324bdd836b7c56cb3893a2bbe09906150cfc8a80281ef94c365c57d4019f7"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 3,
+      "button_state": "down",
+      "file": "succeeded-role3-down.png",
+      "source_frame_sha256": "f31447ca97a1ef248d9e5a2ada0caafcfa563325e3c2d3a10f31dc094122a4b6",
+      "sha256": "3dbc879d8cc35424c037a0061a278c5c553d62479e24db6bc21f3672f9fa9e22"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 4,
+      "button_state": "up",
+      "file": "succeeded-role4-up.png",
+      "source_frame_sha256": "25498f37a9bad7de61b67c8a59e82469ff098d077990bb312355dd8d6877ce2d",
+      "sha256": "5a7c705856a7296579b61dad9af281bb3eb8d5e25585ff2cb7e6ab35c34f8f48"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 4,
+      "button_state": "over",
+      "file": "succeeded-role4-over.png",
+      "source_frame_sha256": "ab947222268ebbf3b5b649ca9260ec5d87685523c27e850edf0d2116be32d94e",
+      "sha256": "26514d6524c63f0ff34983a8d586815bb15db825ca8ec860da7c69cebc460416"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 4,
+      "button_state": "down",
+      "file": "succeeded-role4-down.png",
+      "source_frame_sha256": "cc59c1c87a7b1eba82a17fa52097aa4bad1b65434f3dfdd77818570dbb6498eb",
+      "sha256": "54368f93be3a4bbb5b7a56d2e4aa5943778c27fd9c69f06eae09444515ef286d"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 5,
+      "button_state": "up",
+      "file": "succeeded-role5-up.png",
+      "source_frame_sha256": "29978ef08903f74956ae0bdbd0fed33dba5e88a7abc6a23332390665fbe08bcb",
+      "sha256": "72981fce64f396d967ef0b652ad14b277ba9b3cbce95ff2f18dc70a9689dbc9d"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 5,
+      "button_state": "over",
+      "file": "succeeded-role5-over.png",
+      "source_frame_sha256": "9de0c7ea8f6ff030c5aff395efd0f3e769551981c70caa94b197326a039220ed",
+      "sha256": "e73bb317e1666d6afdb7d6bb1e0eeb0d169b3d395625c86ab667861eb7b6cedf"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 5,
+      "button_state": "down",
+      "file": "succeeded-role5-down.png",
+      "source_frame_sha256": "8c566132a88de58bfe698205bf8cacbb301f02390698437e65237697447ffae9",
+      "sha256": "910ca6242f47c9103485e2c8b0d08161cf7aed751cefc7bdca564f4a92a59d75"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 6,
+      "button_state": "up",
+      "file": "succeeded-role6-up.png",
+      "source_frame_sha256": "f1adc3dc98f23b9e65083e320d0ba7d7f8fbe106e1627152644cf78f6318955d",
+      "sha256": "5198d90dda70872f4b80bae65d8a2fd6855c919856243b2897498abc0d3ba95f"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 6,
+      "button_state": "over",
+      "file": "succeeded-role6-over.png",
+      "source_frame_sha256": "c1b694f5ba36225d46a9bd1ecea730f49cf0b3cc0e95ed5baffc885778b681b0",
+      "sha256": "f1efa8aabd456ce281d616cfbe6e33ab56f612d89c0731cc298cdd06cbe0616c"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 6,
+      "button_state": "down",
+      "file": "succeeded-role6-down.png",
+      "source_frame_sha256": "d2c775b89c9b97798ddcbfb3ba8ef9ac29b389c46ec055c99d4e72b97f723837",
+      "sha256": "63e15bfd0772474115f40da4fc1d1b0561dd83eead20cd7e7bc5aa7ec275f3ce"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 7,
+      "button_state": "up",
+      "file": "succeeded-role7-up.png",
+      "source_frame_sha256": "476b29c484a3592e8f47e91514e47dc5e613940a016d97addb01d9fc7753a430",
+      "sha256": "08647ae3d3253ea5b1245881bbb139da84abaa49cd1e3d1fc1b1f225a910c7b1"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 7,
+      "button_state": "over",
+      "file": "succeeded-role7-over.png",
+      "source_frame_sha256": "533f4fde1e0f17e61f1007847885a31f5cafac45211cdc22737cec8205d3157f",
+      "sha256": "e2845908ef3c6c8e1b6076403d08fcbfe15b2db11c2caf1ecb6223d787b95ada"
+    },
+    {
+      "outcome": "succeeded",
+      "role_frame": 7,
+      "button_state": "down",
+      "file": "succeeded-role7-down.png",
+      "source_frame_sha256": "5df932e1b64ce490e3b89b240d787db607343cce717eef4e0cb29c2076073658",
+      "sha256": "bc96b25703433ff45661565bcd1a7a0266d5dc22528e49730635092f0c5648b7"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 1,
+      "button_state": "up",
+      "file": "failed-role1-up.png",
+      "source_frame_sha256": "4618a5686bba7bece52559c9cfea289d957708defc9c2c5beb190dc28bc4235c",
+      "sha256": "27552f50aaaebc130795c55acff337eafdfe28073f3700532baecef4cbe278d5"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 1,
+      "button_state": "over",
+      "file": "failed-role1-over.png",
+      "source_frame_sha256": "5c2a2e7e1bf7f7248a71f827ba8b0a1f8f4b6fb101c3ab7c28ad5ef8f0a84fbd",
+      "sha256": "f30dfa387443254548657a3e3b70514fc546259f2977f4f71cd93b39b0326d23"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 1,
+      "button_state": "down",
+      "file": "failed-role1-down.png",
+      "source_frame_sha256": "9b929f03c0b98b1dd0268b2f7505dc2be0e9f6b11cf040926d68d9de3c5bea88",
+      "sha256": "239a023ac4cf9e8757e3922dbda859e39c1507faa8362fb5bcde3bc3e8b8a124"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 2,
+      "button_state": "up",
+      "file": "failed-role2-up.png",
+      "source_frame_sha256": "549423454c8acf5efb6789aa934f2d47103f1ece84f5457c33c244ff1b7956c5",
+      "sha256": "66556b9c62a5f3624a27e6e26ce59c4a34ee82cf0d750d8d5f75b56d4486778f"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 2,
+      "button_state": "over",
+      "file": "failed-role2-over.png",
+      "source_frame_sha256": "95841382630366b25280fd028a74d43d9c5ec50d737dce86188c267adad3e0b7",
+      "sha256": "9e3024977ab36d81b6930deb7021954119e0b9333e66f7aba740d611a3a758a6"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 2,
+      "button_state": "down",
+      "file": "failed-role2-down.png",
+      "source_frame_sha256": "4f4557335a3eef438ccdbdbf4db9529262162d6d76d9b09fe95e0e1a965424c2",
+      "sha256": "b2aac6faef2dc6d4839a7837af229283a42fec396ccc15dce195e084da135590"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 3,
+      "button_state": "up",
+      "file": "failed-role3-up.png",
+      "source_frame_sha256": "a3e2914c9800e2f7e6a0a5a2a48e506315fa41feceb4ec3ad448f39fb93c212f",
+      "sha256": "b0c89ce9dfa52f5f71b0f955c3ae7a158eceeb352d99d0285453cebcc006bcc8"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 3,
+      "button_state": "over",
+      "file": "failed-role3-over.png",
+      "source_frame_sha256": "709893c9052796d83a1c0bd71234d51bbdec753e35c6f4bc7e1df9fc567fcfa8",
+      "sha256": "b6a63bec2cf5e8f1281471d6836d29d3df4559f781ec3905aa94cfef8fed8ad5"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 3,
+      "button_state": "down",
+      "file": "failed-role3-down.png",
+      "source_frame_sha256": "a47f60bdc08fb51cbef1b085e763bbd325bad50ff11bd9e7a5361cd99b8a63dd",
+      "sha256": "3e362724120808ba218549661be0af821f657c99fd808feed5febe3b941650b2"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 4,
+      "button_state": "up",
+      "file": "failed-role4-up.png",
+      "source_frame_sha256": "4b15b2635346f688f1af83c9b929aa6c4b1809d2d16d310888cbe8f897c782dd",
+      "sha256": "82aef03950a65486ab62212f4d6628b27cbcfc5847e2a143b057f064328e2cc5"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 4,
+      "button_state": "over",
+      "file": "failed-role4-over.png",
+      "source_frame_sha256": "ff8e9a1cdbef0b01701622ec22604d70be141e913b57cd94006cddf58320fab1",
+      "sha256": "d8d0a345741c87b67ad9295f3713dfd9ea18dc94fe3788b5872e3f5ca6219940"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 4,
+      "button_state": "down",
+      "file": "failed-role4-down.png",
+      "source_frame_sha256": "126895780a92d4876e4eb050fdd61e89e0223dbc35c5e4ccc4e3307d9dc21511",
+      "sha256": "924ce18e6d3b2994d2f7af5e61cb8d547d9f9d979655e528686cfdf4e7083d26"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 5,
+      "button_state": "up",
+      "file": "failed-role5-up.png",
+      "source_frame_sha256": "13866c52b59d6593f738369bf1a1fb9d2628546804c6e72e983e23c76245dc28",
+      "sha256": "e07e81420fc1c611f6b68a453f2ec67d22c7e496aafc654d25c030a580be4018"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 5,
+      "button_state": "over",
+      "file": "failed-role5-over.png",
+      "source_frame_sha256": "dcf18c22b028ca50393ab36630b6081beab8985015822ec0419a863082642e49",
+      "sha256": "7ca7de804184c197b917e0ef811e41e6681b858aa2def597c6d779ccfcb7a107"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 5,
+      "button_state": "down",
+      "file": "failed-role5-down.png",
+      "source_frame_sha256": "09ebe1ec2ae8764aeb40d52df02c168377223e1531f29d3d2a5732ab8fa75ead",
+      "sha256": "427f3177750ed5eef87fc3cb25c9f10d6baa4cf2731c7b4b87287232ae8af143"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 6,
+      "button_state": "up",
+      "file": "failed-role6-up.png",
+      "source_frame_sha256": "0830ee380afbe285c4cd9f190f0d66da749afcfc91886de930d77248e4a65e84",
+      "sha256": "e85dd14e9737685c75f888ac2d10de28ed467a1e926dd5b410d2a666a25f35c4"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 6,
+      "button_state": "over",
+      "file": "failed-role6-over.png",
+      "source_frame_sha256": "a32ecb4d067c898945b2468082a175ff8b37f4e9ea48caf3612a72f1e1b0dfbe",
+      "sha256": "17b363a53d2fe8e2b6ac0283bf7868e70d0538ea6e24ba8bfd723d29e93e5cd7"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 6,
+      "button_state": "down",
+      "file": "failed-role6-down.png",
+      "source_frame_sha256": "1fe2e160e1cd7a199851fab1ad35adb1669177e6f03ec54b81bdf8f84366264c",
+      "sha256": "672be9662f660fd1207ac37a293429325fa061a87fc01d4b3fde1b4ad9f3e2b9"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 7,
+      "button_state": "up",
+      "file": "failed-role7-up.png",
+      "source_frame_sha256": "d9f0def531eda295c54906095a4eb46f40afbc2efb4614290d1a7d0f147fe467",
+      "sha256": "120d8a76e282635299cfb55706894308f5fefece1c02e1c9af25ece4dff334fa"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 7,
+      "button_state": "over",
+      "file": "failed-role7-over.png",
+      "source_frame_sha256": "89ec390d22506a26635ab41d934a8c1fd985e4d7982eeec24c9b783b0b5f5f9a",
+      "sha256": "b6ee81fad056ebf4114fd8186a3f1087ce401d338e522f9b90b3c3cc3f4d9d43"
+    },
+    {
+      "outcome": "failed",
+      "role_frame": 7,
+      "button_state": "down",
+      "file": "failed-role7-down.png",
+      "source_frame_sha256": "a99de49a97fe5264492b930e9750e7f1af7da7db35d75b9b9ae1c18efad1e876",
+      "sha256": "a04b058f2b7f1ed8cabf026a1d0aca5d2562f9400281c6ce1651c37b3c119483"
+    }
+  ],
+  "method": "FFDec frozen complete display lists; seven character frames; independent BICUBIC 720p scaling. Offline renders, not live screenshots."
+}

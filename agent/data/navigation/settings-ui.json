@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "source": {
+    "name": "systemset",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/systemset_20260824_1.swf",
+    "file": "systemset_20260824_1.swf",
+    "sha256": "2aa50421abb959a7ee227954de6d18e39ff8e72fffaeb2422b17bf1a2e358a5b",
+    "bytes": 228040
+  },
+  "assets": [
+    {
+      "path": "navigation/settings/continue.png",
+      "sha256": "ab464e2b5b537cad5796445725ff1ea248a8d285a03ac3649a7364dd25d6fd22",
+      "source_frame": "systemset/sprites/DefineSprite_63_btn_txt/1.png",
+      "source_frame_sha256": "a75355adabd5ec77df12a04f3828e96e830f3a86a25f0f112bdeb2320894d8cb",
+      "crop": null,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/settings/return.png",
+      "sha256": "eafa4e6af2b562ea93fb625fbd0487e5036353bea2550c7ae661724c69d2b07d",
+      "source_frame": "systemset/sprites/DefineSprite_63_btn_txt/2.png",
+      "source_frame_sha256": "c8dc18c1828d473223ca0a39ba6957cdeb65364b2ec8fd3038a9a87f55c2999c",
+      "crop": null,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/settings/close-1_up.png",
+      "sha256": "e94aa30db87c0fbc017dd5667c5f888eadbf26fe5dde92728026da4ba26ef929",
+      "source_frame": "systemset/buttons/DefineButton2_10/1_up.png",
+      "source_frame_sha256": "5b82c8bcc09f2cb92a797d1d114141d7290b7a5b3f2a871f7c6cda5345530269",
+      "crop": null,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/settings/close-2_over.png",
+      "sha256": "074df0f67ce97aaf81cd42b994b14e21527958cd019c44603d99cafd6e0a8652",
+      "source_frame": "systemset/buttons/DefineButton2_10/2_over.png",
+      "source_frame_sha256": "669f94aee81ceda2a4bf64c25a197f065dd6cc98b76d4dfb1ba691a251e45a9e",
+      "crop": null,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/settings/close-3_down.png",
+      "sha256": "b3b19bb62616150446c839410b5f4c9aa8571490c2cdc75ccf803bc3e54557e7",
+      "source_frame": "systemset/buttons/DefineButton2_10/3_down.png",
+      "source_frame_sha256": "7e32554cdec0bca1eff2464cf9c825447bbf761428abdd4e3d4d0d72ea97b42d",
+      "crop": null,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/settings/sound-title.png",
+      "sha256": "5f274f18ed824dcf7a6e306f86f815825d8b0e92a244bc7d502afba67fdd891a",
+      "source_frame": "systemset/sprites/DefineSprite_34_soundSet/1.png",
+      "source_frame_sha256": "06a1450ea73fed765db2df218a03dad4d2494088a0b164c5c5532e084030ed6f",
+      "crop": [
+        393,
+        130,
+        549,
+        170
+      ],
+      "green_mask": false
+    },
+    {
+      "path": "navigation/settings/sound-label.png",
+      "sha256": "4b49cfa1bb7baa853afd860f5de1f713dc530f285cd6e68505ef0c8524b2ded8",
+      "source_frame": "systemset/sprites/DefineSprite_34_soundSet/1.png",
+      "source_frame_sha256": "06a1450ea73fed765db2df218a03dad4d2494088a0b164c5c5532e084030ed6f",
+      "crop": [
+        304,
+        215,
+        398,
+        240
+      ],
+      "green_mask": false
+    },
+    {
+      "path": "navigation/settings/detail-title.png",
+      "sha256": "171dfd12f21a55ff612c84c84ee4038cc6f6cf56161cf13cbc3498f3482fa6cb",
+      "source_frame": "systemset/sprites/DefineSprite_47_detailSet/1.png",
+      "source_frame_sha256": "fa1942ed3bd7cb64b0ae5e0d9dbf9fe74e927d1d8746c37d2c196c0fe2573874",
+      "crop": [
+        385,
+        29,
+        541,
+        69
+      ],
+      "green_mask": false
+    },
+    {
+      "path": "navigation/settings/detail-label.png",
+      "sha256": "f8d7215e4c5f7e2c0dce1f11e2463cdb317fab79800616838d5bb0338427e54c",
+      "source_frame": "systemset/sprites/DefineSprite_47_detailSet/1.png",
+      "source_frame_sha256": "fa1942ed3bd7cb64b0ae5e0d9dbf9fe74e927d1d8746c37d2c196c0fe2573874",
+      "crop": [
+        368,
+        99,
+        539,
+        122
+      ],
+      "green_mask": false
+    },
+    {
+      "path": "navigation/settings/damage-title.png",
+      "sha256": "2213dff173c5ceb609e63a214e51586715d766dfd4b6abd3883f1909ce1c8649",
+      "source_frame": "systemset/sprites/DefineSprite_73_battleSet/1.png",
+      "source_frame_sha256": "38ca1418f8c007278abf7f0fad0b0ed06367065e5e67196bd5d5a1d72a9bf9bd",
+      "crop": [
+        350,
+        66,
+        580,
+        106
+      ],
+      "green_mask": false
+    },
+    {
+      "path": "navigation/settings/damage-label.png",
+      "sha256": "0f07a5e880643e819198a69b4f1e4f7855d79d91ba4594b0e130a270aeaea96e",
+      "source_frame": "systemset/sprites/DefineSprite_73_battleSet/1.png",
+      "source_frame_sha256": "38ca1418f8c007278abf7f0fad0b0ed06367065e5e67196bd5d5a1d72a9bf9bd",
+      "crop": [
+        374,
+        138,
+        572,
+        159
+      ],
+      "green_mask": false
+    }
+  ]
+}

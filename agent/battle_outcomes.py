@@ -58,6 +58,11 @@ class BattleOutcomeMonitor:
                         # Playback owns key release and the native guarded click.
                         self.branch = list(self.policy['revive_next'])
                         return
+                confirmation = self.context.run_recognition('Nav_CommonConfirm', frame)
+                if confirmation is None:
+                    raise ValueError('缺少确认浮窗识别资源，请更新完整客户端。')
+                if confirmation.hit:
+                    raise ValueError('检测到确认浮窗，已停止回放；请处理浮窗后再继续。')
                 failed = self.context.run_recognition('Result_Failed', frame)
                 succeeded = self.context.run_recognition('Result_Succeeded', frame)
                 if failed is None or succeeded is None:

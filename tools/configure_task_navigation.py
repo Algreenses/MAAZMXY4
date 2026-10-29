@@ -27,7 +27,19 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=indent) + '\n', encoding='utf8', newline='\n')
 
 
+def guard_modal(node):
+    """Preserve the action's original box while blocking foreground dialogs."""
+    recognition = node['recognition']
+    if recognition['type'] != 'And':
+        recognition = dict(type='And', param=dict(all_of=[dict(recognition=recognition)], box_index=0))
+        node['recognition'] = recognition
+    parts = recognition['param']['all_of']
+    if 'Result_NoRevivePrompt' not in parts:
+        parts.append('Result_NoRevivePrompt')
+
+
 def confirmed_outcomes(graph, prefix, parameters, normal_return, outcomes):
+    guard_modal(graph[parameters['navigation']['target_node']])
     # Cleanup can itself finish a recorded Return Map mouse press. Keep the
     # observed result even when its screen has disappeared before this branch.
     parameters['result_guard'].update(failed_next=[prefix+'已确认战斗失败'],
@@ -65,6 +77,13 @@ def confirmed_outcomes(graph, prefix, parameters, normal_return, outcomes):
     route_node=prefix+'回放后分流'
     if route_node in graph:
         graph[route_node]['next']=deepcopy(parameters['routes'][parameters['exit_mode']])
+    if prefix+'点击设置' in graph:
+        guard_modal(graph[prefix+'点击设置'])
+        # Check the foreground immediately before input; a two-second delay
+        # after recognition could let a revival prompt replace the screen.
+        graph[prefix+'点击设置']['pre_delay'] = 0
+    if prefix+'返回地图' in graph:
+        graph[prefix+'返回地图']['recognition'] = dict(type='And', param=dict(all_of=['Nav_SettingsReturn']))
 
 
 def describe_bounty(task, parameters):
@@ -95,6 +114,8 @@ def configure(root=ROOT):
     interface = json.loads(interface_path.read_text(encoding='utf-8-sig'))
     folder = root / 'assets/resource/base/pipeline'
     outcomes = json.loads((folder / 'battle_outcomes.json').read_text(encoding='utf8'))
+    for name in ('Nav_OpenQuest', 'Nav_SelectBountyTab', 'Nav_CloseQuest', 'Nav_ResumeTaskMap'):
+        guard_modal(outcomes[name])
     outcomes.pop('脚本任务设置', None)
     write(folder / 'battle_outcomes.json', outcomes)
     settings_path = folder / '脚本任务.json'

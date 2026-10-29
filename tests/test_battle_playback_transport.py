@@ -78,6 +78,7 @@ def native_case(mode):
         definitions = json.loads((ROOT / 'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
         pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded',
             'Result_RevivePrompt','Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn')}
+        pipeline.update(json.loads((ROOT / 'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
         def templates(value):
             if isinstance(value,dict):
                 for key,child in value.items():

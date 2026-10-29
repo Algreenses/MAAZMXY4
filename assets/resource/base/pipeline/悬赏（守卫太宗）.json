@@ -184,7 +184,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -230,14 +231,25 @@
   },
   "悬赏（守卫太宗）-点击设置": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": [
-          "设置.png"
-        ]
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "设置.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
-    "pre_delay": 2000,
+    "pre_delay": 0,
     "action": {
       "type": "Click"
     },
@@ -262,10 +274,10 @@
   },
   "悬赏（守卫太宗）-返回地图": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "返回地图"
+        "all_of": [
+          "Nav_SettingsReturn"
         ]
       }
     },

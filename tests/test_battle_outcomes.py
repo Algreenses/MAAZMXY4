@@ -37,6 +37,16 @@ class MemoryContext:
 
 
 class BattleOutcomeTests(unittest.TestCase):
+    def test_common_confirmation_stops_before_a_result_behind_it(self):
+        context=MemoryContext()
+        context.frame=Pixels(['Nav_CommonConfirm','Result_Failed'])
+        monitor=BattleOutcomeMonitor(context,POLICY)
+        monitor.start()
+        self.assertIsNotNone(monitor.error)
+        self.assertIsNone(monitor.branch)
+        self.assertIsNone(monitor._thread)
+        monitor.close()
+
     def test_revive_prompt_interrupts_before_underlying_result_and_never_sends_input(self):
         context=MemoryContext()
         context.frame=Pixels(['Result_RevivePrompt','Result_Failed','Result_Succeeded'])

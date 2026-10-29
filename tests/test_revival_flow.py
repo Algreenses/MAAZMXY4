@@ -114,9 +114,15 @@ class NativeRevivalTests(unittest.TestCase):
                     pixels[y:y+h,x:x+w]=0
                     assert context.run_recognition('Result_RevivePrompt',pixels).hit
                     assert not context.run_recognition('Result_DeclineRevive',pixels).hit
-                    captionless=read_png_bgr(folder/case['file']);captionless[280:380,400:850]=0
+                    captionless=read_png_bgr(folder/case['file'])
+                    # Remove the caption, not the panel's upper-right corner.
+                    # The latter would test a partly missing panel instead.
+                    cx,cy,cw,ch=prompt.box
+                    captionless[cy:cy+ch,cx:cx+cw]=0
                     assert not context.run_recognition('Result_RevivePrompt',captionless).hit
                     assert not context.run_recognition('Result_DeclineRevive',captionless).hit
+                    assert context.run_recognition('Nav_CommonConfirm',captionless).hit
+                    assert not context.run_recognition('Result_NoRevivePrompt',captionless).hit
                     seen.append(case['file'])
                 for fixture in ('profile','map-a','challenge-failed'):
                     image=read_png_bgr(ROOT/'tests/fixtures/navigation'/(fixture+'.png'))

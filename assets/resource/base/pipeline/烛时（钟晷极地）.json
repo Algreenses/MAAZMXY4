@@ -71,14 +71,25 @@
   },
   "烛时（钟晷极地）-点击设置": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": [
-          "设置.png"
-        ]
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "设置.png"
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
-    "pre_delay": 2000,
+    "pre_delay": 0,
     "action": {
       "type": "Click"
     },
@@ -141,10 +152,10 @@
   },
   "烛时（钟晷极地）-返回地图": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "返回地图"
+        "all_of": [
+          "Nav_SettingsReturn"
         ]
       }
     },
@@ -238,7 +249,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 1
       }

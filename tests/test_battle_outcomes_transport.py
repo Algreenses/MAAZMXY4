@@ -38,8 +38,15 @@ def native_case():
         import shutil
         definitions=json.loads((ROOT/'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
         pipeline={name:definitions[name] for name in ('Result_Failed','Result_Succeeded')}
-        for node in pipeline.values():
-            path=node['recognition']['param']['template']
+        pipeline.update(json.loads((ROOT/'assets/resource/base/pipeline/navigation_common_ui.json').read_text(encoding='utf8')))
+        def templates(value):
+            if isinstance(value,dict):
+                for key,child in value.items():
+                    if key=='template':yield from ([child] if isinstance(child,str) else child)
+                    else:yield from templates(child)
+            elif isinstance(value,list):
+                for child in value:yield from templates(child)
+        for path in set(templates(pipeline)):
             target=directory/'image'/path
             target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copyfile(ROOT/'assets/resource/base/image'/path,target)

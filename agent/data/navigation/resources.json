@@ -4,6 +4,8 @@
     "navigation.json",
     "battle_outcomes.json",
     "game_management.json",
-    "game_management_scroll.json"
+    "game_management_scroll.json",
+    "navigation_common_ui.json",
+    "navigation_settings.json"
   ]
 }

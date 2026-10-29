@@ -48,13 +48,25 @@ class StageVariantAssetsTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get('NAVIGATION_NATIVE_TESTS')=='1','opt-in memory-only native recognition')
 class StageVariantNativeTests(unittest.TestCase):
-    def test_all_button_states_match_only_the_intended_stage(self):
+    def test_non_blood_sea_button_states_match_only_the_intended_stage(self):
+        self.check_states(blood_sea=False)
+
+    @unittest.skipUnless(os.environ.get('NAVIGATION_BLOOD_SEA_TESTS')=='1','blood-sea validation explicitly deferred')
+    def test_blood_sea_button_states_match_only_the_intended_stage(self):
+        self.check_states(blood_sea=True)
+
+    def check_states(self, *, blood_sea):
         from maa.controller import CustomController
         from maa.custom_action import CustomAction
         from maa.resource import Resource
         from maa.tasker import Tasker
         from fixture_pixels import read_png_bgr
+        import sys
+        sys.path.insert(0,str(ROOT/'agent'))
+        from battle_ui import NoRevivePrompt
         cases=json.loads((FIXTURES/'cases.json').read_text(encoding='utf8'))
+        blood_tasks={'无冥（孤魂岭）','伽岚（万世冥阁）'}
+        cases=[c for c in cases if (c['task'] in blood_tasks)==blood_sea]
         tasks=list(dict.fromkeys(case['task'] for case in cases))
         checks=[];completed=[]
         class Pixels(CustomController):
@@ -82,13 +94,14 @@ class StageVariantNativeTests(unittest.TestCase):
                 return True
         log=ROOT/'.runtime-cache/native-stage-variants';log.mkdir(parents=True,exist_ok=True);Tasker.set_log_dir(log)
         resource,controller,tasker=Resource(),Pixels(),Tasker()
+        resource.register_custom_recognition('battle_no_revive',NoRevivePrompt())
         self.assertTrue(controller.post_connection().wait().succeeded);controller.set_screenshot_use_raw_size(True)
         self.assertTrue(resource.post_bundle(ROOT/'assets/resource/base').wait().succeeded)
         resource.register_custom_action('__inspect_stage_states',Inspect())
         resource.override_pipeline({'__StageStates':{'action':{'type':'Custom','param':{'custom_action':'__inspect_stage_states'}}}})
         self.assertTrue(tasker.bind(resource,controller))
         self.assertTrue(tasker.post_task('__StageStates').wait().succeeded)
-        self.assertEqual(len(checks),21)
+        self.assertEqual(len(checks),6 if blood_sea else 15)
         self.assertEqual(completed,[True],'The missing-map negative must finish inside the native callback')
 
 

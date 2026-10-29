@@ -9,7 +9,7 @@ import unittest
 import tempfile
 from contextlib import ExitStack
 from uuid import uuid4
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'agent'))
@@ -98,21 +98,27 @@ class GameManagementTests(unittest.TestCase):
         state = dict(reference='@task:fixture', recording=recording,
                      parameters=dict(game_management=dict(restart_on_failure=False),
                                      navigation=dict(kind='stage', target_node='target')))
-        first = SimpleNamespace(run=lambda: (_ for _ in ()).throw(NavigationError('offscreen', reason='unreachable')))
-        restored = SimpleNamespace(run=lambda: 'task_destination')
-        with patch.object(runtime, '_check'), patch.object(runtime, 'inspect_recording', return_value=recording), \
-             patch.object(runtime, '_navigator', side_effect=[first, object(), restored]), \
-             patch.object(runtime, 'restore_stage_view', return_value=True) as restore:
-            self.assertEqual(runtime.navigate_round(None, state), 'task_destination')
-            self.assertEqual(restore.call_count, 1)
         for management in (None, {}, {'restart_on_failure': False}):
             state['parameters']['game_management'] = management
+            navigator=SimpleNamespace(run=Mock(side_effect=[NavigationError('offscreen',reason='unreachable'),'task_destination']))
             with self.subTest(management=management), patch.object(runtime, '_check'), \
                  patch.object(runtime, 'inspect_recording', return_value=recording), \
-                 patch.object(runtime, '_navigator', side_effect=[first, object(), restored]), \
+                 patch.object(runtime, '_navigator', return_value=navigator), \
+                 patch.object(runtime, 'wait_stage_ready', return_value=False), \
                  patch.object(runtime, 'restore_stage_view', return_value=True) as restore:
                 self.assertEqual(runtime.navigate_round(None, state), 'task_destination')
-                restore.assert_called_once()
+                restore.assert_called_once_with(None,navigator,'target')
+
+    def test_transient_stage_miss_uses_native_wait_before_any_map_drag(self):
+        recording=dict(path='bound.json',sha256='a'*64)
+        state=dict(reference='bound',recording=recording,parameters=dict(navigation=dict(kind='stage',target_node='target')))
+        nav=SimpleNamespace(run=Mock(side_effect=[runtime.NavigationError('miss',reason='unreachable'),'task_destination']))
+        with patch.object(runtime,'_check'),patch.object(runtime,'inspect_recording',return_value=recording), \
+             patch.object(runtime,'_navigator',return_value=nav),patch.object(runtime,'wait_stage_ready',return_value=True) as wait, \
+             patch.object(runtime,'restore_stage_view') as drag:
+            self.assertEqual(runtime.navigate_round(None,state),'task_destination')
+            wait.assert_called_once_with(None,nav,'target')
+            drag.assert_not_called()
 
     def test_scroll_does_not_recover_non_stage_or_other_navigation_failures(self):
         recording = dict(path='bound.json', sha256='a'*64)

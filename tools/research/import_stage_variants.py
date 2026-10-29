@@ -122,6 +122,7 @@ def generate(source, root=ROOT):
                 dict(recognition=dict(type='TemplateMatch', param=dict(template=variants,
                     threshold=.82, **({} if town == 'town5' else dict(roi=[0,115,1045,500])), method=5))),
             ]))),
+            'Result_NoRevivePrompt',
         ], box_index=1))
         write_json(path, pipeline)
         metadata['stages'].append(dict(task=task, stage_id=stage, town=town, sprite_id=int(sprite),

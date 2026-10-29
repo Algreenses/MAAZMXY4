@@ -88,6 +88,19 @@ class TaskNavigationRoutesTests(unittest.TestCase):
                 self.assertEqual(error.exception.reason,'unreachable')
                 self.assertFalse(context.actions)
 
+    def test_common_dialog_blocks_background_but_known_sell_dialog_keeps_its_route(self):
+        parameters=next(p for _,p in self.tasks if p['navigation']['kind']=='stage')
+        context=FrameContext(self.nodes)
+        graph=task_graph(context,parameters)
+        by_id={n['id']:n for n in graph['nodes']}
+        context.hits={'Nav_CommonConfirm','Nav_Probe_hub_scene',parameters['navigation']['target_node']}
+        nav=GraphNavigator(context,graph,capture=lambda:frozenset(context.hits),check=lambda:None,log=lambda _:None)
+        self.assertEqual(nav.locate(),'common_confirm')
+        with self.assertRaises(NavigationError):nav.run()
+        self.assertFalse(context.actions)
+        context.hits.update(by_id['profile_sell']['recognition'])
+        self.assertEqual(nav.locate(),'profile_sell')
+
     def test_panel_closing_to_a_wrong_map_does_not_start_a_detour(self):
         parameters = next(p for _name,p in self.tasks if p['navigation']['kind']=='stage')
         context = FrameContext(self.nodes)

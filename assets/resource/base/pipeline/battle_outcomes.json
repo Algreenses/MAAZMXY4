@@ -279,9 +279,20 @@
   },
   "Nav_OpenQuest": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "任务.png"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png"
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
       }
     },
     "action": {
@@ -308,7 +319,13 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.9,
+                "roi": [
+                  300,
+                  300,
+                  550,
+                  120
+                ]
               }
             }
           },
@@ -344,7 +361,13 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.9,
+                "roi": [
+                  300,
+                  300,
+                  550,
+                  120
+                ]
               }
             }
           },
@@ -355,7 +378,8 @@
                 "template": "任务.png"
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -372,17 +396,28 @@
   },
   "Nav_SelectBountyTab": {
     "recognition": {
-      "type": "OCR",
+      "type": "And",
       "param": {
-        "expected": [
-          "^悬赏任务$"
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^悬赏任务$"
+                ],
+                "roi": [
+                  180,
+                  85,
+                  500,
+                  100
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "roi": [
-          180,
-          85,
-          500,
-          100
-        ]
+        "box_index": 0
       }
     },
     "action": {
@@ -470,7 +505,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }

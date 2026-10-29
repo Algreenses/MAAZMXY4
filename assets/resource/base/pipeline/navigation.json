@@ -8,7 +8,13 @@
           "bounty-candle/pause-cloudy.png",
           "navigation/panels/daily-pause-caption.png"
         ],
-        "threshold": 0.9
+        "threshold": 0.9,
+        "roi": [
+          300,
+          300,
+          550,
+          120
+        ]
       }
     },
     "action": {
@@ -5835,17 +5841,28 @@
   },
   "Nav_Edge_000_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/login/start-game.png",
-        "roi": [
-          461,
-          600,
-          215,
-          69
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/login/start-game.png",
+                "roi": [
+                  461,
+                  600,
+                  215,
+                  69
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -5950,17 +5967,28 @@
   },
   "Nav_Edge_001_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/saves/close.png",
-        "roi": [
-          854,
-          71,
-          74,
-          71
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/saves/close.png",
+                "roi": [
+                  854,
+                  71,
+                  74,
+                  71
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6122,17 +6150,28 @@
   },
   "Nav_Edge_002_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-a/world.png",
-        "roi": [
-          1053,
-          29,
-          90,
-          92
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-a/world.png",
+                "roi": [
+                  1053,
+                  29,
+                  90,
+                  92
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6294,17 +6333,28 @@
   },
   "Nav_Edge_003_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-a/activity.png",
-        "roi": [
-          691,
-          17,
-          63,
-          67
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-a/activity.png",
+                "roi": [
+                  691,
+                  17,
+                  63,
+                  67
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6466,17 +6516,28 @@
   },
   "Nav_Edge_004_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-a/backpack.png",
-        "roi": [
-          135,
-          14,
-          60,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-a/backpack.png",
+                "roi": [
+                  135,
+                  14,
+                  60,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6638,17 +6699,28 @@
   },
   "Nav_Edge_005_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-a/treasure.png",
-        "roi": [
-          204,
-          13,
-          62,
-          71
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-a/treasure.png",
+                "roi": [
+                  204,
+                  13,
+                  62,
+                  71
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6810,17 +6882,28 @@
   },
   "Nav_Edge_006_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-b/world.png",
-        "roi": [
-          1053,
-          29,
-          90,
-          92
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-b/world.png",
+                "roi": [
+                  1053,
+                  29,
+                  90,
+                  92
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -6982,17 +7065,28 @@
   },
   "Nav_Edge_007_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-b/activity.png",
-        "roi": [
-          691,
-          17,
-          63,
-          67
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-b/activity.png",
+                "roi": [
+                  691,
+                  17,
+                  63,
+                  67
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7154,17 +7248,28 @@
   },
   "Nav_Edge_008_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-b/backpack.png",
-        "roi": [
-          135,
-          14,
-          60,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-b/backpack.png",
+                "roi": [
+                  135,
+                  14,
+                  60,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7326,17 +7431,28 @@
   },
   "Nav_Edge_009_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/map-b/treasure.png",
-        "roi": [
-          204,
-          13,
-          62,
-          71
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/map-b/treasure.png",
+                "roi": [
+                  204,
+                  13,
+                  62,
+                  71
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7399,16 +7515,27 @@
   },
   "Nav_Edge_010_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/world/sumeru-entry.png",
-        "roi": [
-          522,
-          277,
-          105,
-          78
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/world/sumeru-entry.png",
+                "roi": [
+                  522,
+                  277,
+                  105,
+                  78
+                ],
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7472,17 +7599,28 @@
   },
   "Nav_Edge_011_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/world.png",
-        "roi": [
-          338,
-          14,
-          67,
-          73
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/world.png",
+                "roi": [
+                  338,
+                  14,
+                  67,
+                  73
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7546,17 +7684,28 @@
   },
   "Nav_Edge_012_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/bottom-backpack.png",
-        "roi": [
-          411,
-          644,
-          60,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/bottom-backpack.png",
+                "roi": [
+                  411,
+                  644,
+                  60,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7620,17 +7769,28 @@
   },
   "Nav_Edge_013_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/bottom-treasure.png",
-        "roi": [
-          520,
-          644,
-          55,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/bottom-treasure.png",
+                "roi": [
+                  520,
+                  644,
+                  55,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7694,17 +7854,28 @@
   },
   "Nav_Edge_014_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/bottom-settings.png",
-        "roi": [
-          682,
-          644,
-          56,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/bottom-settings.png",
+                "roi": [
+                  682,
+                  644,
+                  56,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7768,17 +7939,28 @@
   },
   "Nav_Edge_015_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/alliance.png",
-        "roi": [
-          507,
-          14,
-          65,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/alliance.png",
+                "roi": [
+                  507,
+                  14,
+                  65,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7842,17 +8024,28 @@
   },
   "Nav_Edge_016_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/time-boat.png",
-        "roi": [
-          502,
-          183,
-          80,
-          78
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/time-boat.png",
+                "roi": [
+                  502,
+                  183,
+                  80,
+                  78
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -7916,17 +8109,28 @@
   },
   "Nav_Edge_017_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/daily-menu.png",
-        "roi": [
-          416,
-          183,
-          77,
-          78
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/daily-menu.png",
+                "roi": [
+                  416,
+                  183,
+                  77,
+                  78
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8021,17 +8225,28 @@
   },
   "Nav_Edge_018_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/daily-menu.png",
-        "roi": [
-          416,
-          183,
-          77,
-          78
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/daily-menu.png",
+                "roi": [
+                  416,
+                  183,
+                  77,
+                  78
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8126,17 +8341,28 @@
   },
   "Nav_Edge_020_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-arena.png",
-        "roi": [
-          378,
-          378,
-          64,
-          48
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-arena.png",
+                "roi": [
+                  378,
+                  378,
+                  64,
+                  48
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8231,17 +8457,28 @@
   },
   "Nav_Edge_021_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-theme.png",
-        "roi": [
-          460,
-          376,
-          66,
-          50
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-theme.png",
+                "roi": [
+                  460,
+                  376,
+                  66,
+                  50
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8336,17 +8573,28 @@
   },
   "Nav_Edge_022_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-hell.png",
-        "roi": [
-          297,
-          377,
-          58,
-          48
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-hell.png",
+                "roi": [
+                  297,
+                  377,
+                  58,
+                  48
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8441,17 +8689,28 @@
   },
   "Nav_Edge_023_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-arhat.png",
-        "roi": [
-          297,
-          292,
-          58,
-          47
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-arhat.png",
+                "roi": [
+                  297,
+                  292,
+                  58,
+                  47
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8546,17 +8805,28 @@
   },
   "Nav_Edge_024_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-fortune.png",
-        "roi": [
-          460,
-          288,
-          63,
-          51
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-fortune.png",
+                "roi": [
+                  460,
+                  288,
+                  63,
+                  51
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8651,17 +8921,28 @@
   },
   "Nav_Edge_025_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-survival.png",
-        "roi": [
-          379,
-          290,
-          65,
-          49
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-survival.png",
+                "roi": [
+                  379,
+                  290,
+                  65,
+                  49
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8756,17 +9037,28 @@
   },
   "Nav_Edge_026_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-defend.png",
-        "roi": [
-          543,
-          377,
-          74,
-          49
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-defend.png",
+                "roi": [
+                  543,
+                  377,
+                  74,
+                  49
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8861,17 +9153,28 @@
   },
   "Nav_Edge_027_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-defend.png",
-        "roi": [
-          543,
-          377,
-          74,
-          49
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-defend.png",
+                "roi": [
+                  543,
+                  377,
+                  74,
+                  49
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -8966,17 +9269,28 @@
   },
   "Nav_Edge_028_02": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/daily-expanded/menu-defend.png",
-        "roi": [
-          543,
-          377,
-          74,
-          49
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/daily-expanded/menu-defend.png",
+                "roi": [
+                  543,
+                  377,
+                  74,
+                  49
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9138,17 +9452,28 @@
   },
   "Nav_Edge_029_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-south/tab-east.png",
-        "roi": [
-          166,
-          263,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-south/tab-east.png",
+                "roi": [
+                  166,
+                  263,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9310,17 +9635,28 @@
   },
   "Nav_Edge_030_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-south/tab-north.png",
-        "roi": [
-          166,
-          374,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-south/tab-north.png",
+                "roi": [
+                  166,
+                  374,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9482,17 +9818,28 @@
   },
   "Nav_Edge_031_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-east/tab-south.png",
-        "roi": [
-          166,
-          153,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-east/tab-south.png",
+                "roi": [
+                  166,
+                  153,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9654,17 +10001,28 @@
   },
   "Nav_Edge_032_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-east/tab-north.png",
-        "roi": [
-          166,
-          374,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-east/tab-north.png",
+                "roi": [
+                  166,
+                  374,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9826,17 +10184,28 @@
   },
   "Nav_Edge_033_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-north/tab-south.png",
-        "roi": [
-          166,
-          153,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-north/tab-south.png",
+                "roi": [
+                  166,
+                  153,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -9998,17 +10367,28 @@
   },
   "Nav_Edge_034_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-north/tab-east.png",
-        "roi": [
-          166,
-          263,
-          113,
-          81
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-north/tab-east.png",
+                "roi": [
+                  166,
+                  263,
+                  113,
+                  81
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10113,17 +10493,28 @@
   },
   "Nav_Edge_035_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-boat/replay.png",
-        "roi": [
-          475,
-          293,
-          134,
-          160
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-boat/replay.png",
+                "roi": [
+                  475,
+                  293,
+                  134,
+                  160
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10285,17 +10676,28 @@
   },
   "Nav_Edge_036_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-replay-1/page-2.png",
-        "roi": [
-          572,
-          568,
-          42,
-          42
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-replay-1/page-2.png",
+                "roi": [
+                  572,
+                  568,
+                  42,
+                  42
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10457,17 +10859,28 @@
   },
   "Nav_Edge_037_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-replay-1/close.png",
-        "roi": [
-          804,
-          73,
-          69,
-          73
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-replay-1/close.png",
+                "roi": [
+                  804,
+                  73,
+                  69,
+                  73
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10572,17 +10985,28 @@
   },
   "Nav_Edge_038_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-boat/replay.png",
-        "roi": [
-          475,
-          293,
-          134,
-          160
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-boat/replay.png",
+                "roi": [
+                  475,
+                  293,
+                  134,
+                  160
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10744,17 +11168,28 @@
   },
   "Nav_Edge_039_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-replay-2/page-1.png",
-        "roi": [
-          528,
-          568,
-          42,
-          42
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-replay-2/page-1.png",
+                "roi": [
+                  528,
+                  568,
+                  42,
+                  42
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -10916,17 +11351,28 @@
   },
   "Nav_Edge_040_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-replay-2/close.png",
-        "roi": [
-          804,
-          73,
-          69,
-          73
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-replay-2/close.png",
+                "roi": [
+                  804,
+                  73,
+                  69,
+                  73
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11088,17 +11534,28 @@
   },
   "Nav_Edge_041_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/alliance/contribution-entry.png",
-        "roi": [
-          447,
-          384,
-          103,
-          109
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/alliance/contribution-entry.png",
+                "roi": [
+                  447,
+                  384,
+                  103,
+                  109
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11203,17 +11660,28 @@
   },
   "Nav_Edge_042_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/profile/warehouse.png",
-        "roi": [
-          814,
-          606,
-          77,
-          45
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/profile/warehouse.png",
+                "roi": [
+                  814,
+                  606,
+                  77,
+                  45
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11375,17 +11843,28 @@
   },
   "Nav_Edge_043_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/survival-week/reward-entry.png",
-        "roi": [
-          71,
-          142,
-          118,
-          44
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/survival-week/reward-entry.png",
+                "roi": [
+                  71,
+                  142,
+                  118,
+                  44
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11490,17 +11969,28 @@
   },
   "Nav_Edge_044_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/activity/close.png",
-        "roi": [
-          913,
-          39,
-          65,
-          73
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/activity/close.png",
+                "roi": [
+                  913,
+                  39,
+                  65,
+                  73
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11605,17 +12095,28 @@
   },
   "Nav_Edge_045_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/activity/close.png",
-        "roi": [
-          913,
-          39,
-          65,
-          73
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/activity/close.png",
+                "roi": [
+                  913,
+                  39,
+                  65,
+                  73
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11720,17 +12221,28 @@
   },
   "Nav_Edge_046_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/profile/close.png",
-        "roi": [
-          971,
-          26,
-          71,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/profile/close.png",
+                "roi": [
+                  971,
+                  26,
+                  71,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11835,17 +12347,28 @@
   },
   "Nav_Edge_047_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/profile/close.png",
-        "roi": [
-          971,
-          26,
-          71,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/profile/close.png",
+                "roi": [
+                  971,
+                  26,
+                  71,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -11950,17 +12473,28 @@
   },
   "Nav_Edge_048_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/profile/close.png",
-        "roi": [
-          971,
-          26,
-          71,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/profile/close.png",
+                "roi": [
+                  971,
+                  26,
+                  71,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12065,17 +12599,28 @@
   },
   "Nav_Edge_049_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/treasure/close.png",
-        "roi": [
-          901,
-          75,
-          73,
-          68
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/treasure/close.png",
+                "roi": [
+                  901,
+                  75,
+                  73,
+                  68
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12180,17 +12725,28 @@
   },
   "Nav_Edge_050_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/treasure/close.png",
-        "roi": [
-          901,
-          75,
-          73,
-          68
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/treasure/close.png",
+                "roi": [
+                  901,
+                  75,
+                  73,
+                  68
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12295,17 +12851,28 @@
   },
   "Nav_Edge_051_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/treasure/close.png",
-        "roi": [
-          901,
-          75,
-          73,
-          68
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/treasure/close.png",
+                "roi": [
+                  901,
+                  75,
+                  73,
+                  68
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12467,17 +13034,28 @@
   },
   "Nav_Edge_052_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/arena/close.png",
-        "roi": [
-          1069,
-          18,
-          70,
-          70
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/arena/close.png",
+                "roi": [
+                  1069,
+                  18,
+                  70,
+                  70
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12639,17 +13217,28 @@
   },
   "Nav_Edge_053_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/shop/close.png",
-        "roi": [
-          972,
-          77,
-          71,
-          68
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/shop/close.png",
+                "roi": [
+                  972,
+                  77,
+                  71,
+                  68
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12754,17 +13343,28 @@
   },
   "Nav_Edge_054_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/time-boat/close.png",
-        "roi": [
-          987,
-          140,
-          71,
-          72
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/time-boat/close.png",
+                "roi": [
+                  987,
+                  140,
+                  71,
+                  72
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12869,17 +13469,28 @@
   },
   "Nav_Edge_055_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/theme/close.png",
-        "roi": [
-          1038,
-          44,
-          77,
-          77
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/theme/close.png",
+                "roi": [
+                  1038,
+                  44,
+                  77,
+                  77
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -12984,17 +13595,28 @@
   },
   "Nav_Edge_056_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/hell/close.png",
-        "roi": [
-          880,
-          91,
-          74,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/hell/close.png",
+                "roi": [
+                  880,
+                  91,
+                  74,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13099,17 +13721,28 @@
   },
   "Nav_Edge_057_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/arhat/close.png",
-        "roi": [
-          880,
-          91,
-          74,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/arhat/close.png",
+                "roi": [
+                  880,
+                  91,
+                  74,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13214,17 +13847,28 @@
   },
   "Nav_Edge_058_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/fortune/close.png",
-        "roi": [
-          901,
-          74,
-          72,
-          71
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/fortune/close.png",
+                "roi": [
+                  901,
+                  74,
+                  72,
+                  71
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13386,17 +14030,28 @@
   },
   "Nav_Edge_059_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/bounty/close.png",
-        "roi": [
-          995,
-          23,
-          71,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/bounty/close.png",
+                "roi": [
+                  995,
+                  23,
+                  71,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13558,17 +14213,28 @@
   },
   "Nav_Edge_060_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/alliance/close.png",
-        "roi": [
-          1068,
-          23,
-          68,
-          66
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/alliance/close.png",
+                "roi": [
+                  1068,
+                  23,
+                  68,
+                  66
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13673,17 +14339,28 @@
   },
   "Nav_Edge_061_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/mount-gather/close.png",
-        "roi": [
-          969,
-          47,
-          68,
-          75
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/mount-gather/close.png",
+                "roi": [
+                  969,
+                  47,
+                  68,
+                  75
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -13845,17 +14522,28 @@
   },
   "Nav_Edge_062_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/survival-week/close.png",
-        "roi": [
-          1069,
-          6,
-          74,
-          71
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/survival-week/close.png",
+                "roi": [
+                  1069,
+                  6,
+                  74,
+                  71
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14017,17 +14705,28 @@
   },
   "Nav_Edge_063_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-south/close.png",
-        "roi": [
-          880,
-          91,
-          74,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-south/close.png",
+                "roi": [
+                  880,
+                  91,
+                  74,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14189,17 +14888,28 @@
   },
   "Nav_Edge_064_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-east/close.png",
-        "roi": [
-          880,
-          91,
-          74,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-east/close.png",
+                "roi": [
+                  880,
+                  91,
+                  74,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14361,17 +15071,28 @@
   },
   "Nav_Edge_065_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/defend-north/close.png",
-        "roi": [
-          880,
-          91,
-          74,
-          74
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/defend-north/close.png",
+                "roi": [
+                  880,
+                  91,
+                  74,
+                  74
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14476,17 +15197,28 @@
   },
   "Nav_Edge_066_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/alliance-contribution/close.png",
-        "roi": [
-          915,
-          132,
-          74,
-          69
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/alliance-contribution/close.png",
+                "roi": [
+                  915,
+                  132,
+                  74,
+                  69
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14591,17 +15323,28 @@
   },
   "Nav_Edge_067_03": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/alliance-blessing/close.png",
-        "roi": [
-          968,
-          93,
-          75,
-          68
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/alliance-blessing/close.png",
+                "roi": [
+                  968,
+                  93,
+                  75,
+                  68
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14763,17 +15506,28 @@
   },
   "Nav_Edge_068_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/survival-rewards/close.png",
-        "roi": [
-          871,
-          12,
-          71,
-          72
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/survival-rewards/close.png",
+                "roi": [
+                  871,
+                  12,
+                  71,
+                  72
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -14935,17 +15689,28 @@
   },
   "Nav_Edge_069_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/survival-rewards/close.png",
-        "roi": [
-          871,
-          12,
-          71,
-          72
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/survival-rewards/close.png",
+                "roi": [
+                  871,
+                  12,
+                  71,
+                  72
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -15107,17 +15872,28 @@
   },
   "Nav_Edge_070_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/warehouse/close.png",
-        "roi": [
-          941,
-          33,
-          73,
-          72
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/warehouse/close.png",
+                "roi": [
+                  941,
+                  33,
+                  73,
+                  72
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -15279,17 +16055,28 @@
   },
   "Nav_Edge_071_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/warehouse/close.png",
-        "roi": [
-          941,
-          33,
-          73,
-          72
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/warehouse/close.png",
+                "roi": [
+                  941,
+                  33,
+                  73,
+                  72
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -15623,17 +16410,28 @@
   },
   "Nav_Edge_073_05": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/templates/settings-menu/continue.png",
-        "roi": [
-          452,
-          152,
-          244,
-          58
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/templates/settings-menu/continue.png",
+                "roi": [
+                  452,
+                  152,
+                  244,
+                  58
+                ],
+                "method": 5,
+                "threshold": 0.94
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
         ],
-        "method": 5,
-        "threshold": 0.94
+        "box_index": 0
       }
     },
     "action": {
@@ -15660,7 +16458,13 @@
                   "bounty-candle/pause-cloudy.png",
                   "navigation/panels/daily-pause-caption.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.9,
+                "roi": [
+                  300,
+                  300,
+                  550,
+                  120
+                ]
               }
             }
           },
@@ -15702,7 +16506,8 @@
                 ]
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }

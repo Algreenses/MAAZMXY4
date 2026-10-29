@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "source": {
+    "name": "material",
+    "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/material_20260907_1.swf",
+    "file": "material_20260907_1.swf",
+    "sha256": "93eff4dc532c051dc3e5471c49480308b19731b3157ed1e0504e998548d0cb56",
+    "bytes": 2778682
+  },
+  "assets": [
+    {
+      "path": "navigation/dialogs/confirm-left.png",
+      "sha256": "8188abf173d5acda19102e2ef6e6b6cfb5a39be0d979e5e05b4aa6cbc40ac516",
+      "source_frame": "rendered/DefineSprite_36_warn_background_2/1.png",
+      "source_frame_sha256": "48163b062ca254ccee0ff9043b4f3076d96883cbc747820fd0ebe3b93d9c41b6",
+      "crop": [
+        12,
+        13,
+        43,
+        48
+      ]
+    },
+    {
+      "path": "navigation/dialogs/confirm-right.png",
+      "sha256": "7798bfc18585d7f8ce4131873a38ad45412f4cbb9f05e142930b7f6439d010b0",
+      "source_frame": "rendered/DefineSprite_36_warn_background_2/1.png",
+      "source_frame_sha256": "48163b062ca254ccee0ff9043b4f3076d96883cbc747820fd0ebe3b93d9c41b6",
+      "crop": [
+        186,
+        13,
+        217,
+        48
+      ]
+    },
+    {
+      "path": "navigation/dialogs/confirm-bottom.png",
+      "sha256": "f8d41c2d31449cbe67c54dae9b477b58c57f28410aed85463c7609263ac90c59",
+      "source_frame": "rendered/DefineSprite_36_warn_background_2/1.png",
+      "source_frame_sha256": "48163b062ca254ccee0ff9043b4f3076d96883cbc747820fd0ebe3b93d9c41b6",
+      "crop": [
+        12,
+        147,
+        43,
+        165
+      ]
+    }
+  ],
+  "use": "Recognize and block unknown confirmation dialogs; never click a generic confirmation button."
+}

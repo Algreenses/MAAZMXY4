@@ -24,7 +24,7 @@ from task_catalog import custom_parameters
 from navigation.catalog import task_graph
 from navigation import NavigationError
 from navigation.runtime import GraphNavigator
-from navigation.stage_view import restore_stage_view
+from navigation.stage_view import restore_stage_view, wait_stage_ready
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / 'recordings'
@@ -266,16 +266,20 @@ def navigate_round(context, state):
     current = inspect_recording(state['reference'])
     if current['path'] != state['recording']['path'] or current['sha256'] != state['recording']['sha256']:
         raise RecordingChanged('本轮重试期间录制已改变，未开始下一次回放。')
+    navigator = _navigator(context, state)
     try:
-        return _navigator(context, state).run()
+        return navigator.run()
     except NavigationError as error:
         parameters = state['parameters']
         navigation = parameters.get('navigation', {})
         # A map can keep its dragged position between ordinary rounds too.
         # Viewport restoration is navigation, independent of process restart.
-        if (error.reason == 'unreachable' and navigation.get('kind') == 'stage'
-                and restore_stage_view(context, _navigator(context, state), navigation.get('target_node'))):
-            return _navigator(context, state).run()
+        if error.reason == 'unreachable' and navigation.get('kind') == 'stage':
+            target = navigation.get('target_node')
+            if wait_stage_ready(context,navigator,target):
+                return navigator.run()
+            if restore_stage_view(context,navigator,target):
+                return navigator.run()
         raise
 
 
