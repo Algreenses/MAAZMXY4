@@ -142,7 +142,9 @@ def client_files(root, frontend, python_runtime, launcher):
                  for path in python_runtime.rglob('*')
                  if path.is_file() and '__pycache__' not in path.parts and path.suffix not in ('.pyc', '.pyo'))
     for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
-                 'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md'):
+                 'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
+                 'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
+                 'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md'):
         files.append((root / name, name))
     files.extend((path, path.relative_to(root).as_posix()) for path in (root/'update_engine').glob('*.py'))
     files = [(source, relative) for source, relative in files

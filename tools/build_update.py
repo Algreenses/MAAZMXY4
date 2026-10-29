@@ -124,7 +124,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", required=True, help="版本号，例如 2.2")
     ap.add_argument("--legacy", action='store_true', help="仅供维护旧客户端兼容分支；输出旧 version.json")
-    ap.add_argument("--min-client-version", default='2.3.8', help="新资源包最低兼容客户端版本")
+    ap.add_argument("--min-client-version", default='2.3.9', help="新资源包最低兼容客户端版本")
     ap.add_argument("--max-client-version", help="可选的最高兼容客户端版本")
     ap.add_argument("--tag", default=None, help="Release tag，默认 v<version>")
     ap.add_argument("--note", default="", help="更新说明，显示在更新弹窗里")
