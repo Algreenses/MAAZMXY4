@@ -1,0 +1,68 @@
+[
+  {
+    "file": "return-failed-1_up.png",
+    "kind": "failed",
+    "button_box": [
+      600,
+      510,
+      215,
+      63
+    ],
+    "source_frame_sha256": "cf59fb063de77e3041e08527e0372cc769a50d1cab05fcfdbd385efa0614a028"
+  },
+  {
+    "file": "return-failed-2_over.png",
+    "kind": "failed",
+    "button_box": [
+      600,
+      510,
+      215,
+      63
+    ],
+    "source_frame_sha256": "2d6121ec8cd3fc39f9f169d1e7741d568fd24c2ee53499440259cc2d883008cd"
+  },
+  {
+    "file": "return-failed-3_down.png",
+    "kind": "failed",
+    "button_box": [
+      600,
+      510,
+      215,
+      63
+    ],
+    "source_frame_sha256": "a6e52e7434c1e051defb5831b45dc0f309b64fe816a234122886bd8f4eda0379"
+  },
+  {
+    "file": "return-succeeded-1_up.png",
+    "kind": "succeeded",
+    "button_box": [
+      600,
+      510,
+      172,
+      59
+    ],
+    "source_frame_sha256": "ba9e86e4ad1a038edeaa3d5327009ca18680a0bd35342c4cf54d8b7cf4e5575a"
+  },
+  {
+    "file": "return-succeeded-2_over.png",
+    "kind": "succeeded",
+    "button_box": [
+      600,
+      510,
+      172,
+      59
+    ],
+    "source_frame_sha256": "d60e640e1838a5c6f1fa3f74deaca95c7528025f02f354b41f7810c7df413eea"
+  },
+  {
+    "file": "return-succeeded-3_down.png",
+    "kind": "succeeded",
+    "button_box": [
+      600,
+      510,
+      172,
+      59
+    ],
+    "source_frame_sha256": "77f581af19ed93390c321be8f9ff9739ae913ccd3ec5aac730e975e66f09e664"
+  }
+]

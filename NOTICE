@@ -53,7 +53,7 @@ Pillow 等第三方组件，各自遵循其原始许可，版权归各自作者�
 --------------------------
 电脑版图鉴事实及图标、地图裁剪来源：4399《造梦西游4·洪荒大劫篇》公开图鉴及游戏资源。
 具体页面、客户端版本与素材摘要保存在 agent/data/game_database/ 和
-agent/data/navigation/stage-variants.json。游戏素材的权利仍归原权利人所有。
+agent/data/navigation/stage-variants.json 和 battle-ui.json。游戏素材的权利仍归原权利人所有。
 
 社区资料表来源：Rotating-stars/zmxy4-helpPages，Copyright (c) 2026 qyqk。
 以 MIT License 使用，完整许可见 agent/data/game_database/LICENSE-zmxy4-helpPages.txt。

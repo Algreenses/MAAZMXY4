@@ -52,6 +52,8 @@ def task_graph(context, parameters, *, targets=None):
     for node in nodes:
         if node['id'] in ('challenge_failed','challenge_succeeded'):
             node['obscures'].append('paused_task_map')
+    nodes.append(dict(id='revive_prompt',label='还魂丹或免费复活确认',
+        recognition=['Result_RevivePrompt'],obscures=[node['id'] for node in nodes]))
 
     def edge(source, target, entry, label):
         edges.append(dict(id=source+'__'+target, source=source, target=target, entry=entry,
@@ -65,6 +67,7 @@ def task_graph(context, parameters, *, targets=None):
         edge(source, 'task_map', 'Nav_CloseQuest', '关闭已确认的任务面板')
     edge('challenge_failed', 'task_map', 'Result_FailedReturn', '从挑战失败返回地图')
     edge('challenge_succeeded', 'task_map', 'Result_SucceededReturn', '从挑战成功返回地图')
+    edge('revive_prompt','challenge_failed','Result_DeclineRevive','拒绝复活并确认失败结果')
     if kind == 'bounty':
         title = config.get('title')
         if not isinstance(title, str) or not title or len(title) > 100:

@@ -14,9 +14,12 @@ from maa.toolkit import Toolkit
 
 import adventure
 import battle_player
+import battle_ui
 import loop_counter
 import battle_record
 import script_task
+
+AgentServer.custom_recognition('battle_no_revive')(battle_ui.NoRevivePrompt)
 
 # 掉落预判是本地私有扩展（adventure_drops.py / adventure_drops_action.py 不入库），
 # 公开仓库里没有这两个文件，缺了就跳过，不影响其它任务。

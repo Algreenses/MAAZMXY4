@@ -27,17 +27,44 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=indent) + '\n', encoding='utf8', newline='\n')
 
 
-def confirmed_outcomes(graph, prefix, parameters, normal_return):
+def confirmed_outcomes(graph, prefix, parameters, normal_return, outcomes):
     # Cleanup can itself finish a recorded Return Map mouse press. Keep the
     # observed result even when its screen has disappeared before this branch.
     parameters['result_guard'].update(failed_next=[prefix+'已确认战斗失败'],
-                                     succeeded_next=[prefix+'已确认战斗成功'])
-    failure_next=[prefix+'失败返回地图',prefix+'失败返回确认']
+                                     succeeded_next=[prefix+'已确认战斗成功'],
+                                     revive_next=[prefix+'拒绝还魂丹',prefix+'等待拒绝复活',prefix+'战斗失败'])
+    decline=prefix+'拒绝还魂丹'
+    pending=prefix+'等待拒绝复活'
+    graph[decline]=deepcopy(outcomes['Result_DeclineRevive'])
+    # Only the subsequent recognized defeat marks this round as failed. A
+    # disappearing prompt, failed click or unknown screen never counts success.
+    graph[decline].update(next=[prefix+'战斗失败'],timeout=8000,on_error=[prefix+'失败'])
+    # The caption can be visible before its cancel button settles. Hold this
+    # branch so settings/return controls behind the modal cannot be selected.
+    graph[pending]=deepcopy(outcomes['Result_RevivePrompt'])
+    graph[pending].update(next=[decline,prefix+'战斗失败'],timeout=8000,on_error=[prefix+'失败'])
+    failure_next=[decline,pending,prefix+'失败返回地图',prefix+'失败返回确认']
     graph[prefix+'已确认战斗失败']=node('battle_failure',next=failure_next)
     graph[prefix+'已确认战斗失败']['on_error']=[prefix+'失败']
     graph[prefix+'已确认战斗成功']=dict(recognition=dict(type='DirectHit'),action=dict(type='DoNothing'),
         next=[prefix+'成功返回地图',normal_return],timeout=15000,post_delay=0,on_error=[prefix+'失败'])
     graph[prefix+'战斗失败']['next']=failure_next
+    graph[prefix+'战斗失败']['recognition']=dict(type='And',param=dict(all_of=[
+        dict(recognition=deepcopy(outcomes['Result_Failed']['recognition'])), 'Result_NoRevivePrompt']))
+    for suffix,shared in [('失败返回地图','Result_FailedReturn'),('成功返回地图','Result_SucceededReturn')]:
+        graph[prefix+suffix]['recognition']=deepcopy(outcomes[shared]['recognition'])
+    # A prompt can also appear after the recording's final action, before the
+    # native settings/return branch. Preserve blocking dialogs ahead of it.
+    routes=list(parameters.get('routes',{}).values())
+    routes += [graph[prefix+suffix]['next'] for suffix in ('点击设置','退出结果复核') if prefix+suffix in graph]
+    for route in routes:
+        if decline not in route:
+            index=1 if route and route[0]==prefix+'阻断提示' else 0
+            route.insert(index,decline)
+        if pending not in route:route.insert(route.index(decline)+1,pending)
+    route_node=prefix+'回放后分流'
+    if route_node in graph:
+        graph[route_node]['next']=deepcopy(parameters['routes'][parameters['exit_mode']])
 
 
 def describe_bounty(task, parameters):
@@ -89,7 +116,7 @@ def configure(root=ROOT):
             prepare=prefix+'准备本轮' if prefix+'准备本轮' in graph else entry
             parameters=graph[prepare]['action']['param']['custom_action_param']
             normal_return=prefix+('等待返回' if parameters.get('execution') else '脚本返回确认')
-            confirmed_outcomes(graph,prefix,parameters,normal_return)
+            confirmed_outcomes(graph,prefix,parameters,normal_return,outcomes)
             guard_stage_entry(graph,prefix,parameters)
             describe_bounty(task,parameters)
             write(path,graph)
@@ -169,7 +196,7 @@ def configure(root=ROOT):
                 on_error=[prefix+'失败'])
         for suffix in ('失败返回地图', '成功返回地图'):
             graph[prefix+suffix]['on_error'] = [prefix+'失败']
-        confirmed_outcomes(graph,prefix,parameters,normal_return)
+        confirmed_outcomes(graph,prefix,parameters,normal_return,outcomes)
         # Retired navigation retries must not consume the brush-count quota.
         for name, definition in graph.items():
             if name.endswith('点击任务') and name != entry:
@@ -186,8 +213,8 @@ def configure(root=ROOT):
         cases=[dict(name='关闭', pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': False}}}}}}),
                dict(name='启用', option=['失败重试设置'], pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': True}}}}}})])
     interface['option']['失败重试设置'] = dict(type='input', label='失败重试设置',
-        inputs=[dict(name='失败重试次数', label='每轮最多失败重试次数', pipeline_type='int', default='3',
-                     verify='^([1-9]|1[0-9]|20)$', pattern_msg='请输入1至20')],
+        inputs=[dict(name='失败重试次数', label='重试次数（0不重开）', pipeline_type='int', default='3',
+                     verify='^([0-9]|1[0-9]|20)$', pattern_msg='请输入0至20，0表示不自动重开')],
         pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'max_retries': '{失败重试次数}'}}}}}})
     write(interface_path, interface)
     print('已接入公共导航与失败重试：' + '、'.join(changed))

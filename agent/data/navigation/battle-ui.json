@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "source_version": "v.20261019.00:01",
+  "sources": [
+    {
+      "name": "resurrection",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/resurrection_20161107_1.swf",
+      "file": "resurrection_20161107_1.swf",
+      "sha256": "4f43cbb3c7e827a910974e6357b781ad0d7dcb316a9d5db6870d3e53738a93cc",
+      "bytes": 50108
+    },
+    {
+      "name": "gameOver",
+      "url": "https://sda.4399.com/4399swf/upload_swf/ftp15/csya/20150127/1/assets/module/gameOver_20260914_1.swf",
+      "file": "gameOver_20260914_1.swf",
+      "sha256": "786a54a207e8573f09ccf2a54588e21aa08514193109922b6dfa39f401b8123b",
+      "bytes": 2997107
+    }
+  ],
+  "assets": [
+    {
+      "path": "navigation/outcomes/revive-normal-caption.png",
+      "sha256": "e676a1a0dc77b8d4a0c195af2f7caca725e017e8c6cb041c769b3042681489ae",
+      "source_frame": "revive-normal-p1/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "3a5f9b4776a9a735764d9b812ff74cc3f1424b5a6b9ade5f4da0248904dea94f",
+      "crop": [
+        250,
+        47,
+        378,
+        72
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-vip-caption.png",
+      "sha256": "4ee6630773975b5d81b96b370af00942a02d4dcc939dbfc308d9b125d49a1138",
+      "source_frame": "revive-vip-p1/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "8b6b233d5eae768b8593b9572430dfda44a0a5415d274ec1f4281912d8974bc2",
+      "crop": [
+        128,
+        76,
+        422,
+        99
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p1-up.png",
+      "sha256": "f9861c83f67481bd3e335034be9e801196fa8c786c5fbeb05b8cd0f4b2839763",
+      "source_frame": "revive-normal-p1/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "3a5f9b4776a9a735764d9b812ff74cc3f1424b5a6b9ade5f4da0248904dea94f",
+      "crop": [
+        281,
+        162,
+        318,
+        181
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p1-over.png",
+      "sha256": "aabfac03ca65e8058324b457cd881dbad578ca7e97605bb9e46706e2121ee0ab",
+      "source_frame": "revive-normal-p1-over/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "7702f9ebd680eb9c128b4555da60140dce0ec650e0b56e7ca3e24fbaa75ca7d8",
+      "crop": [
+        281,
+        162,
+        318,
+        181
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p1-down.png",
+      "sha256": "c8ea2f2100689855d09e1b7b6af3a84e3190defd527271abbca44f2cc305980d",
+      "source_frame": "revive-normal-p1-down/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "269167a2b0288831043235972517e7ce03130ace346adce4817071e54aef22bc",
+      "crop": [
+        281,
+        162,
+        318,
+        181
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p2-up.png",
+      "sha256": "d25c0250900bafda0b2ddf42d93a3a6efd5420a067f85b84b7ca09b9cbb972a8",
+      "source_frame": "revive-normal-p2/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "521d1f2403c557a8d14af8613f0b822e3a2d27291ae19addffb23957d9a46fc5",
+      "crop": [
+        361,
+        163,
+        398,
+        182
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p2-over.png",
+      "sha256": "afc08d2cb6b0b64a2d22b6989eca1ace7c59675ef4ec03c527daf5546e511946",
+      "source_frame": "revive-normal-p2-over/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "66530a78a20dc4f615c960d2de341c61435500c36130955731c74c16894cb72e",
+      "crop": [
+        361,
+        163,
+        398,
+        182
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/revive-cancel-p2-down.png",
+      "sha256": "03be5feeed4c236a71e8c284f51cbece5b282affec67959d0c6371fcfd16b0d2",
+      "source_frame": "revive-normal-p2-down/DefineSprite_42_mc_fh/1.png",
+      "source_frame_sha256": "c6e5ab577b6391e7ce334f50eaea266324cab493108cb654e954ba992937a97f",
+      "crop": [
+        361,
+        163,
+        398,
+        182
+      ],
+      "scale": 1.2203389830508475,
+      "scale_first": true,
+      "green_mask": false
+    },
+    {
+      "path": "navigation/outcomes/failed-return-1_up.png",
+      "sha256": "8c485ad4f8f1042e6619aaf81eb2a51918876b1d6db1a4bf408e3e16a3a52094",
+      "source_frame": "gameOver/buttons/DefineButton2_95/1_up.png",
+      "source_frame_sha256": "cf59fb063de77e3041e08527e0372cc769a50d1cab05fcfdbd385efa0614a028",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/outcomes/failed-return-2_over.png",
+      "sha256": "c5b1e2b21442f4c6559c005e73a90cd1c8a79b8483d1ee346c624a0de5c7bf22",
+      "source_frame": "gameOver/buttons/DefineButton2_95/2_over.png",
+      "source_frame_sha256": "2d6121ec8cd3fc39f9f169d1e7741d568fd24c2ee53499440259cc2d883008cd",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/outcomes/failed-return-3_down.png",
+      "sha256": "4e970d25fb03bd25eeea06e3b0709bb5ed04cba151c53fd7a5229373628f1b4b",
+      "source_frame": "gameOver/buttons/DefineButton2_95/3_down.png",
+      "source_frame_sha256": "a6e52e7434c1e051defb5831b45dc0f309b64fe816a234122886bd8f4eda0379",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/outcomes/succeeded-return-1_up.png",
+      "sha256": "7f70221c97be0ada56a495d3c6a9cdfa982ea6413d59b03c2074e921f40bd1fb",
+      "source_frame": "gameOver/buttons/DefineButton2_50/1_up.png",
+      "source_frame_sha256": "ba9e86e4ad1a038edeaa3d5327009ca18680a0bd35342c4cf54d8b7cf4e5575a",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/outcomes/succeeded-return-2_over.png",
+      "sha256": "b1817bdd73477aa2dbc944b1e96c1d302b59ed078779f73bcff7673dcd56c14f",
+      "source_frame": "gameOver/buttons/DefineButton2_50/2_over.png",
+      "source_frame_sha256": "d60e640e1838a5c6f1fa3f74deaca95c7528025f02f354b41f7810c7df413eea",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    },
+    {
+      "path": "navigation/outcomes/succeeded-return-3_down.png",
+      "sha256": "572da64d646662f4959c604882926d40bec637be834f132a70c3a51fefb75840",
+      "source_frame": "gameOver/buttons/DefineButton2_50/3_down.png",
+      "source_frame_sha256": "77f581af19ed93390c321be8f9ff9739ae913ccd3ec5aac730e975e66f09e664",
+      "crop": null,
+      "scale": 1.2203389830508475,
+      "scale_first": false,
+      "green_mask": true
+    }
+  ]
+}

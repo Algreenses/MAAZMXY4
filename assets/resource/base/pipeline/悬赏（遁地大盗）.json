@@ -243,6 +243,8 @@
     },
     "timeout": 8000,
     "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-等待拒绝复活",
       "悬赏（遁地大盗）-战斗失败",
       "悬赏（遁地大盗）-成功返回地图",
       "悬赏（遁地大盗）-返回地图"
@@ -327,6 +329,11 @@
             ],
             "succeeded_next": [
               "悬赏（遁地大盗）-已确认战斗成功"
+            ],
+            "revive_next": [
+              "悬赏（遁地大盗）-拒绝还魂丹",
+              "悬赏（遁地大盗）-等待拒绝复活",
+              "悬赏（遁地大盗）-战斗失败"
             ]
           },
           "settings_node": "脚本任务设置",
@@ -337,11 +344,15 @@
           "route_node": "悬赏（遁地大盗）-回放后分流",
           "routes": {
             "recorded_return": [
+              "悬赏（遁地大盗）-拒绝还魂丹",
+              "悬赏（遁地大盗）-等待拒绝复活",
               "悬赏（遁地大盗）-战斗失败",
               "悬赏（遁地大盗）-成功返回地图",
               "悬赏（遁地大盗）-脚本返回确认"
             ],
             "battle_only": [
+              "悬赏（遁地大盗）-拒绝还魂丹",
+              "悬赏（遁地大盗）-等待拒绝复活",
               "悬赏（遁地大盗）-战斗失败",
               "悬赏（遁地大盗）-成功返回地图",
               "悬赏（遁地大盗）-点击设置"
@@ -386,6 +397,8 @@
       "type": "DoNothing"
     },
     "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-等待拒绝复活",
       "悬赏（遁地大盗）-战斗失败",
       "悬赏（遁地大盗）-成功返回地图",
       "悬赏（遁地大盗）-点击设置"
@@ -398,16 +411,26 @@
   },
   "悬赏（遁地大盗）-战斗失败": {
     "recognition": {
-      "type": "TemplateMatch",
+      "type": "And",
       "param": {
-        "template": "navigation/outcomes/failed-title.png",
-        "roi": [
-          200,
-          120,
-          780,
-          380
-        ],
-        "threshold": 0.9
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "navigation/outcomes/failed-title.png",
+                "roi": [
+                  200,
+                  120,
+                  780,
+                  380
+                ],
+                "threshold": 0.9
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ]
       }
     },
     "action": {
@@ -420,6 +443,8 @@
       }
     },
     "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-等待拒绝复活",
       "悬赏（遁地大盗）-失败返回地图",
       "悬赏（遁地大盗）-失败返回确认"
     ],
@@ -432,16 +457,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/failed-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/failed-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/failed-return-1_up.png",
+                          "navigation/outcomes/failed-return-2_over.png",
+                          "navigation/outcomes/failed-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -459,7 +513,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -486,16 +541,45 @@
         "all_of": [
           {
             "recognition": {
-              "type": "TemplateMatch",
+              "type": "Or",
               "param": {
-                "template": "navigation/outcomes/succeeded-return.png",
-                "roi": [
-                  500,
-                  450,
-                  550,
-                  200
-                ],
-                "threshold": 0.85
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": "navigation/outcomes/succeeded-return.png",
+                        "roi": [
+                          500,
+                          450,
+                          550,
+                          200
+                        ],
+                        "threshold": 0.85
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/outcomes/succeeded-return-1_up.png",
+                          "navigation/outcomes/succeeded-return-2_over.png",
+                          "navigation/outcomes/succeeded-return-3_down.png"
+                        ],
+                        "roi": [
+                          400,
+                          400,
+                          700,
+                          260
+                        ],
+                        "threshold": 0.88,
+                        "green_mask": true
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -513,7 +597,8 @@
                 "threshold": 0.9
               }
             }
-          }
+          },
+          "Result_NoRevivePrompt"
         ],
         "box_index": 0
       }
@@ -599,6 +684,8 @@
       "type": "DoNothing"
     },
     "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-等待拒绝复活",
       "悬赏（遁地大盗）-战斗失败",
       "悬赏（遁地大盗）-成功返回地图"
     ],
@@ -622,6 +709,8 @@
       }
     },
     "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-等待拒绝复活",
       "悬赏（遁地大盗）-失败返回地图",
       "悬赏（遁地大盗）-失败返回确认"
     ],
@@ -644,6 +733,102 @@
     ],
     "timeout": 15000,
     "post_delay": 0,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-拒绝还魂丹": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "sub_name": "revive_caption",
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-normal-caption.png",
+                  "navigation/outcomes/revive-vip-caption.png"
+                ],
+                "roi": [
+                  200,
+                  170,
+                  800,
+                  390
+                ],
+                "threshold": 0.88
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": [
+                  "navigation/outcomes/revive-cancel-p1-up.png",
+                  "navigation/outcomes/revive-cancel-p1-over.png",
+                  "navigation/outcomes/revive-cancel-p1-down.png",
+                  "navigation/outcomes/revive-cancel-p2-up.png",
+                  "navigation/outcomes/revive-cancel-p2-over.png",
+                  "navigation/outcomes/revive-cancel-p2-down.png"
+                ],
+                "roi": "revive_caption",
+                "roi_offset": [
+                  -200,
+                  50,
+                  400,
+                  200
+                ],
+                "threshold": 0.9
+              }
+            }
+          }
+        ],
+        "box_index": 1
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true
+      }
+    },
+    "next": [
+      "悬赏（遁地大盗）-战斗失败"
+    ],
+    "timeout": 8000,
+    "post_delay": 250,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-等待拒绝复活": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "navigation/outcomes/revive-normal-caption.png",
+          "navigation/outcomes/revive-vip-caption.png"
+        ],
+        "roi": [
+          200,
+          170,
+          800,
+          390
+        ],
+        "threshold": 0.88
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "next": [
+      "悬赏（遁地大盗）-拒绝还魂丹",
+      "悬赏（遁地大盗）-战斗失败"
+    ],
+    "post_delay": 0,
+    "timeout": 8000,
     "on_error": [
       "悬赏（遁地大盗）-失败"
     ]

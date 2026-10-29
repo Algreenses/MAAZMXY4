@@ -35,7 +35,7 @@ class StageVariantNativeTests(unittest.TestCase):
         from fixture_pixels import read_png_bgr
         cases=json.loads((FIXTURES/'cases.json').read_text(encoding='utf8'))
         tasks=list(dict.fromkeys(case['task'] for case in cases))
-        checks=[]
+        checks=[];completed=[]
         class Pixels(CustomController):
             def connect(self):return True
             def request_uuid(self):return 'swf-states-memory-only'
@@ -57,6 +57,7 @@ class StageVariantNativeTests(unittest.TestCase):
                 pixels=read_png_bgr(FIXTURES/cases[0]['file']);pixels[600:]=0
                 detail=context.run_recognition(tasks[0]+'-关卡入口',pixels)
                 assert detail is not None and not detail.hit
+                completed.append(True)
                 return True
         log=ROOT/'.runtime-cache/native-stage-variants';log.mkdir(parents=True,exist_ok=True);Tasker.set_log_dir(log)
         resource,controller,tasker=Resource(),Pixels(),Tasker()
@@ -67,6 +68,7 @@ class StageVariantNativeTests(unittest.TestCase):
         self.assertTrue(tasker.bind(resource,controller))
         self.assertTrue(tasker.post_task('__StageStates').wait().succeeded)
         self.assertEqual(len(checks),21)
+        self.assertEqual(completed,[True],'The missing-map negative must finish inside the native callback')
 
 
 if __name__=='__main__':unittest.main()

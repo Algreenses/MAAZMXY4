@@ -26,6 +26,7 @@ def native_case(mode):
     from fixture_pixels import read_png_bgr
 
     failed_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/challenge-failed.png')
+    revive_frame = read_png_bgr(ROOT / 'tests/fixtures/navigation/revival/normal-p1-up.png') if mode=='revive' else None
 
     class MemoryController(CustomController):
         def __init__(self):
@@ -33,6 +34,7 @@ def native_case(mode):
             self.frames = 0
             self.inputs = []
             self.input_times = []
+            self.declined = False
 
         def connect(self): return True
         def request_uuid(self): return 'isolated-playback-transport'
@@ -40,6 +42,9 @@ def native_case(mode):
             self.frames += 1
             # Approximate a real FramePool capture to expose overlapping RPCs.
             time.sleep(.08)
+            if mode=='return':return failed_frame.copy()
+            if mode=='revive' and any(op=='down' for op,_ in self.inputs):
+                return failed_frame.copy() if self.declined else revive_frame.copy()
             if mode == 'defeat' and any(op == 'down' for op, _ in self.inputs):
                 return failed_frame.copy()
             return np.zeros((720, 1147, 3), dtype=np.uint8)
@@ -47,8 +52,21 @@ def native_case(mode):
             self.inputs.append(('down', key)); self.input_times.append(time.monotonic()); return True
         def key_up(self, key):
             self.inputs.append(('up', key)); self.input_times.append(time.monotonic()); return True
+        def touch_down(self,contact,x,y,pressure):
+            if mode=='return':
+                assert 500<=x<=1050 and 450<=y<=650 and not self.inputs,(x,y,self.inputs)
+                self.inputs.append(('return_down',[x,y]));self.input_times.append(time.monotonic());return True
+            assert mode=='revive' and 628<=x<=724 and 429<=y<=470,(x,y)
+            assert self.inputs==[('down',68),('up',68)],self.inputs
+            self.inputs.append(('cancel_down',[x,y]));self.input_times.append(time.monotonic());return True
+        def touch_up(self,contact):
+            if mode=='return':
+                assert self.inputs[-1][0]=='return_down'
+                self.inputs.append(('return_up',contact));self.input_times.append(time.monotonic());return True
+            assert mode=='revive' and self.inputs[-1][0]=='cancel_down'
+            self.declined=True;self.inputs.append(('cancel_up',contact));self.input_times.append(time.monotonic());return True
         def forbidden(self, *args): raise AssertionError('Unexpected input')
-        click = swipe = touch_down = touch_move = touch_up = input_text = forbidden
+        click = swipe = touch_move = input_text = forbidden
 
     with tempfile.TemporaryDirectory(prefix='battle-playback-transport-') as temporary:
         directory = Path(temporary).resolve()
@@ -58,9 +76,16 @@ def native_case(mode):
         (directory / 'pipeline').mkdir()
         import shutil
         definitions = json.loads((ROOT / 'assets/resource/base/pipeline/battle_outcomes.json').read_text(encoding='utf8'))
-        pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded')}
-        for node in pipeline.values():
-            path = node['recognition']['param']['template']
+        pipeline = {name: definitions[name] for name in ('Result_Failed', 'Result_Succeeded',
+            'Result_RevivePrompt','Result_DeclineRevive','Result_NoRevivePrompt','Result_FailedReturn')}
+        def templates(value):
+            if isinstance(value,dict):
+                for key,child in value.items():
+                    if key=='template':yield from ([child] if isinstance(child,str) else child)
+                    else:yield from templates(child)
+            elif isinstance(value,list):
+                for child in value:yield from templates(child)
+        for path in set(templates(pipeline)):
             target = directory / 'image' / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / 'assets/resource/base/image' / path, target)
@@ -70,20 +95,28 @@ def native_case(mode):
                 dict(t=62, op='keyup', key=68),
                 dict(t=200, op='keydown', key=75),
                 dict(t=62, op='keyup', key=75)]
-        if mode == 'defeat':
+        if mode in ('defeat','revive'):
             actions = [dict(t=453, op='keydown', key=68),
                        dict(t=1500, op='keyup', key=68),
                        dict(t=100, op='click', x=500, y=300)]
         recording.write_text(json.dumps(dict(version=1, name='synthetic', base=[1148, 720],
-            duration_ms=2200 if mode == 'defeat' else 1400, actions=actions)), encoding='utf8')
+            duration_ms=2200 if mode in ('defeat','revive') else 1400, actions=actions)), encoding='utf8')
         policy = dict(failed_next=['Failure'], succeeded_next=['Success'],
                       default_next=['Exit'], interval_ms=400)
+        policy['revive_next']=['Decline','ConfirmDefeat'] if mode=='revive' else ['Exit']
         pipeline['Probe'] = {'action': {'type': 'Custom', 'param': {
             'custom_action': 'battle_play',
             'custom_action_param': {'file': str(recording), 'result_guard': policy}}}, 'post_delay': 0}
         for name in ('Failure', 'Success', 'Exit'):
             pipeline[name] = {'action': {'type': 'Custom', 'param': {
                 'custom_action': 'capture_branch', 'custom_action_param': name}}, 'post_delay': 0}
+        if mode=='return':pipeline['Failure']['next']=['Result_FailedReturn']
+        if mode=='revive':
+            from copy import deepcopy
+            pipeline['Decline']=deepcopy(definitions['Result_DeclineRevive'])
+            pipeline['Decline'].update(next=['ConfirmDefeat'],timeout=3000)
+            pipeline['ConfirmDefeat']=dict(recognition=definitions['Result_Failed']['recognition'],
+                action=pipeline['Failure']['action'],post_delay=0)
         (directory / 'pipeline/probe.json').write_text(json.dumps(pipeline), encoding='utf8')
         server = directory / 'server.py'
         server.write_text('''\
@@ -92,6 +125,8 @@ sys.path.insert(0, sys.argv[2])
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 import battle_player
+from battle_ui import NoRevivePrompt
+AgentServer.custom_recognition('battle_no_revive')(NoRevivePrompt)
 @AgentServer.custom_action('capture_branch')
 class Branch(CustomAction):
     def run(self, context, argv):
@@ -168,6 +203,17 @@ class PlaybackTransportTests(unittest.TestCase):
         report = self.run_case('defeat')
         self.assertEqual(report['inputs'], [['down', 68], ['up', 68]])
         self.assertEqual(report['branches'], ['Failure'])
+
+    def test_revive_during_held_key_releases_before_declining_and_confirms_defeat(self):
+        report=self.run_case('revive')
+        self.assertEqual(report['inputs'][:2],[['down',68],['up',68]])
+        self.assertEqual([op for op,_ in report['inputs']],['down','up','cancel_down','cancel_up'])
+        self.assertEqual(report['branches'],['Failure'])
+
+    def test_return_absence_guard_can_reenter_native_matching_over_agent_ipc(self):
+        report=self.run_case('return')
+        self.assertEqual([op for op,_ in report['inputs']],['return_down','return_up'])
+        self.assertEqual(report['branches'],['Failure'])
 
 
 if __name__ == '__main__':
