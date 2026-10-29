@@ -1,0 +1,6 @@
+{
+  "description": "Add an offline game database beside the script studio in the native sidebar.",
+  "path": "MFAAvalonia/Views/Mobile/RootViewContent.axaml",
+  "find": "                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:ScriptStudioView}}\" />",
+  "replace": "                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:ScriptStudioView}}\" />\n                        <suki:SukiSideMenuItem IsContentMovable=\"False\"\n                                               Header=\"游戏数据库\"\n                                               Icon=\"{fluent:FluentIcon Icon=Book, IconVariant=Regular}\"\n                                               PageContent=\"{extensions:ServiceProvider ServiceType={x:Type pages:GameDatabaseView}}\" />"
+}

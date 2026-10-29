@@ -4,6 +4,8 @@
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
+下一版本另有原生“游戏数据库”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
+
 ## 源码与构建
 
 `upstream.json` 固定与本机 Core 2.14.0 对应的 MFAAvalonia 提交、源码归档 SHA-256 和构建入口。`ScriptStudio/` 内的文件按 MFAAvalonia Core 项目目录布局存放。构建脚本将其复制到下载源码的 `MFAAvalonia/` 下，纯 C# `UserControl` 也可使用，不要求额外的 `.axaml` 文件。

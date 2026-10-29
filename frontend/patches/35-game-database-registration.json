@@ -1,0 +1,6 @@
+{
+  "description": "Register the read-only game database page using the existing view locator.",
+  "path": "MFAAvalonia/App.axaml.cs",
+  "find": "            .AddView<ScriptStudioView, ScriptStudioViewModel>(services)",
+  "replace": "            .AddView<ScriptStudioView, ScriptStudioViewModel>(services)\n            .AddView<GameDatabaseView, GameDatabaseViewModel>(services)"
+}

@@ -45,6 +45,8 @@
     "frontend/patches/30-win32-explicit-window-identity.json",
     "frontend/patches/31-win32-no-first-window-fallback.json",
     "frontend/patches/32-win32-no-filtered-first-fallback.json",
-    "frontend/patches/33-win32-startup-explicit-selection.json"
+    "frontend/patches/33-win32-startup-explicit-selection.json",
+    "frontend/patches/34-game-database-navigation.json",
+    "frontend/patches/35-game-database-registration.json"
   ]
 }
