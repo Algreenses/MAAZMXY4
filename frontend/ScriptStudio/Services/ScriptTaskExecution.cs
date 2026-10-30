@@ -26,6 +26,8 @@ public static class ScriptTaskExecution
             }, token)).AsObject();
             token.ThrowIfCancellationRequested();
             TaskScriptPlan.StopIfUnbound(plan, message => processor.AddLog(message), token);
+            if (TaskScriptPlan.IsAfkMode(overrides) && plan["binding"]?["mode"]?.GetValue<string>() == "replace")
+                throw new InvalidOperationException("挂机模式需要原任务流程的战败与返回确认，请改为原流程绑定。");
             var management = GameManagementService.For(processor);
             if ((management.Options.Enabled || management.IsArmed) && plan["management_completion_only"]?.GetValue<bool>() == true)
             {

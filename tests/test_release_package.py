@@ -83,6 +83,14 @@ class ReleasePackageTests(unittest.TestCase):
     def client_fixture(self):
         frontend = self.root/'frontend'
         for name in build_release.FRONTEND_REQUIRED: self.write('frontend/'+name,b'fixture binary')
+        manifest=json.loads((ROOT/'frontend/upstream.json').read_text(encoding='utf8'))
+        sources=['frontend/upstream.json',*manifest['patches']]
+        sources += [p.relative_to(ROOT).as_posix() for p in (ROOT/manifest['overlay_directory']).rglob('*') if p.is_file()]
+        built={k:manifest[k] for k in ('repository','commit','archive_sha256','patches')}
+        built['source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+        built['binary_sha256']={name:hashlib.sha256((frontend/name).read_bytes()).hexdigest()
+                               for name in ('MFAAvalonia.dll','libs/MFAAvalonia.Core.dll')}
+        self.write('frontend/script-studio-build.json',json.dumps(built).encode('utf8'))
         for name in build_release.PYTHON_REQUIRED:
             if name in ('DLLs', 'Lib/site-packages/MaaAgentBinary'):
                 (self.root/'python'/name).mkdir(parents=True, exist_ok=True)
@@ -93,6 +101,25 @@ class ReleasePackageTests(unittest.TestCase):
         self.write(build_release.LAUNCHER_NAME, b'fixture launcher; never executed')
         self.launcher_hash = hashlib.sha256(launcher.read_bytes()).hexdigest()
         return frontend, self.root/'python', launcher
+
+    def test_full_client_rejects_old_frontend_even_with_current_resource_version(self):
+        frontend,runtime,launcher=self.client_fixture()
+        p=frontend/'script-studio-build.json';built=json.loads(p.read_text(encoding='utf8'))
+        built['patches']=built['patches'][:17];p.write_text(json.dumps(built),encoding='utf8')
+        with patch.object(build_release,'LAUNCHER_SHA256',self.launcher_hash),self.assertRaisesRegex(ValueError,'前端构建与当前源码不一致'):
+            client_files(ROOT,frontend,runtime,launcher)
+
+    def test_public_default_manifest_does_not_admit_undeclared_recordings(self):
+        self.write('sample/agent/main.py',b'# code')
+        self.write('sample/assets/resource/base/public.json',b'{}')
+        self.write('sample/assets/interface.json',b'{}')
+        self.write('sample/agent/recordings/public.json',b'{}')
+        self.write('sample/agent/recordings/private.json',b'private recording')
+        self.write('sample/recordings/private.json',b'personal library')
+        self.write('sample/agent/recordings/manifest.json',json.dumps(dict(version=1,items=[dict(file='public.json',sha256=hashlib.sha256(b'{}').hexdigest())])).encode('utf8'))
+        names=[relative for _,relative in collect(str(self.root/'sample'))]
+        self.assertIn('agent/recordings/public.json',names)
+        self.assertFalse(any('private.json' in name for name in names))
 
     def test_full_client_collects_canonical_resources_and_crlf_setup_without_preview_data(self):
         frontend, runtime, launcher = self.client_fixture()
@@ -121,7 +148,8 @@ class ReleasePackageTests(unittest.TestCase):
         frontend, runtime, launcher = self.client_fixture()
         output = self.root/'full.zip'
         with patch.object(build_release, 'LAUNCHER_SHA256', self.launcher_hash):
-            build_release.build_client(ROOT, frontend, runtime, output, launcher)
+            build_release.build_client(ROOT, frontend, runtime, output, launcher,
+                channel='preview', manifest_urls=['https://example.test/client-version.json'])
         with zipfile.ZipFile(output) as archive:
             name = 'runtimes/win-x64/native/plugins/'
             self.assertIn(name, archive.namelist())

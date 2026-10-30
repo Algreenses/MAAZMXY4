@@ -26,6 +26,15 @@ internal static class Program
         var control = new GameManagementView { DataContext = first };
         var window = new Window { Width = 430, Height = 580, Content = control };
         window.Show(); Dispatcher.UIThread.RunJobs();
+        var rows = new AfkOptionControls();
+        var count = new NumericUpDown { Value = 37 };
+        var row = new StackPanel(); row.Children.Add(count); rows.Add(row);
+        rows.SetEnabled(true);
+        Require(!row.IsEnabled && count.Value == 37, "AFK disables count without overwriting it");
+        var retryRow = new StackPanel(); rows.Add(retryRow);
+        Require(!retryRow.IsEnabled, "Late-created retry options remain disabled");
+        rows.SetEnabled(false);
+        Require(row.IsEnabled && retryRow.IsEnabled && count.Value == 37, "Leaving AFK restores original values");
         var checks = control.GetVisualDescendants().OfType<CheckBox>().ToArray();
         Require(checks.Length == 3 && checks.All(c => c.IsChecked != true), "All three policies default off");
         var texts = control.GetVisualDescendants().OfType<TextBox>().ToArray();

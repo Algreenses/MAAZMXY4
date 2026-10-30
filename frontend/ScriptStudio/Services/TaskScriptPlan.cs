@@ -8,10 +8,22 @@ namespace MFAAvalonia.Services;
 /// <summary>Turn catalog capabilities and saved bindings into native Pipeline overrides.</summary>
 public static class TaskScriptPlan
 {
-    public static string NormalizeRepeatLimits(string overrides)
+    public static bool IsAfkMode(string? overrides) =>
+        TaskRecoveryPolicy.MergePipelineOverrides(overrides)["脚本任务设置"]?["action"]?["param"]?["custom_action_param"]?["afk_mode"]?.GetValue<bool>() == true;
+
+    public static string NormalizeRepeatLimits(string overrides, string? repeatEntry = null)
     {
         var root = JsonNode.Parse(overrides);
-        var changed = false;
+        var afk = IsAfkMode(overrides);
+        var changed = afk;
+        if (afk)
+        {
+            root = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
+            Parameters(root.AsObject(), "脚本任务设置")["failure_retry"] =
+                new JsonObject { ["enabled"] = true, ["max_retries"] = -1 };
+            if (repeatEntry != null && root[repeatEntry] is JsonObject repeated && repeated.ContainsKey("max_hit"))
+                repeated["max_hit"] = uint.MaxValue;
+        }
         void Normalize(JsonNode? value)
         {
             if (value is JsonArray array)

@@ -228,6 +228,16 @@ if (-not (Test-Path -LiteralPath (Join-Path $outputRoot 'MFAAvalonia.exe'))) {
 }
 
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'LICENSE') -Destination (Join-Path $outputRoot 'LICENSE-MFAAvalonia.txt') -Force
+$sourceHashes = [ordered]@{}
+$sourceFiles = @('frontend/upstream.json') + @($manifest.patches)
+$sourceFiles += @(Get-ChildItem -LiteralPath $overlayRoot -Recurse -File | ForEach-Object { $_.FullName.Substring($projectRoot.Length + 1).Replace('\', '/') })
+foreach ($relative in $sourceFiles) {
+    $sourceHashes[$relative] = (Get-FileHash -LiteralPath (Get-ContainedPath $projectRoot $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+$binaryHashes = [ordered]@{}
+foreach ($relative in @('MFAAvalonia.dll', 'libs/MFAAvalonia.Core.dll')) {
+    $binaryHashes[$relative] = (Get-FileHash -LiteralPath (Get-ContainedPath $outputRoot $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
+}
 $buildInfo = [ordered]@{
     repository = $manifest.repository
     commit = $manifest.commit
@@ -240,6 +250,8 @@ $buildInfo = [ordered]@{
     source_url = "https://github.com/$($manifest.repository)/tree/$($manifest.commit)"
     overlay_directory = $manifest.overlay_directory
     patches = $manifest.patches
+    source_sha256 = $sourceHashes
+    binary_sha256 = $binaryHashes
 }
 Write-Utf8 (Join-Path $outputRoot 'script-studio-build.json') (($buildInfo | ConvertTo-Json -Depth 5) + "`n")
 

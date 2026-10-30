@@ -25,7 +25,8 @@ public static class TaskRecovery
             var pipeline = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
             var parameters = InitializerParameters(pipeline, entry);
             var options = management == null ? TaskRecoveryOptions.Read(parameters)
-                : new TaskRecoveryOptions(management.RestartOnFailure, 3, management.SaveSlot, management.ExePath);
+                : new TaskRecoveryOptions(management.RestartOnFailure, 3, management.SaveSlot, management.ExePath,
+                    TaskScriptPlan.IsAfkMode(overrides));
             var resumeEntry = profile["resume_entry"]?.GetValue<string>();
             if (options.Enabled && string.IsNullOrWhiteSpace(resumeEntry))
                 throw new InvalidDataException("该任务没有配置恢复入口。");
@@ -221,7 +222,7 @@ public static class TaskRecovery
         {
             token.ThrowIfCancellationRequested();
             if (_target == null) return TaskAttempt.Fatal("没有经过校验的恢复目标。");
-            processor.AddLog($"任务：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
+            processor.AddLog($"任务：本轮自动恢复 {attempt}/{(options.UnlimitedBattleRetries ? "战败不限次" : options.MaxRetries.ToString())}，已完成轮数保持不变。");
             using var reconnection = GameManagementService.SuppressReconnection(processor);
             return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
         }
@@ -267,8 +268,9 @@ public static class TaskRecovery
             token.ThrowIfCancellationRequested();
             _window = window.Handle;
             EnsureUnshared(pid);
-            await RestoreClientSizeAsync(window.Handle, pid, token);
             await DispatcherHelper.RunOnMainThreadAsync(() => processor.ViewModel!.BindWin32RecoveryWindow(window));
+            processor.AddLog($"游戏管理：已刷新新窗口 PID={pid}，HWND=0x{window.Handle.ToInt64():X}，开始核验画面尺寸。");
+            await RestoreClientSizeAsync(window.Handle, pid, token);
         }
 
         private async Task RestoreClientSizeAsync(IntPtr window, int pid, CancellationToken token)
@@ -277,7 +279,8 @@ public static class TaskRecovery
             _target!.RequireSame(Identity(pid));
             if (WindowPid(window) != pid) throw new InvalidOperationException("新游戏窗口身份已改变。");
             var current = ClientSize(window);
-            if (current == _clientSize) return;
+            processor.AddLog($"游戏管理：原客户区 {_clientSize.Width}×{_clientSize.Height}，新客户区 {current.Width}×{current.Height}。");
+            if (_clientSize.SameNormalizedFrame(current)) return;
             if (!GetWindowRect(window, out var rectangle)) throw new InvalidOperationException("无法读取新游戏窗口边框尺寸。");
             var outer = new TaskWindowSize(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top);
             var target = _clientSize.OuterSizeFor(current, outer);
@@ -286,15 +289,32 @@ public static class TaskRecovery
             // z-order and focus unchanged; never stretch the recorded coordinates.
             if (!SetWindowPos(window, IntPtr.Zero, 0, 0, target.Width, target.Height, 0x0002 | 0x0004 | 0x0010))
                 throw new InvalidOperationException("无法恢复原游戏客户区尺寸。");
-            var until = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            var until = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+            var nextCorrection = DateTime.UtcNow + TimeSpan.FromSeconds(1);
             while (DateTime.UtcNow < until)
             {
                 token.ThrowIfCancellationRequested();
+                _target.RequireSame(Identity(pid));
                 if (WindowPid(window) != pid) throw new InvalidOperationException("调整尺寸时游戏窗口已改变。");
-                if (ClientSize(window) == _clientSize) return;
+                current = ClientSize(window);
+                if (_clientSize.SameNormalizedFrame(current))
+                {
+                    processor.AddLog($"游戏管理：客户区已稳定为 {current.Width}×{current.Height}，720p 归一化尺寸一致。");
+                    return;
+                }
+                if (DateTime.UtcNow >= nextCorrection && GetWindowRect(window, out rectangle))
+                {
+                    // AIR can impose its aspect ratio while the first frame is
+                    // loading. Correct from the measured client/outer delta.
+                    target = _clientSize.OuterSizeFor(current,
+                        new TaskWindowSize(rectangle.Right - rectangle.Left, rectangle.Bottom - rectangle.Top));
+                    if (!SetWindowPos(window, IntPtr.Zero, 0, 0, target.Width, target.Height, 0x0002 | 0x0004 | 0x0010))
+                        throw new InvalidOperationException("无法调整新游戏窗口尺寸。");
+                    nextCorrection = DateTime.UtcNow + TimeSpan.FromSeconds(1);
+                }
                 await Task.Delay(50, token);
             }
-            throw new InvalidOperationException("新游戏窗口未恢复原客户区尺寸，已停止以防操作偏移。");
+            throw new InvalidOperationException($"新窗口已刷新，但客户区比例不匹配（原 {_clientSize.Width}×{_clientSize.Height}，当前 {current.Width}×{current.Height}），未发送游戏输入。");
         }
 
         public async Task ReconnectAsync(CancellationToken token)

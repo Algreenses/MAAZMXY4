@@ -192,7 +192,7 @@ def begin_round(context, parameters, state):
         # node; do not invent a second options store or a task-name whitelist.
         settings = context.get_node_data(parameters.get('settings_node', '脚本任务设置'))
         for key, value in custom_parameters(settings or {}).items():
-            if key in ('exit_mode', 'failure_retry', 'recovery'):
+            if key in ('exit_mode', 'failure_retry', 'recovery', 'afk_mode'):
                 parameters[key] = deepcopy(value)
     reference = parameters.get('file', '@task')
     if reference == '@task':
@@ -217,14 +217,19 @@ def begin_round(context, parameters, state):
                  recording_sha256=recording['sha256'], parameters=parameters,
                  failure_retries=0, battle_failed=False)
     policy = parameters.get('failure_retry', {})
+    afk = parameters.get('afk_mode', False)
+    if type(afk) is not bool:
+        raise ValueError('挂机模式必须为布尔值。')
+    if afk:
+        policy = dict(enabled=True, max_retries=-1)
     if not isinstance(policy, dict) or type(policy.get('enabled', False)) is not bool:
         raise ValueError('失败自动重试配置无效。')
     retries = policy.get('max_retries', 3)
     if isinstance(retries, str) and retries.isascii() and retries.isdecimal():
         retries = int(retries)
-    if type(retries) is not int or not 0 <= retries <= 20:
+    if type(retries) is not int or not (0 <= retries <= 20 or afk and retries == -1):
         raise ValueError('每轮失败重试次数必须为0～20；0表示不自动重开。')
-    state['failure_retry'] = dict(enabled=policy.get('enabled', False) and retries > 0, max_retries=retries)
+    state['failure_retry'] = dict(enabled=afk or policy.get('enabled', False) and retries > 0, max_retries=retries)
     routes = parameters.get('routes', {})
     mode = parameters.get('exit_mode', next(iter(routes), None))
     if routes and mode not in routes:
@@ -301,7 +306,7 @@ def retry_failed_round(context, state, node_name):
     if not policy['enabled']:
         write_status(state, 'fatal', 'battle_failed', message='挑战失败，已返回地图；失败自动重试已关闭，本轮未计次。')
         return False
-    if state['failure_retries'] >= policy['max_retries']:
+    if policy['max_retries'] != -1 and state['failure_retries'] >= policy['max_retries']:
         write_status(state, 'fatal', 'battle_retry_exhausted', message='挑战失败重试次数已用尽，本轮未计次。')
         return False
     next_node = state['parameters'].get('navigation_entry')

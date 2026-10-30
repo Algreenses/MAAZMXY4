@@ -241,8 +241,13 @@ def configure(root=ROOT):
                      verify='^([0-9]|1[0-9]|20)$', pattern_msg='请输入0至20，0表示不自动重开')],
         pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'max_retries': '{失败重试次数}'}}}}}})
     marker='\n\n游戏管理：'
+    interface['option']['挂机模式'] = dict(type='select', label='挂机模式', default_case='关闭',
+        description='开启后无限刷取、无限战败重试，直到手动停止。原次数与重试设置保留；验证码、未知界面、存档不符或脚本损坏仍安全停止。',
+        cases=[dict(name=name, pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'afk_mode': enabled}}}}})
+               for name,enabled in [('关闭',False),('启用',True)]])
     for task in interface['task']:
         if task['name'] not in changed: continue
+        task['option'] = ['挂机模式'] + [name for name in task['option'] if name != '挂机模式']
         task['option']=[name for name in task.get('option',[]) if name!='自动恢复']
         task['description']=task.get('description','').split(marker)[0]+marker+(
             '在右侧设置现有造梦盒子程序、历史账号名称和已有存档角色。可分别开启任务失败后重启、'

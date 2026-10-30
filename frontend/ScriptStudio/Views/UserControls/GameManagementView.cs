@@ -20,7 +20,7 @@ public sealed class GameManagementView : UserControl
     private readonly TextBox _exe = new() { Watermark = "现有造梦盒子 EXE 路径" };
     private readonly TextBox _account = new() { Watermark = "盒子历史账号中的名称" };
     private readonly TextBox _role = new() { Watermark = "用于核对存档的角色名" };
-    private readonly ComboBox _slot = new() { ItemsSource = new[] { "存档 1", "存档 2", "存档 3", "存档 4" }, SelectedIndex = 0 };
+    private readonly ComboBox _slot = new() { ItemsSource = new[] { "存档 1", "存档 2", "存档 3", "存档 4", "存档 5", "存档 6", "存档 7", "存档 8" }, SelectedIndex = 0 };
     private bool _busy;
     private TaskQueueViewModel? Page => DataContext as TaskQueueViewModel;
 

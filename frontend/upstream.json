@@ -64,6 +64,8 @@
     "frontend/patches/49-idle-tab-animation.json",
     "frontend/patches/50-idle-monitor-animation.json",
     "frontend/patches/51-idle-update-animation.json",
-    "frontend/patches/52-idle-tab-child-visibility.json"
+    "frontend/patches/52-idle-tab-child-visibility.json",
+    "frontend/patches/53-afk-option-controls.json",
+    "frontend/patches/54-afk-host-repeat.json"
   ]
 }

@@ -54,7 +54,8 @@ public sealed class TaskRecordingRevision
     }
 }
 
-public sealed record TaskRecoveryOptions(bool Enabled, int MaxRetries, int SaveSlot, string ExePath)
+public sealed record TaskRecoveryOptions(bool Enabled, int MaxRetries, int SaveSlot, string ExePath,
+    bool UnlimitedBattleRetries = false)
 {
     public static TaskRecoveryOptions Read(JsonObject parameters)
     {
@@ -104,6 +105,16 @@ public sealed record ManagedGameTarget(TaskProcessIdentity Process, nint Window,
 
 public readonly record struct TaskWindowSize(int Width, int Height)
 {
+    public bool SameNormalizedFrame(TaskWindowSize other)
+    {
+        Validate(); other.Validate();
+        // Maa normalizes the short side to 720. Uniform AIR/DPI scaling is
+        // harmless; changing the aspect ratio would change recorded positions.
+        double scale = 720.0 / Math.Min(Width, Height);
+        double otherScale = 720.0 / Math.Min(other.Width, other.Height);
+        return Math.Abs(Math.Round(Width * scale) - Math.Round(other.Width * otherScale)) <= 1
+            && Math.Abs(Math.Round(Height * scale) - Math.Round(other.Height * otherScale)) <= 1;
+    }
     public void Validate()
     {
         if (Width is < 1 or > 32768 || Height is < 1 or > 32768)
@@ -223,13 +234,18 @@ public static class TaskRecoveryPolicy
         token.ThrowIfCancellationRequested();
         var outcome = await runRound(token);
         var restarts = 0;
+        var budgetedRestarts = 0;
         while (outcome.Status == TaskAttemptStatus.Recoverable && options.Enabled)
         {
             token.ThrowIfCancellationRequested();
             if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed"))
                 return TaskAttempt.Fatal("不允许自动恢复的故障：" + outcome.Reason);
-            if (restarts >= options.MaxRetries)
+            // AFK removes the battle-loss budget only. Unknown/fatal states and
+            // repeated window/capture faults must still stop safely.
+            var unlimitedBattle = options.UnlimitedBattleRetries && outcome.Reason == "battle_failed";
+            if (!unlimitedBattle && budgetedRestarts >= options.MaxRetries)
                 return TaskAttempt.Fatal("本轮自动恢复次数已用尽。");
+            if (!unlimitedBattle) budgetedRestarts++;
             restarts++;
             outcome = await recover(options.SaveSlot, restarts, token);
             token.ThrowIfCancellationRequested();

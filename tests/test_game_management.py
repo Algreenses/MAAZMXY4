@@ -84,13 +84,18 @@ class GameManagementTests(unittest.TestCase):
         ctx,run=self.scenario([set()]);ctx.run_recognition=lambda *_:None
         with self.assertRaisesRegex(ValueError,'缺少恢复节点'):run()
 
-    def test_account_and_role_are_literal_and_four_slots_stay_in_their_rows(self):
+    def test_account_and_role_are_literal_and_eight_slots_stay_in_their_rows(self):
         first=login.login_overrides('name.*','role(1)',1)
         third=login.login_overrides('name.*','role(1)',3)
         roi=lambda p:p['GameManagement_ChooseRole']['recognition']['param']['all_of'][1]['recognition']['param']
-        self.assertEqual(roi(first)['expected'],['^role\\(1\\)$'])
+        import re
+        pattern=roi(first)['expected'][0]
+        self.assertRegex('role(1) Lv.72',pattern)
+        self.assertIsNone(re.fullmatch(pattern,'role(1)其它 Lv.72'))
         self.assertLess(roi(first)['roi'][1],roi(third)['roi'][1])
-        with self.assertRaises(ValueError):login.login_overrides('name','role',5)
+        eighth=login.login_overrides('name','role',8)
+        self.assertEqual(roi(eighth)['roi'][:2],[655,504])
+        with self.assertRaises(ValueError):login.login_overrides('name','role',9)
 
     def test_scroll_fallback_is_independent_of_game_process_management(self):
         NavigationError = runtime.NavigationError

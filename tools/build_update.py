@@ -91,6 +91,28 @@ def collect(root):
                 rel = os.path.relpath(full, p).replace("\\", "/")
                 files.append((full, item + "/" + rel))
 
+    # Root recordings are personal. agent/recordings contains only the reviewed
+    # manifest and its declared public defaults; never sweep that folder whole.
+    defaults = os.path.join(_pick_dir(root, 'agent'), 'recordings')
+    manifest = os.path.join(defaults, 'manifest.json')
+    if os.path.isfile(manifest):
+        with open(manifest, encoding='utf8') as stream:
+            bundle = json.load(stream)
+        if bundle.get('version') != 1 or not isinstance(bundle.get('items'), list):
+            raise ValueError('公共录制清单格式无效。')
+        files.append((manifest, 'agent/recordings/manifest.json'))
+        seen = set()
+        for item in bundle['items']:
+            name = item.get('file', '')
+            if (not name.endswith('.json') or name.startswith('.') or name == 'manifest.json'
+                    or any(char in name for char in '/\\:') or name in seen):
+                raise ValueError('公共录制清单路径无效。')
+            seen.add(name)
+            path = os.path.join(defaults, name)
+            if not os.path.isfile(path) or sha256_of(path) != item.get('sha256'):
+                raise ValueError('公共录制与清单哈希不一致：' + name)
+            files.append((path, 'agent/recordings/' + name))
+
     for cand in INTERFACE_CANDIDATES:
         p = os.path.join(root, cand)
         if os.path.isfile(p):

@@ -482,6 +482,38 @@ Sync("managed native quotas stop at one confirmed round and preserve unrelated o
     plan["management_profile"]!["native_repeat"] = false;
     Require(TaskScriptPlan.PrepareManaged(plan,"Start",null,new()).Limit == 1); // MFA owns its outer repetitions.
 });
+Sync("AFK overrides finite native quota and retry limit without changing saved input", () =>
+{
+    var raw = "{\"Counter\":{\"max_hit\":7},\"脚本任务设置\":{\"action\":{\"param\":{\"custom_action_param\":{\"afk_mode\":true,\"failure_retry\":{\"enabled\":false,\"max_retries\":0}}}}}}";
+    var result = JsonNode.Parse(TaskScriptPlan.NormalizeRepeatLimits(raw, "Counter"))!;
+    Require(result["Counter"]!["max_hit"]!.GetValue<long>() == uint.MaxValue);
+    Require(TaskScriptPlan.Parameters(result.AsObject(), "脚本任务设置")["failure_retry"]!["max_retries"]!.GetValue<int>() == -1);
+    Require(JsonNode.Parse(raw)!["Counter"]!["max_hit"]!.GetValue<int>() == 7);
+});
+Test("AFK retries confirmed defeats beyond twenty and remains cancellable", async () =>
+{
+    using var cancel = new CancellationTokenSource();
+    var count = 0;
+    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled with { UnlimitedBattleRetries = true },
+        _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, "battle_failed")),
+        (_, _, _) => { if (++count == 25) cancel.Cancel(); return Task.FromResult(Ready()); }, cancel.Token));
+    Require(count == 25);
+});
+Test("AFK still bounds window-loss recovery", async () =>
+{
+    var count = 0;
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { UnlimitedBattleRetries = true },
+        _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, "window_lost")),
+        (_, _, _) => { count++; return Task.FromResult(Ready()); }, default);
+    Require(count == 3 && result.Status == TaskAttemptStatus.Fatal);
+});
+Sync("AIR and DPI scaling preserve normalized geometry but aspect changes do not", () =>
+{
+    Require(new TaskWindowSize(1148,720).SameNormalizedFrame(new TaskWindowSize(1176,738)));
+    Require(new TaskWindowSize(940,590).SameNormalizedFrame(new TaskWindowSize(1880,1180)));
+    Require(!new TaskWindowSize(1148,720).SameNormalizedFrame(new TaskWindowSize(1024,768)));
+    new GameManagementOptions { SaveSlot = 8 }.Validate();
+});
 var passed = 0;
 foreach (var test in tests)
 {

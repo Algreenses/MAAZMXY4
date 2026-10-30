@@ -2,5 +2,8 @@
   "description": "Map the user-facing infinite brush count to Maa native unlimited max_hit.",
   "path": "MFAAvalonia/Extensions/MaaFW/MaaProcessor.cs",
   "find": "        var taskParams = SerializeTaskParams(taskModels);",
-  "replace": "        var taskParams = MFAAvalonia.Services.TaskScriptPlan.NormalizeRepeatLimits(SerializeTaskParams(taskModels));"
+  "replace": "        var taskParams = MFAAvalonia.Services.TaskScriptPlan.NormalizeRepeatLimits(SerializeTaskParams(taskModels), task.InterfaceItem?.Entry);",
+  "previous_replacements": [
+    "        var taskParams = MFAAvalonia.Services.TaskScriptPlan.NormalizeRepeatLimits(SerializeTaskParams(taskModels));"
+  ]
 }

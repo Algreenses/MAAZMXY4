@@ -317,6 +317,30 @@ class BountyCandleTests(unittest.TestCase):
         self.assertNotIn({PREFIX+'失败返回确认': {'next': [PREFIX+'通用导航']}}, self.context.patches[patches:])
         self.assertFalse(self.outcome()['failure_retry']['enabled'])
 
+    def test_afk_overrides_retry_limit_but_keeps_revision_and_obeys_stop(self):
+        settings=self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']
+        settings.update(afk_mode=True,failure_retry={'enabled':False,'max_retries':0})
+        self.assertTrue(self.run_phase('begin'))
+        saved=self.outcome()['recording_sha256']
+        for attempt in range(1,26):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['failure_retries'],attempt)
+            self.assertEqual(self.outcome()['recording_sha256'],saved)
+            self.assertEqual(self.context.patches[-1],{PREFIX+'失败返回确认':{'next':[PREFIX+'通用导航']}})
+        self.context.tasker.stopping=True
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'],'cancelled')
+
+    def test_afk_cannot_retry_unknown_return_or_turn_off_strict_recording_checks(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode']=True
+        self.assertTrue(self.run_phase('begin'))
+        self.assertTrue(self.run_phase('battle_failure'))
+        self.context.run_recognition=lambda *args:SimpleNamespace(hit=False)
+        self.assertFalse(self.run_phase('retry_after_failure'))
+        self.assertEqual(self.outcome()['status'],'fatal')
+        self.assertEqual(self.outcome()['reason'], 'navigation_unknown')
+
     def test_defeat_cannot_be_reported_as_success_or_retried_on_unknown_return(self):
         self.assertTrue(self.run_phase('begin'))
         self.assertTrue(self.run_phase('battle_failure'))

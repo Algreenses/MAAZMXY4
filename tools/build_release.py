@@ -123,6 +123,25 @@ def validate_client(root):
     return validate_client_resources(root)
 
 
+def validate_frontend_source(root, frontend):
+    """Reject old custom frontends even when the resource version was bumped."""
+    manifest = json.loads((root/'frontend/upstream.json').read_text(encoding='utf8'))
+    built = json.loads((frontend/'script-studio-build.json').read_text(encoding='utf8'))
+    for key in ('repository', 'commit', 'archive_sha256', 'patches'):
+        if built.get(key) != manifest.get(key):
+            raise ValueError('前端构建与当前源码不一致：' + key)
+    if not built.get('source_sha256') or not built.get('binary_sha256'):
+        raise ValueError('前端构建缺少源码及二进制校验记录，请重新构建。')
+    sources = ['frontend/upstream.json', *manifest['patches']]
+    sources += [p.relative_to(root).as_posix() for p in (root/manifest['overlay_directory']).rglob('*') if p.is_file()]
+    for name in sources:
+        if built['source_sha256'].get(name) != hashlib.sha256((root/name).read_bytes()).hexdigest():
+            raise ValueError('前端源码在构建后发生变化：' + name)
+    for name in ('MFAAvalonia.dll', 'libs/MFAAvalonia.Core.dll'):
+        if built['binary_sha256'].get(name) != hashlib.sha256((frontend/name).read_bytes()).hexdigest():
+            raise ValueError('前端二进制与构建记录不一致：' + name)
+
+
 def client_files(root, frontend, python_runtime, launcher):
     """Assemble from canonical sources and explicit binaries, never a used client."""
     root, frontend, python_runtime = map(Path, (root, frontend, python_runtime))
@@ -133,6 +152,7 @@ def client_files(root, frontend, python_runtime, launcher):
     if Path(launcher).with_name('launcher-build.json').is_file():
         files.append((Path(launcher).with_name('launcher-build.json'), 'launcher-build.json'))
     require_paths(frontend, FRONTEND_REQUIRED, '前端构建')
+    validate_frontend_source(root, frontend)
     for name in FRONTEND_ROOT_FILES: files.append((frontend / name, name))
     for folder in ('libs', 'runtimes/win-x64/native'):
         files.extend((path, path.relative_to(frontend).as_posix())
@@ -144,7 +164,8 @@ def client_files(root, frontend, python_runtime, launcher):
     for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
-                 'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md'):
+                 'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
+                 'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))
     files.extend((path, path.relative_to(root).as_posix()) for path in (root/'update_engine').glob('*.py'))
     files = [(source, relative) for source, relative in files
