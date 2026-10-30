@@ -33,6 +33,11 @@ try:
 except Exception:  # noqa: BLE001
     pass
 
+try:
+    import cursor_action  # noqa: F401
+except Exception:  # noqa: BLE001
+    pass
+
 
 def main():
     Toolkit.init_option("./")

@@ -34,14 +34,15 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 1000,
+    "post_delay": 200,
     "timeout": 10000,
     "next": [
       "伽岚（万世冥阁）-回放战斗"
     ],
     "on_error": [
       "伽岚（万世冥阁）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-回放战斗": {
     "pre_delay": 0,
@@ -100,10 +101,11 @@
       "伽岚（万世冥阁）-成功返回地图",
       "伽岚（万世冥阁）-返回地图"
     ],
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "伽岚（万世冥阁）-退出结果复核"
-    ]
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-返回地图": {
     "recognition": {
@@ -121,7 +123,11 @@
     "next": [
       "伽岚（万世冥阁）-脚本返回确认"
     ],
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "伽岚（万世冥阁）-返回地图重试"
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-刷取次数": {
     "recognition": {
@@ -130,7 +136,7 @@
     "next": [
       "伽岚（万世冥阁）-准备本轮"
     ],
-    "post_delay": 1000,
+    "post_delay": 300,
     "action": {
       "type": "Custom",
       "param": {
@@ -145,7 +151,8 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    }
+    },
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-脚本返回确认": {
     "recognition": {
@@ -165,7 +172,8 @@
     "post_delay": 0,
     "next": [
       "伽岚（万世冥阁）-本轮成功"
-    ]
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-关卡入口": {
     "recognition": {
@@ -225,7 +233,7 @@
       }
     },
     "pre_delay": 80,
-    "post_delay": 1000,
+    "post_delay": 500,
     "timeout": 10000,
     "action": {
       "type": "Click"
@@ -234,8 +242,9 @@
       "伽岚（万世冥阁）-识别万世冥阁场景"
     ],
     "on_error": [
-      "伽岚（万世冥阁）-失败"
-    ]
+      "伽岚（万世冥阁）-关卡入口_重试1"
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-准备本轮": {
     "recognition": {
@@ -546,10 +555,11 @@
       "伽岚（万世冥阁）-脚本返回确认"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "伽岚（万世冥阁）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-失败返回确认": {
     "recognition": {
@@ -629,7 +639,8 @@
     "post_delay": 0,
     "on_error": [
       "伽岚（万世冥阁）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "伽岚（万世冥阁）-已确认战斗失败": {
     "recognition": {
@@ -738,5 +749,192 @@
     "on_error": [
       "伽岚（万世冥阁）-失败"
     ]
+  },
+  "伽岚（万世冥阁）-移开光标": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "dx": -600,
+          "dy": -380
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "伽岚（万世冥阁）-识别万世冥阁场景"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-识别万世冥阁场景"
+    ]
+  },
+  "伽岚（万世冥阁）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "timeout": 10000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-脚本返回确认"
+    ],
+    "post_delay": 300,
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ],
+    "rate_limit": 200
+  },
+  "伽岚（万世冥阁）-关卡入口_重试1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "万世冥阁.png",
+                          "万世冥阁（高亮）.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s61-frame1.png",
+                          "navigation/stages/s61-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-移开光标"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-关卡入口_重试2"
+    ],
+    "rate_limit": 200
+  },
+  "伽岚（万世冥阁）-关卡入口_重试2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "万世冥阁.png",
+                          "万世冥阁（高亮）.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s61-frame1.png",
+                          "navigation/stages/s61-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "post_delay": 1000,
+    "timeout": 10000,
+    "action": {
+      "type": "Click"
+    },
+    "next": [
+      "伽岚（万世冥阁）-移开光标"
+    ],
+    "on_error": [
+      "伽岚（万世冥阁）-失败"
+    ],
+    "rate_limit": 200
   }
 }

@@ -93,10 +93,11 @@
         "y": 93
       }
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "摩多（七叶树窟）-退出结果复核"
-    ]
+    ],
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-识别七叶树窟场景": {
     "recognition": {
@@ -108,7 +109,7 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 1000,
+    "post_delay": 200,
     "timeout": 10000,
     "next": [
       "摩多（七叶树窟）-回放战斗"
@@ -121,7 +122,8 @@
         "x": 0,
         "y": 65
       }
-    }
+    },
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-返回地图": {
     "recognition": {
@@ -145,7 +147,11 @@
         "y": 135
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "摩多（七叶树窟）-返回地图重试"
+    ],
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-刷取次数": {
     "recognition": {
@@ -154,7 +160,7 @@
     "next": [
       "摩多（七叶树窟）-准备本轮"
     ],
-    "post_delay": 1000,
+    "post_delay": 300,
     "action": {
       "type": "Custom",
       "param": {
@@ -169,7 +175,8 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    }
+    },
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-脚本返回确认": {
     "recognition": {
@@ -188,7 +195,8 @@
     "post_delay": 0,
     "next": [
       "摩多（七叶树窟）-本轮成功"
-    ]
+    ],
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-关卡入口": {
     "recognition": {
@@ -256,20 +264,21 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "timeout": 10000,
     "next": [
       "摩多（七叶树窟）-识别七叶树窟场景"
     ],
     "on_error": [
-      "摩多（七叶树窟）-失败"
+      "摩多（七叶树窟）-关卡入口_重试1"
     ],
     "$__mpe_code": {
       "position": {
         "x": 1280,
         "y": 0
       }
-    }
+    },
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-准备本轮": {
     "recognition": {
@@ -580,10 +589,11 @@
       "摩多（七叶树窟）-脚本返回确认"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "摩多（七叶树窟）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-失败返回确认": {
     "recognition": {
@@ -662,7 +672,8 @@
     "post_delay": 0,
     "on_error": [
       "摩多（七叶树窟）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "摩多（七叶树窟）-已确认战斗失败": {
     "recognition": {
@@ -771,5 +782,220 @@
     "on_error": [
       "摩多（七叶树窟）-失败"
     ]
+  },
+  "摩多（七叶树窟）-移开光标": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "dx": -600,
+          "dy": -380
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "摩多（七叶树窟）-识别七叶树窟场景"
+    ],
+    "on_error": [
+      "摩多（七叶树窟）-识别七叶树窟场景"
+    ]
+  },
+  "摩多（七叶树窟）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "摩多（七叶树窟）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    },
+    "post_delay": 300,
+    "on_error": [
+      "摩多（七叶树窟）-失败"
+    ],
+    "rate_limit": 200
+  },
+  "摩多（七叶树窟）-关卡入口_重试1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "七叶树窟.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s43-frame1.png",
+                          "navigation/stages/s43-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "摩多（七叶树窟）-移开光标"
+    ],
+    "on_error": [
+      "摩多（七叶树窟）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "摩多（七叶树窟）-关卡入口_重试2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "七叶树窟.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s43-frame1.png",
+                          "navigation/stages/s43-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "摩多（七叶树窟）-移开光标"
+    ],
+    "on_error": [
+      "摩多（七叶树窟）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
   }
 }

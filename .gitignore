@@ -509,7 +509,9 @@ interface.json.bak*
 /LICENSE-MFAAvalonia.txt
 /NOTICE-7zip.txt
 
-# 九转炼丹（本地私有扩展）
-/agent/jzld/
-/agent/jzld_action.py
-/assets/resource/base/pipeline/九转炼丹.json
+# 九转炼丹：2.4.0 起随发布包分发（用户 m11353「不要导致用户下载完任务直接报错」）
+# 之前这三个被忽略，导致 git 里没有、别人 clone 后打出来的包缺模块，
+# 装上就有「Action is null [param.name=jzld_run]」。
+# /agent/jzld/
+# /agent/jzld_action.py
+# /assets/resource/base/pipeline/九转炼丹.json

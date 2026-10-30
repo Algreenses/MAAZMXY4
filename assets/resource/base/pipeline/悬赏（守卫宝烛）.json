@@ -272,8 +272,9 @@
       "悬赏（守卫宝烛）-点击悬赏任务"
     ],
     "on_error": [
-      "悬赏（守卫宝烛）-通用导航"
-    ]
+      "悬赏（守卫宝烛）-点击任务_重试"
+    ],
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-点击悬赏任务": {
     "recognition": {
@@ -391,8 +392,9 @@
       "悬赏（守卫宝烛）-等待场内"
     ],
     "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
+      "悬赏（守卫宝烛）-点击前往副本_重试"
+    ],
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-等待场内": {
     "recognition": {
@@ -800,11 +802,12 @@
       "悬赏（守卫宝烛）-返回地图"
     ],
     "timeout": 8000,
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "悬赏（守卫宝烛）-退出结果复核"
     ],
-    "pre_delay": 0
+    "pre_delay": 0,
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-返回地图": {
     "recognition": {
@@ -825,10 +828,11 @@
       "悬赏（守卫宝烛）-等待返回"
     ],
     "timeout": 10000,
-    "post_delay": 1000,
+    "post_delay": 300,
     "on_error": [
       "悬赏（守卫宝烛）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-成功": {
     "recognition": {
@@ -1777,10 +1781,11 @@
       "悬赏（守卫宝烛）-等待返回"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "悬赏（守卫宝烛）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-失败返回确认": {
     "recognition": {
@@ -1820,7 +1825,8 @@
     "post_delay": 0,
     "on_error": [
       "悬赏（守卫宝烛）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "悬赏（守卫宝烛）-已确认战斗失败": {
     "recognition": {
@@ -1926,6 +1932,126 @@
     ],
     "post_delay": 0,
     "timeout": 15000,
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-点击任务_重试": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "pre_delay": 1000,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 30000,
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-点击悬赏任务"
+    ],
+    "on_error": [
+      "悬赏（守卫宝烛）-失败"
+    ]
+  },
+  "悬赏（守卫宝烛）-点击前往副本_重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^前往副本$"
+                ],
+                "roi": [
+                  480,
+                  550,
+                  350,
+                  100
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "OCR",
+              "param": {
+                "expected": [
+                  "^守卫宝烛$"
+                ],
+                "roi": [
+                  500,
+                  165,
+                  430,
+                  75
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已接受$"
+                        ],
+                        "roi": [
+                          200,
+                          195,
+                          320,
+                          85
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "OCR",
+                      "param": {
+                        "expected": [
+                          "^已[接搜]受$"
+                        ],
+                        "roi": [
+                          420,
+                          220,
+                          66,
+                          40
+                        ],
+                        "only_rec": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 0
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 60000,
+    "next": [
+      "悬赏（守卫宝烛）-阻断提示",
+      "悬赏（守卫宝烛）-等待场内"
+    ],
     "on_error": [
       "悬赏（守卫宝烛）-失败"
     ]

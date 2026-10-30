@@ -1,6 +1,6 @@
 {
   "烛时（钟晷极地）-刷取次数": {
-    "post_delay": 1000,
+    "post_delay": 300,
     "next": [
       "烛时（钟晷极地）-准备本轮"
     ],
@@ -24,7 +24,8 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    }
+    },
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-回放战斗": {
     "pre_delay": 0,
@@ -107,10 +108,11 @@
         "y": 93
       }
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "烛时（钟晷极地）-退出结果复核"
-    ]
+    ],
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-点击钟晷极地": {
     "recognition": {
@@ -135,7 +137,7 @@
       }
     },
     "pre_delay": 100,
-    "post_delay": 1000,
+    "post_delay": 200,
     "timeout": 10000,
     "next": [
       "烛时（钟晷极地）-回放战斗"
@@ -148,7 +150,8 @@
         "x": 0,
         "y": 65
       }
-    }
+    },
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-返回地图": {
     "recognition": {
@@ -172,7 +175,11 @@
         "y": 135
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "烛时（钟晷极地）-返回地图重试"
+    ],
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-脚本返回确认": {
     "recognition": {
@@ -191,7 +198,8 @@
     "post_delay": 0,
     "next": [
       "烛时（钟晷极地）-本轮成功"
-    ]
+    ],
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-关卡入口": {
     "recognition": {
@@ -259,20 +267,21 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "timeout": 10000,
     "next": [
       "烛时（钟晷极地）-识别钟晷极地场景"
     ],
     "on_error": [
-      "烛时（钟晷极地）-失败"
+      "烛时（钟晷极地）-关卡入口_重试1"
     ],
     "$__mpe_code": {
       "position": {
         "x": 1280,
         "y": 0
       }
-    }
+    },
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-准备本轮": {
     "recognition": {
@@ -583,10 +592,11 @@
       "烛时（钟晷极地）-脚本返回确认"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "烛时（钟晷极地）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-失败返回确认": {
     "recognition": {
@@ -665,7 +675,8 @@
     "post_delay": 0,
     "on_error": [
       "烛时（钟晷极地）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "烛时（钟晷极地）-已确认战斗失败": {
     "recognition": {
@@ -774,5 +785,220 @@
     "on_error": [
       "烛时（钟晷极地）-失败"
     ]
+  },
+  "烛时（钟晷极地）-移开光标": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "dx": -600,
+          "dy": -380
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "烛时（钟晷极地）-识别钟晷极地场景"
+    ],
+    "on_error": [
+      "烛时（钟晷极地）-识别钟晷极地场景"
+    ]
+  },
+  "烛时（钟晷极地）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "烛时（钟晷极地）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    },
+    "post_delay": 300,
+    "on_error": [
+      "烛时（钟晷极地）-失败"
+    ],
+    "rate_limit": 200
+  },
+  "烛时（钟晷极地）-关卡入口_重试1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "钟晷极地.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s38-frame1.png",
+                          "navigation/stages/s38-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "烛时（钟晷极地）-移开光标"
+    ],
+    "on_error": [
+      "烛时（钟晷极地）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "烛时（钟晷极地）-关卡入口_重试2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "钟晷极地.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s38-frame1.png",
+                          "navigation/stages/s38-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "烛时（钟晷极地）-移开光标"
+    ],
+    "on_error": [
+      "烛时（钟晷极地）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
   }
 }
