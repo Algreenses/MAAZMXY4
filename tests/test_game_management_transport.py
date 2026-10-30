@@ -31,10 +31,13 @@ def native_case(kind):
         frames[3][504:609,655:905]=frames[3][150:255,328:578].copy()
     class Pixels(CustomController):
         stage=0
-        def __init__(self):super().__init__();self.clicks=[];self.loading_frames=0
+        def __init__(self):super().__init__();self.clicks=[];self.loading_frames=0;self.role_transition_frames=0
         def connect(self):return True
         def request_uuid(self):return 'managed-login-memory-only'
         def screencap(self):
+            if kind=='live-role-transition' and self.stage==4:
+                self.role_transition_frames+=1
+                if self.role_transition_frames<=3:return frames[2].copy()
             if live and self.stage==1:
                 self.loading_frames+=1
                 if self.loading_frames>=3:self.stage=2
@@ -92,6 +95,12 @@ AgentServer.shut_down()
 
 @unittest.skipUnless(os.environ.get('MAA_AGENT_NATIVE_TESTS')=='1','opt-in memory-only Maa Agent integration')
 class ManagedLoginTransportTests(unittest.TestCase):
+    def test_role_transition_does_not_reclick_title_after_verified_save(self):
+        result=self.run_case('live-role-transition')
+        self.assertTrue(result['succeeded'],result)
+        self.assertEqual(result['status'],'ready',result)
+        self.assertEqual([c[0] for c in result['clicks']],[0,2,3],result)
+
     def test_current_restart_screens_wait_through_loading_and_verify_combined_role_level(self):
         result=self.run_case('live')
         self.assertTrue(result['succeeded'],result)

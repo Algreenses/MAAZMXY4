@@ -42,6 +42,7 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
     deadline=clock()+120
     account_opened=False; submitted=False; role_confirmed=False; last_action=None; last_time=0
     last_frame=None;last_phase=None
+    failed_actions={}
     def phase(message):
         nonlocal last_phase
         if message!=last_phase:
@@ -49,13 +50,20 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
     def perform(name):
         nonlocal last_action,last_time
         _check(context)
-        if name==last_action and clock()-last_time<2:return
+        if name==last_action and clock()-last_time<2:return False
         # Entry actions bypass recognition in Maa; always dispatch through a wrapper.
         result=context.run_task('GameManagement_Invoke',{'GameManagement_Invoke':dict(
             action=dict(type='DoNothing'),next=[name],timeout=3000,post_delay=0)})
         _check(context)
-        if result is None or not result.status.succeeded:raise ValueError('恢复操作未确认：'+name)
         last_action,last_time=name,clock()
+        if result is None:raise ValueError('恢复操作未确认：'+name)
+        if not result.status.succeeded:
+            failed_actions[name]=failed_actions.get(name,0)+1
+            if failed_actions[name]>=3:raise ValueError('恢复操作未确认：'+name)
+            phase('恢复画面可能已切换，重新识别后再决定操作：'+name)
+            return False
+        failed_actions.pop(name,None)
+        return True
     while clock()<deadline:
         _check(context); frame=capture(context);last_frame=frame
         if abs(frame.shape[1]-1147)>2 or frame.shape[0]!=720:
@@ -77,10 +85,14 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
             if not role_confirmed and not params.get('allow_existing_map',False):
                 raise ValueError('恢复过程未核对角色存档。')
             phase('已核对存档并到达地图，恢复完成。');return
+        elif role_confirmed:
+            # Selecting a save can briefly expose the title behind the closing
+            # dialog. It is not a new login request: wait for the verified map.
+            phase('已选择并核对存档，等待进入地图，不重复开始游戏或选择存档。')
         elif hit('GameManagement_SavePage'):
             phase('已进入存档页，核对指定位置与角色。')
             if not hit('GameManagement_ChooseRole'):raise ValueError('指定存档为空或角色名称不符，已停止。')
-            perform('GameManagement_ChooseRole');role_confirmed=True
+            if perform('GameManagement_ChooseRole'):role_confirmed=True
         elif hit('GameManagement_StartGame'):
             phase('已识别开始游戏页面。')
             perform('GameManagement_StartGame')
@@ -88,14 +100,14 @@ def restore(context, params, *, clock=time.monotonic, sleep=time.sleep):
             phase('已识别盒子登录页，核对已保存账号。')
             if account_opened:
                 if hit('GameManagement_SelectAccount'):
-                    perform('GameManagement_SelectAccount');account_opened=False
+                    if perform('GameManagement_SelectAccount'):account_opened=False
             elif hit('GameManagement_AccountSelected'):
-                perform('GameManagement_LoginBox');submitted=True
+                if perform('GameManagement_LoginBox'):submitted=True
             elif not account_opened:
-                perform('GameManagement_OpenAccounts');account_opened=True
+                if perform('GameManagement_OpenAccounts'):account_opened=True
         elif account_opened and not submitted:
             if hit('GameManagement_SelectAccount'):
-                perform('GameManagement_SelectAccount');account_opened=False
+                if perform('GameManagement_SelectAccount'):account_opened=False
         end=min(clock()+.3,deadline)
         while clock()<end:
             _check(context);sleep(min(.05,end-clock()))
