@@ -172,11 +172,82 @@ class BountyCandleTests(unittest.TestCase):
         self.assertEqual(self.context.tasker.controller.calls,0)
         self.assertFalse(runtime._rounds)
 
-    def test_managed_defeat_requests_restart_without_success_or_native_retry(self):
+    def test_managed_defeat_without_in_game_retries_requests_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': False, 'max_retries': 3}
         self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
         self.assertFalse(self.run_phase('battle_failure'))
         self.assertEqual((self.outcome()['status'],self.outcome()['reason']),('recoverable','battle_failed'))
         self.assertFalse(runtime._rounds)
+
+    def test_managed_restart_waits_for_all_in_game_retries(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['failure_retry'] = {
+            'enabled': True, 'max_retries': 2}
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        for attempt in (1, 2):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertEqual(self.outcome()['reason'], 'battle_failed_returning')
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['failure_retries'], attempt)
+            self.assertEqual(self.outcome()['status'], 'running')
+        self.assertFalse(self.run_phase('battle_failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']),
+                         ('recoverable', 'battle_retry_exhausted'))
+        self.assertEqual(self.outcome()['failure_retries'], 2)
+        self.assertFalse(runtime._rounds)
+
+    def test_afk_and_managed_restart_keep_retrying_in_game_without_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode'] = True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        for attempt in range(1, 26):
+            self.assertTrue(self.run_phase('battle_failure'))
+            self.assertTrue(self.run_phase('retry_after_failure'))
+            self.assertEqual(self.outcome()['status'], 'running')
+            self.assertEqual(self.outcome()['failure_retries'], attempt)
+        self.context.tasker.stopping = True
+        self.assertFalse(self.run_phase('battle_failure'))
+        self.assertEqual(self.outcome()['status'], 'cancelled')
+
+    def test_confirmed_defeat_with_terminal_return_failure_requests_restart(self):
+        self.context.nodes['脚本任务设置']['action']['param']['custom_action_param']['afk_mode'] = True
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertTrue(self.run_phase('battle_failure'))
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']),
+                         ('recoverable', 'battle_return_failed'))
+
+    def test_unknown_or_blocked_failure_never_becomes_managed_defeat(self):
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.context.run_recognition = lambda *_args: SimpleNamespace(hit=False)
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        self.assertFalse(self.run_phase('fatal', reason='blocked_dialog'))
+        self.assertEqual(self.outcome()['status'], 'fatal')
+
+    def test_terminal_task_failure_on_a_known_scene_can_restart(self):
+        self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('recoverable', 'task_failed'))
+
+    def test_login_failure_without_battle_parameters_preserves_its_reason(self):
+        self.assertTrue(self.run_phase('recovery_begin'))
+        with patch.object(runtime, 'confirm_white_screen', return_value=False):
+            self.assertFalse(self.run_phase('failure', reason='请返回人物与主线地图'))
+        self.assertEqual((self.outcome()['status'], self.outcome()['reason']), ('fatal', '请返回人物与主线地图'))
+
+    def test_exhausted_navigation_can_restart_but_unknown_and_blocked_scenes_stop(self):
+        for reason in ('transition_failed', 'budget', 'unreachable', 'unknown', 'blocked'):
+            with self.subTest(reason=reason):
+                self.assertTrue(self.run_phase('begin',game_management={'restart_on_failure':True}))
+                with patch.object(runtime, 'navigate_round', side_effect=runtime.NavigationError('failed',reason=reason)):
+                    self.assertFalse(self.run_phase('navigate'))
+                expected = 'fatal' if reason in ('unknown', 'blocked') else 'recoverable'
+                self.assertEqual(self.outcome()['status'], expected)
+                if expected == 'recoverable': self.assertEqual(self.outcome()['reason'], 'task_failed')
 
     def test_missing_and_changed_files_never_trigger_recovery(self):
         self.assertTrue(self.run_phase('begin'))

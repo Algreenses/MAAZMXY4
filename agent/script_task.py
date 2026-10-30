@@ -320,6 +320,21 @@ def retry_failed_round(context, state, node_name):
     return True
 
 
+def managed_failure_restart(state):
+    management = state.get('parameters', {}).get('game_management')
+    return isinstance(management, dict) and management.get('restart_on_failure') is True
+
+
+def exhausted_battle_reason(state):
+    """Only terminal battle failure may hand the current round to process recovery."""
+    policy = state['failure_retry']
+    if not policy['enabled']:
+        return 'battle_failed'
+    if policy['max_retries'] != -1 and state['failure_retries'] >= policy['max_retries']:
+        return 'battle_retry_exhausted'
+    return None
+
+
 def begin_recovery(context, parameters, state):
     _check(context)
     slot = parameters.get('save_slot', 1)
@@ -345,6 +360,15 @@ def fail_round(context, state, reason):
             return False
     if confirm_white_screen(context):
         write_status(state, 'recoverable', 'white_screen')
+    elif state.get('battle_failed') and managed_failure_restart(state):
+        write_status(state, 'recoverable', 'battle_return_failed',
+                     message='已确认战败，但返回流程已失败；交由游戏管理重启后继续本轮，本轮未计次。')
+    elif managed_failure_restart(state):
+        # A normal task may exhaust its own navigation/return fallbacks without
+        # a battle defeat. Confirm a known, unblocked scene before restarting.
+        _navigator(context, state).locate()
+        write_status(state, 'recoverable', 'task_failed',
+                     message='任务流程已宣告失败，当前场景已核验；重启后继续本轮，本轮未计次。')
     else:
         write_status(state, 'fatal', reason or 'unrecognized_screen')
     return False
@@ -378,8 +402,10 @@ class ScriptTaskState(CustomAction):
                 return True
             if phase == 'battle_failure':
                 state['battle_failed'] = True
-                if state['parameters'].get('game_management', {}).get('restart_on_failure') is True:
-                    write_status(state, 'recoverable', 'battle_failed', message='挑战失败，交由游戏管理重启；本轮未计次。')
+                reason = exhausted_battle_reason(state)
+                if reason and managed_failure_restart(state):
+                    write_status(state, 'recoverable', reason,
+                                 message='挑战失败且游戏内重试已关闭或次数已用尽；重启后继续本轮，本轮未计次。')
                     terminal = True
                     return False
                 write_status(state, 'running', 'battle_failed_returning', message='识别到挑战失败，已停止录制；本次失败不计入次数。')
@@ -416,7 +442,11 @@ class ScriptTaskState(CustomAction):
         except (NavigationError, TimeoutError) as error:
             terminal = True
             if state is not None:
-                _stop_status(state, 'fatal', 'navigation_' + getattr(error, 'reason', 'timeout'), message=str(error))
+                reason = getattr(error, 'reason', 'timeout')
+                if phase == 'navigate' and managed_failure_restart(state) and reason in ('transition_failed', 'budget', 'unreachable', 'timeout'):
+                    _stop_status(state, 'recoverable', 'task_failed', navigation_failure=reason, message=str(error))
+                else:
+                    _stop_status(state, 'fatal', 'navigation_' + reason, message=str(error))
             return False
         except Exception as error:
             terminal = True
