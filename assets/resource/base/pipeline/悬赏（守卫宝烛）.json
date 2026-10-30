@@ -1,447 +1,30 @@
 {
-  "悬赏（守卫宝烛）-初始化": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "begin",
-          "file": "@task",
-          "exit_mode": "recorded_return",
-          "recovery": {
-            "enabled": false,
-            "max_retries": 3,
-            "save_slot": 1,
-            "exe_path": ""
-          },
-          "task_binding_id": "bounty-candle",
-          "playback_node": "悬赏（守卫宝烛）-回放战斗",
-          "route_node": "悬赏（守卫宝烛）-回放后分流",
-          "routes": {
-            "recorded_return": [
-              "悬赏（守卫宝烛）-阻断提示",
-              "悬赏（守卫宝烛）-等待返回"
-            ],
-            "battle_only": [
-              "悬赏（守卫宝烛）-阻断提示",
-              "悬赏（守卫宝烛）-点击设置"
-            ]
-          },
-          "execution": {
-            "binding_id": "bounty-candle",
-            "resume_entry": "悬赏（守卫宝烛）-恢复登录",
-            "settings_node": "脚本任务设置"
-          }
-        }
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-定位"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-定位": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-暂停地图",
-      "悬赏（守卫宝烛）-点击任务"
-    ],
-    "timeout": 30000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-阻断提示": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "请输入验证码|请输入密码|账号密码登录|扫码登录|背包已满|网络连接.*断|连接.*失败|挑战失败|余额不足"
-        ],
-        "threshold": 0.65
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "fatal",
-          "reason": "blocked_dialog"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-暂停地图": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause-cloudy.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "任务.png"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-地图恢复核对"
-    ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-地图恢复核对": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-地图暂停中止",
-      "悬赏（守卫宝烛）-点击任务"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-地图暂停中止": {
-    "recognition": {
-      "type": "Or",
-      "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause-cloudy.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ]
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "fatal",
-          "reason": "unexpected_pause"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-点击任务": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
-        ]
-      }
-    },
-    "pre_delay": 1000,
-    "action": {
-      "type": "Click"
-    },
+  "悬赏（守卫宝烛）-刷取次数": {
     "post_delay": 1000,
-    "timeout": 30000,
     "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-点击悬赏任务"
+      "悬赏（守卫宝烛）-准备本轮"
     ],
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-点击悬赏任务": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "悬赏任务"
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 30000,
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-点击前往副本"
-    ],
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-点击前往副本": {
-    "recognition": {
-      "type": "OCR",
-      "param": {
-        "expected": [
-          "^前往副本$"
-        ],
-        "roi": [
-          480,
-          550,
-          350,
-          100
-        ]
-      }
-    },
-    "action": {
-      "type": "Click"
-    },
-    "post_delay": 1000,
-    "timeout": 60000,
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-等待场内"
-    ],
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-等待场内": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-场内设置中止",
-      "悬赏（守卫宝烛）-场内恢复",
-      "悬赏（守卫宝烛）-场内初检"
-    ],
-    "timeout": 60000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-场内恢复": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause-cloudy.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "守卫宝烛场景.png"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-场内初检"
-    ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-场内初检": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "守卫宝烛场景.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-场内设置中止",
-      "悬赏（守卫宝烛）-场内暂停中止",
-      "悬赏（守卫宝烛）-回放战斗"
-    ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-场内暂停中止": {
-    "recognition": {
-      "type": "Or",
-      "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause-cloudy.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ]
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 58
       }
     },
     "action": {
       "type": "Custom",
       "param": {
-        "custom_action": "script_task_state",
+        "custom_action": "loop_count",
         "custom_action_param": {
-          "phase": "fatal",
-          "reason": "unexpected_pause"
+          "label": "悬赏（守卫宝烛）"
         }
       }
     },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
+    "focus": {
+      "Node.Action.Succeeded": {
+        "content": "./debug/loop/panel.md",
+        "display": "log"
+      }
+    }
   },
   "悬赏（守卫宝烛）-回放战斗": {
     "recognition": {
@@ -465,243 +48,141 @@
       }
     },
     "next": [
-      "悬赏（守卫宝烛）-回放后分流"
+      "悬赏（守卫宝烛）-点击设置"
     ],
     "timeout": 10000,
+    "post_delay": 1000
+  },
+  "悬赏（守卫宝烛）-点击任务": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "pre_delay": 1000,
+    "action": {
+      "type": "Click"
+    },
     "post_delay": 1000,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-回放后分流": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
+    "timeout": 30000,
     "next": [
-      "悬赏（守卫宝烛）-等待返回"
+      "悬赏（守卫宝烛）-点击悬赏任务"
     ],
-    "timeout": 10000,
-    "post_delay": 0,
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
     "on_error": [
-      "悬赏（守卫宝烛）-失败"
+      "悬赏（守卫宝烛）-刷取次数"
     ]
   },
-  "悬赏（守卫宝烛）-等待返回": {
+  "悬赏（守卫宝烛）-点击前往副本": {
     "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-返回恢复",
-      "悬赏（守卫宝烛）-返回初检"
-    ],
-    "timeout": 60000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-返回恢复": {
-    "recognition": {
-      "type": "And",
+      "type": "OCR",
       "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause-cloudy.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "任务.png"
-                ]
-              }
-            }
-          }
+        "expected": [
+          "^前往副本$"
         ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-返回初检"
-    ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-返回初检": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
+        "roi": [
+          480,
+          550,
+          350,
+          100
         ]
       }
     },
     "action": {
-      "type": "DoNothing"
+      "type": "Click"
     },
+    "post_delay": 1000,
+    "timeout": 60000,
     "next": [
-      "悬赏（守卫宝烛）-返回暂停中止",
-      "悬赏（守卫宝烛）-返回复检"
+      "悬赏（守卫宝烛）-成功进入守卫宝烛关卡"
     ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
+    "$__mpe_code": {
+      "position": {
+        "x": 1920,
+        "y": 42
+      }
+    }
   },
-  "悬赏（守卫宝烛）-返回暂停中止": {
+  "悬赏（守卫宝烛）-点击悬赏任务": {
     "recognition": {
-      "type": "Or",
+      "type": "OCR",
       "param": {
-        "any_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/pause-cloudy.png",
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
+        "expected": [
+          "悬赏任务"
         ]
       }
     },
     "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "fatal",
-          "reason": "unexpected_pause"
-        }
-      }
+      "type": "Click"
     },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-返回复检": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "任务.png"
-        ]
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
+    "post_delay": 1000,
+    "timeout": 30000,
     "next": [
-      "悬赏（守卫宝烛）-成功"
+      "悬赏（守卫宝烛）-点击前往副本"
     ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
+    "$__mpe_code": {
+      "position": {
+        "x": 1600,
+        "y": 42
+      }
+    }
   },
   "悬赏（守卫宝烛）-点击设置": {
     "recognition": {
       "type": "TemplateMatch",
       "param": {
-        "template": "设置.png",
-        "threshold": 0.8
+        "template": [
+          "设置.png"
+        ]
       }
     },
+    "pre_delay": 2000,
     "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
+      "type": "Click"
     },
+    "timeout": 8000,
     "next": [
       "悬赏（守卫宝烛）-返回地图"
     ],
-    "timeout": 8000,
-    "post_delay": 1000,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
+    "$__mpe_code": {
+      "position": {
+        "x": 320,
+        "y": 58
+      }
+    },
+    "post_delay": 1000
   },
   "悬赏（守卫宝烛）-返回地图": {
     "recognition": {
       "type": "OCR",
       "param": {
         "expected": [
-          "^返回地图$"
-        ],
-        "threshold": 0.75
+          "返回地图"
+        ]
       }
     },
     "action": {
-      "type": "Click",
-      "param": {
-        "target": true
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "悬赏（守卫宝烛）-本轮成功",
+      "停止运行"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 100
       }
     },
-    "next": [
-      "悬赏（守卫宝烛）-等待返回"
-    ],
-    "timeout": 10000,
     "post_delay": 300,
     "on_error": [
       "悬赏（守卫宝烛）-返回地图重试"
@@ -712,27 +193,72 @@
       "type": "OCR",
       "param": {
         "expected": [
-          "^返回地图$"
-        ],
-        "threshold": 0.75
+          "返回地图"
+        ]
       }
     },
     "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
+      "type": "Click"
     },
-    "next": [
-      "悬赏（守卫宝烛）-等待返回"
-    ],
     "timeout": 10000,
+    "next": [
+      "悬赏（守卫宝烛）-本轮成功",
+      "停止运行"
+    ],
     "post_delay": 300,
     "on_error": [
-      "悬赏（守卫宝烛）-失败"
+      "停止运行"
     ]
   },
-  "悬赏（守卫宝烛）-成功": {
+  "悬赏（守卫宝烛）-脚本返回确认": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "任务.png"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "timeout": 15000,
+    "pre_delay": 300,
+    "post_delay": 0,
+    "next": [
+      "悬赏（守卫宝烛）-本轮成功",
+      "停止运行"
+    ]
+  },
+  "悬赏（守卫宝烛）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:bounty-candle",
+          "playback_node": "悬赏（守卫宝烛）-回放战斗",
+          "exit_mode": "recorded_return",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "悬赏（守卫宝烛）-点击任务",
+            "label": "悬赏（守卫宝烛）"
+          }
+        }
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0,
+    "timeout": 10000,
+    "next": [
+      "悬赏（守卫宝烛）-点击任务"
+    ]
+  },
+  "悬赏（守卫宝烛）-本轮成功": {
     "recognition": {
       "type": "DirectHit"
     },
@@ -745,712 +271,33 @@
         }
       }
     },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "悬赏（守卫宝烛）-失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "failure",
-          "reason": "未识别到正确的悬赏任务或进出关画面，请确认已接取“守卫宝烛”并回到主线地图。"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "悬赏（守卫宝烛）-恢复登录": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "recovery_begin",
-          "save_slot": 1,
-          "resume_choice_node": "悬赏（守卫宝烛）-恢复选择存档",
-          "resume_guards": [
-            "悬赏（守卫宝烛）-阻断提示"
-          ],
-          "resume_slots": {
-            "1": "悬赏（守卫宝烛）-恢复存档1",
-            "2": "悬赏（守卫宝烛）-恢复存档2",
-            "3": "悬赏（守卫宝烛）-恢复存档3",
-            "4": "悬赏（守卫宝烛）-恢复存档4"
-          }
-        }
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复界面分流"
-    ],
-    "timeout": 10000,
+    "pre_delay": 0,
     "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
+    "timeout": 10000,
+    "next": [
+      "悬赏（守卫宝烛）-刷取次数",
+      "停止运行"
     ]
   },
-  "悬赏（守卫宝烛）-恢复界面分流": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-恢复存档页",
-      "悬赏（守卫宝烛）-恢复登录页",
-      "悬赏（守卫宝烛）-恢复地图暂停",
-      "悬赏（守卫宝烛）-恢复地图就绪"
-    ],
-    "timeout": 60000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-恢复失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复登录页": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/login-start.png",
-                "roi": [
-                  458,
-                  595,
-                  236,
-                  90
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/login-logo.png",
-                "roi": [
-                  23,
-                  19,
-                  276,
-                  178
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复等待存档"
-    ],
-    "timeout": 10000,
-    "post_delay": 400,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复等待存档": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-恢复存档页"
-    ],
-    "timeout": 60000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复存档页": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": "bounty-candle/save-header.png",
-        "roi": [
-          458,
-          77,
-          251,
-          80
-        ],
-        "method": 1,
-        "threshold": 0.045
-      }
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复选择存档"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复选择存档": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-恢复存档1"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复存档1": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "[Ll][Vv][.· :]*[0-9]+"
-                ],
-                "roi": [
-                  328,
-                  154,
-                  230,
-                  56
-                ],
-                "threshold": 0.65
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-header.png",
-                "roi": [
-                  458,
-                  77,
-                  251,
-                  80
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-1.png",
-                "roi": [
-                  257,
-                  163,
-                  85,
-                  94
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          418,
-          213,
-          1,
-          1
-        ]
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复等待进图"
-    ],
-    "timeout": 10000,
-    "post_delay": 400,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复存档2": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "[Ll][Vv][.· :]*[0-9]+"
-                ],
-                "roi": [
-                  655,
-                  154,
-                  230,
-                  56
-                ],
-                "threshold": 0.65
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-header.png",
-                "roi": [
-                  458,
-                  77,
-                  251,
-                  80
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-2.png",
-                "roi": [
-                  583,
-                  163,
-                  85,
-                  94
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          744,
-          213,
-          1,
-          1
-        ]
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复等待进图"
-    ],
-    "timeout": 10000,
-    "post_delay": 400,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复存档3": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "[Ll][Vv][.· :]*[0-9]+"
-                ],
-                "roi": [
-                  328,
-                  272,
-                  230,
-                  56
-                ],
-                "threshold": 0.65
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-header.png",
-                "roi": [
-                  458,
-                  77,
-                  251,
-                  80
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-3.png",
-                "roi": [
-                  257,
-                  280,
-                  85,
-                  94
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          418,
-          330,
-          1,
-          1
-        ]
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复等待进图"
-    ],
-    "timeout": 10000,
-    "post_delay": 400,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复存档4": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "[Ll][Vv][.· :]*[0-9]+"
-                ],
-                "roi": [
-                  655,
-                  272,
-                  230,
-                  56
-                ],
-                "threshold": 0.65
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-header.png",
-                "roi": [
-                  458,
-                  77,
-                  251,
-                  80
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": "bounty-candle/save-4.png",
-                "roi": [
-                  583,
-                  280,
-                  85,
-                  94
-                ],
-                "method": 1,
-                "threshold": 0.045
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": [
-          744,
-          330,
-          1,
-          1
-        ]
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复等待进图"
-    ],
-    "timeout": 10000,
-    "post_delay": 400,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复等待进图": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-恢复地图暂停",
-      "悬赏（守卫宝烛）-恢复地图就绪"
-    ],
-    "timeout": 60000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-恢复失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复地图暂停": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "Or",
-              "param": {
-                "any_of": [
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  },
-                  {
-                    "recognition": {
-                      "type": "TemplateMatch",
-                      "param": {
-                        "template": "bounty-candle/pause-cloudy.png",
-                        "method": 1,
-                        "threshold": 0.045
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "TemplateMatch",
-              "param": {
-                "template": [
-                  "任务.png"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Click",
-      "param": {
-        "target": true
-      }
-    },
-    "next": [
-      "悬赏（守卫宝烛）-恢复地图核对"
-    ],
-    "timeout": 10000,
-    "post_delay": 350,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ],
-    "max_hit": 1
-  },
-  "悬赏（守卫宝烛）-恢复地图核对": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "DoNothing"
-    },
-    "next": [
-      "悬赏（守卫宝烛）-阻断提示",
-      "悬赏（守卫宝烛）-地图暂停中止",
-      "悬赏（守卫宝烛）-恢复地图就绪"
-    ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复地图就绪": {
+  "悬赏（守卫宝烛）-成功进入守卫宝烛关卡": {
     "recognition": {
       "type": "TemplateMatch",
       "param": {
         "template": [
-          "任务.png"
+          "守卫宝烛场景.png"
         ]
       }
     },
-    "action": {
-      "type": "DoNothing"
-    },
+    "post_delay": 1000,
+    "timeout": 60000,
     "next": [
-      "悬赏（守卫宝烛）-恢复就绪"
+      "悬赏（守卫宝烛）-回放战斗"
     ],
-    "timeout": 10000,
-    "post_delay": 0,
-    "on_error": [
-      "悬赏（守卫宝烛）-失败"
-    ]
-  },
-  "悬赏（守卫宝烛）-恢复失败": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "failure",
-          "reason": "恢复后未识别到带“任务”按钮的主线地图，请手动返回地图后重试。"
-        }
+    "$__mpe_code": {
+      "position": {
+        "x": 2240,
+        "y": 72
       }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "悬赏（守卫宝烛）-恢复就绪": {
-    "recognition": {
-      "type": "DirectHit"
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "ready"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
-  },
-  "悬赏（守卫宝烛）-场内设置中止": {
-    "recognition": {
-      "type": "And",
-      "param": {
-        "all_of": [
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "^继续游戏$"
-                ]
-              }
-            }
-          },
-          {
-            "recognition": {
-              "type": "OCR",
-              "param": {
-                "expected": [
-                  "^返回地图$"
-                ]
-              }
-            }
-          }
-        ],
-        "box_index": 0
-      }
-    },
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "script_task_state",
-        "custom_action_param": {
-          "phase": "fatal",
-          "reason": "检测到副本设置菜单，已停止回放；请关闭菜单后重新开始。"
-        }
-      }
-    },
-    "next": [],
-    "timeout": 10000,
-    "post_delay": 0
+    }
   }
 }

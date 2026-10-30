@@ -2,7 +2,7 @@
   "悬赏（追捕飞贼）-刷取次数": {
     "post_delay": 1000,
     "next": [
-      "悬赏（追捕飞贼）-点击任务"
+      "悬赏（追捕飞贼）-准备本轮"
     ],
     "$__mpe_code": {
       "position": {
@@ -196,7 +196,7 @@
     },
     "timeout": 10000,
     "next": [
-      "悬赏（追捕飞贼）-刷取次数",
+      "悬赏（追捕飞贼）-本轮成功",
       "停止运行"
     ],
     "$__mpe_code": {
@@ -224,7 +224,7 @@
     },
     "timeout": 10000,
     "next": [
-      "悬赏（追捕飞贼）-刷取次数",
+      "悬赏（追捕飞贼）-本轮成功",
       "停止运行"
     ],
     "post_delay": 300,
@@ -247,6 +247,55 @@
     "timeout": 15000,
     "pre_delay": 300,
     "post_delay": 0,
+    "next": [
+      "悬赏（追捕飞贼）-本轮成功",
+      "停止运行"
+    ]
+  },
+  "悬赏（追捕飞贼）-准备本轮": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "begin",
+          "file": "@task:task-b870345faa9eb39595389c1c99e46cd9",
+          "playback_node": "悬赏（追捕飞贼）-回放战斗",
+          "exit_mode": "recorded_return",
+          "navigation": {
+            "kind": "bounty",
+            "target_node": "悬赏（追捕飞贼）-点击任务",
+            "label": "悬赏（追捕飞贼）"
+          }
+        }
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0,
+    "timeout": 10000,
+    "next": [
+      "悬赏（追捕飞贼）-点击任务"
+    ]
+  },
+  "悬赏（追捕飞贼）-本轮成功": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "script_task_state",
+        "custom_action_param": {
+          "phase": "success"
+        }
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0,
+    "timeout": 10000,
     "next": [
       "悬赏（追捕飞贼）-刷取次数",
       "停止运行"
