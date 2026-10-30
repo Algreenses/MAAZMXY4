@@ -265,11 +265,7 @@
           "file": "@task:task-756cfdffe011e98087a80b01a9be573e",
           "playback_node": "悬赏（守卫太宗）-回放战斗",
           "exit_mode": "recorded_return",
-          "navigation": {
-            "kind": "bounty",
-            "target_node": "悬赏（守卫太宗）-点击任务",
-            "label": "悬赏（守卫太宗）"
-          }
+          "navigation": null
         }
       }
     },

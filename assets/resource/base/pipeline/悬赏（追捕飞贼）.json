@@ -265,11 +265,7 @@
           "file": "@task:task-b870345faa9eb39595389c1c99e46cd9",
           "playback_node": "悬赏（追捕飞贼）-回放战斗",
           "exit_mode": "recorded_return",
-          "navigation": {
-            "kind": "bounty",
-            "target_node": "悬赏（追捕飞贼）-点击任务",
-            "label": "悬赏（追捕飞贼）"
-          }
+          "navigation": null
         }
       }
     },

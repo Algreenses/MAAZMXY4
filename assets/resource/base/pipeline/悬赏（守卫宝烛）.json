@@ -243,11 +243,7 @@
           "file": "@task:bounty-candle",
           "playback_node": "悬赏（守卫宝烛）-回放战斗",
           "exit_mode": "recorded_return",
-          "navigation": {
-            "kind": "bounty",
-            "target_node": "悬赏（守卫宝烛）-点击任务",
-            "label": "悬赏（守卫宝烛）"
-          }
+          "navigation": null
         }
       }
     },

@@ -265,11 +265,7 @@
           "file": "@task:task-1a8c308b34915cf0f660aed26af263ca",
           "playback_node": "悬赏（遁地大盗）-回放战斗",
           "exit_mode": "recorded_return",
-          "navigation": {
-            "kind": "bounty",
-            "target_node": "悬赏（遁地大盗）-点击任务",
-            "label": "悬赏（遁地大盗）"
-          }
+          "navigation": null
         }
       }
     },
