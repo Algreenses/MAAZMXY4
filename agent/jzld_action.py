@@ -193,6 +193,10 @@ def _fill_rest(ctx: Context, xs, ys, board, limit: int = 20) -> None:
     # 之前每轮都重新算 _emps，于是同一个格子被反复点 20 次、卡死在收工阶段
     # （用户 m08739 看到的「达到分数后没进收工」其实是收工了但卡在这一格）。
     _bad = set()
+    # 连续多少个格子都点不动。游戏结束后棋盘其实已经不存在了，每个格子
+    # 都会「两次都没落上」，一格格点下去能空转十几分钟（用户 m11851
+    # 「炼丹结束还是空转半天」）。连续 3 格都落不上就认定这局已经结束。
+    _dead = 0
     for _i in range(limit):
         if _stopped(ctx):
             _log("        任务已停止，停止填格")
@@ -214,6 +218,14 @@ def _fill_rest(ctx: Context, xs, ys, board, limit: int = 20) -> None:
             _bp = None
         _r, _c = _bp if _bp in _emps else _emps[0]
         for _retry in range(2):
+            # 游戏可能已经结算、画面切回活动界面了。这时再按棋盘坐标点下去，
+            # 落点正好压在「神丹榜」「兜率商店」这些按钮上（用户 m11578
+            # 「为什么炼丹出来会点到神丹榜」）。每点一次之前先看一眼是不是
+            # 已经不在棋盘了。
+            _ichk = _grab(ctx)
+            if _ichk is not None and _is_result_screen(ctx, _ichk):
+                _log("        填格时检测到结算画面，停止点击")
+                return
             _click(ctx, xs[_c], ys[_r])
             time.sleep(0.5)
             _img = _grab(ctx)
@@ -230,12 +242,18 @@ def _fill_rest(ctx: Context, xs, ys, board, limit: int = 20) -> None:
             _v = _after.get((_r, _c), 0)
             if _v > 0:
                 board = _after          # 真的落上了
+                _dead = 0
                 break
             _log("        填格 (%d,%d) 没落上，重试 %d" % (_r, _c, _retry + 1))
         else:
             board = _after              # 两次都没落上，往后走
             _bad.add((_r, _c))          # 这一格点不动，本轮别再碰它
-            _log("        填格 (%d,%d) 两次都没落上，本轮跳过" % (_r, _c))
+            _dead += 1
+            _log("        填格 (%d,%d) 两次都没落上，本轮跳过（连续 %d 格）"
+                 % (_r, _c, _dead))
+            if _dead >= 3:
+                _log("        连续 3 格都落不上，判定这局已结束，收工")
+                return
 
 
 

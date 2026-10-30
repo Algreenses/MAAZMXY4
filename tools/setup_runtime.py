@@ -31,7 +31,7 @@ TOP_FILES = [
     "vcruntime140.dll", "vcruntime140_1.dll",
 ]
 
-# 不裁剪 updater.py 使用的 tkinter；只跳过测试、文档和开发工具。
+# 不裁剪 tkinter（agent 侧可能用到）；只跳过测试、文档和开发工具。
 LIB_EXCLUDE = {
     "site-packages", "__pycache__", "test", "tests", "idlelib",
     "turtledemo", "ensurepip", "venv", "pydoc_data", "lib2to3", "distutils",
@@ -108,7 +108,7 @@ def build(prefix: str) -> int:
     print("2) DLLs")
     n = copy_tree(os.path.join(prefix, "DLLs"), os.path.join(PY_DIR, "DLLs"))
     print("   %d 个文件" % n)
-    # The standard launcher imports updater.py with pythonw, which needs Tk/Tcl.
+    # 启动器用 pythonw 拉起 agent，Tk/Tcl 必须保留。
     n = copy_tree(os.path.join(prefix, "tcl"), os.path.join(PY_DIR, "tcl"))
     print("   Tcl/Tk: %d 个文件" % n)
 

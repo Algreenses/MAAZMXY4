@@ -24,10 +24,15 @@ PY_DIR = os.path.join(ROOT, "runtimes", "python")
 PY_EXE = os.path.join(PY_DIR, "python.exe")
 SP = os.path.join(PY_DIR, "Lib", "site-packages")
 
-# Keep release and automatic-update dependency checks on the same layout.
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from update_engine.runtime import PYTHON_REQUIRED
+# 内嵌 Python 必须包含的文件（原 update_engine/runtime.py，更新机制剥离后内联在这里）。
+PYTHON_REQUIRED = (
+    'python.exe', 'pythonw.exe', 'python3.dll', 'python312.dll', 'vcruntime140.dll', 'DLLs',
+    'Lib/os.py', 'Lib/site-packages/maa/__init__.py', 'Lib/site-packages/numpy/__init__.py',
+    'Lib/site-packages/strenum/__init__.py', 'Lib/site-packages/pynput/__init__.py',
+    'Lib/site-packages/six.py', 'Lib/site-packages/MaaAgentBinary', 'Lib/tkinter/__init__.py',
+    'DLLs/_tkinter.pyd', 'DLLs/tcl86t.dll', 'DLLs/tk86t.dll',
+    'tcl/tcl8.6/init.tcl', 'tcl/tk8.6/tk.tcl',
+)
 REQUIRED = list(PYTHON_REQUIRED)
 
 # 导入检查（在子进程里跑，避免污染本进程）

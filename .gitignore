@@ -515,3 +515,8 @@ interface.json.bak*
 # /agent/jzld/
 # /agent/jzld_action.py
 # /assets/resource/base/pipeline/九转炼丹.json
+
+# 打包产物与临时下载目录（不进版本库）
+/dist/
+/dist_pr5/
+/temp/

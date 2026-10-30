@@ -9,7 +9,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'agent'))
 sys.path.insert(0, str(ROOT / 'tools'))
-from build_update import collect
+from build_release import collect
 from script_studio_service import StudioService
 from task_catalog import task_catalog, execution_plan, task_key
 
