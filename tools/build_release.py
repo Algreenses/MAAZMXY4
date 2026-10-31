@@ -207,7 +207,9 @@ def validate_frontend_source(root, frontend):
             raise ValueError('前端构建与当前源码不一致：' + key)
     if not built.get('source_sha256') or not built.get('binary_sha256'):
         raise ValueError('前端构建缺少源码及二进制校验记录，请重新构建。')
-    sources = ['frontend/upstream.json', *manifest['patches']]
+    # The patch application algorithm is part of the build input. An old
+    # builder could produce duplicate UI from the same manifest and overlays.
+    sources = ['frontend/upstream.json', 'tools/build_frontend.ps1', *manifest['patches']]
     sources += [p.relative_to(root).as_posix() for p in (root/manifest['overlay_directory']).rglob('*') if p.is_file()]
     for name in sources:
         if built['source_sha256'].get(name) != hashlib.sha256((root/name).read_bytes()).hexdigest():

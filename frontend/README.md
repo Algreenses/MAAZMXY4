@@ -32,6 +32,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_frontend.ps1 -In
 
 源码归档和解压目录位于 `.runtime-cache/`，编译产物位于 `dist/script-studio/`，均不提交 Git。默认构建产物是前端，不包含游戏资源项目、录制文件和内嵌 Python；运行时应与项目发布目录组合。`-Install` 只安装前端程序、托管依赖和对应 Win32 原生依赖，不覆盖 `interface.json`、`resource/`、`agent/`、`config/`、`recordings/` 或 Python 目录。
 
+补丁目标每次从通过 SHA-256 校验的上游归档重新读取，按清单顺序在内存中组合全部补丁，全部匹配成功后才写回缓存。因此旧补丁、重复嵌套或中断留下的目标文件都会恢复到与干净构建一致的内容；未变化的目标文件保留时间戳，`bin/obj` 等编译缓存不清理。缓存中的 `.script-studio-patch-targets.json` 记录本构建流程管理的目标，移除补丁时也会恢复对应上游文件。自定义代码应写入源码覆盖层，不应直接修改生成缓存。
+
+构建记录包含 `tools/build_frontend.ps1` 的源码哈希及实际生成目标的哈希。完整包工具会拒绝缺少或不匹配构建脚本哈希的旧前端，避免相同资源版本掩盖旧构建流程的问题。升级构建工具后须重新构建前端；这不要求修改或安装日常客户端。离线缓存回归入口为 `tests/test_frontend_patch_reapply.py`。
+
 `upstream.json` 的 `application_icon` 指向仓库根目录 `新图标.ico`。构建时统一替换宿主的 `Assets/logo.ico`，供 Windows EXE 和 Avalonia 内嵌窗口/托盘图标使用；构建记录包含图标 SHA-256，不需要手工修改缓存源码。
 
 源码与日常客户端分开存放时，可使用 `-Install -InstallDirectory <现有客户端目录>`。仍从当前源码树构建，在目标客户端目录检查运行状态、保存安装备份并安装上述前端文件；构建输出必须放在该目标目录之外。资源和 Agent 需另按既有迁移流程同步。
@@ -83,7 +87,7 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 
 ## 宿主接入
 
-`patches/` 使用精确文本补丁，每个补丁包含目标路径、旧文本和新文本。脚本要求旧文本只出现一次；补丁已应用时跳过，锚点变化时停止，不尝试模糊修改其它版本源码。
+`patches/` 使用精确文本补丁，每个补丁包含目标路径、旧文本和新文本。脚本从校验归档开始按清单顺序组合补丁，要求每一步的旧文本只出现一次；生成内容未变化时不重写文件，锚点变化时停止，不尝试模糊修改其它版本源码。
 
 - `01-script-studio-navigation.json`：在共享 `RootViewContent.axaml` 的现有侧栏加入页面。
 - `02-script-studio-registration.json`：接入现有 DI 和 ViewLocator 映射。

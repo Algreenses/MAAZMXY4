@@ -79,7 +79,7 @@ class ReleasePackageTests(unittest.TestCase):
         frontend = self.root/'frontend'
         for name in build_release.FRONTEND_REQUIRED: self.write('frontend/'+name,b'fixture binary')
         manifest=json.loads((ROOT/'frontend/upstream.json').read_text(encoding='utf8'))
-        sources=['frontend/upstream.json',*manifest['patches']]
+        sources=['frontend/upstream.json','tools/build_frontend.ps1',*manifest['patches']]
         sources += [p.relative_to(ROOT).as_posix() for p in (ROOT/manifest['overlay_directory']).rglob('*') if p.is_file()]
         built={k:manifest[k] for k in ('repository','commit','archive_sha256','patches')}
         built['source_sha256']={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
@@ -103,6 +103,17 @@ class ReleasePackageTests(unittest.TestCase):
         built['patches']=built['patches'][:17];p.write_text(json.dumps(built),encoding='utf8')
         with patch.object(build_release,'LAUNCHER_SHA256',self.launcher_hash),self.assertRaisesRegex(ValueError,'前端构建与当前源码不一致'):
             client_files(ROOT,frontend,runtime,launcher)
+
+    def test_full_client_rejects_missing_or_stale_build_script_receipt(self):
+        frontend,runtime,launcher=self.client_fixture()
+        path=frontend/'script-studio-build.json'
+        built=json.loads(path.read_text(encoding='utf8'))
+        for checksum in (None, '0'*64):
+            if checksum is None: built['source_sha256'].pop('tools/build_frontend.ps1',None)
+            else: built['source_sha256']['tools/build_frontend.ps1']=checksum
+            path.write_text(json.dumps(built),encoding='utf8')
+            with patch.object(build_release,'LAUNCHER_SHA256',self.launcher_hash),self.assertRaisesRegex(ValueError,'build_frontend.ps1'):
+                client_files(ROOT,frontend,runtime,launcher)
 
     def test_public_default_manifest_does_not_admit_undeclared_recordings(self):
         self.write('sample/agent/main.py',b'# code')
