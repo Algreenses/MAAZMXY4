@@ -57,6 +57,10 @@ public sealed class ScriptTimeline : Control
     public ScriptTimeline() { ClipToBounds = true; Focusable = true; HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left; VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top; }
     public void Update(IReadOnlyList<StudioOperation> operations, double duration)
     {
+        // Undo and document responses replace the gesture's timing snapshot.
+        // Cancel its preview and discard hit geometry before accepting new input.
+        _drag = null; _marquee = false; _groupDelta = 0;
+        _hits.Clear(); Cursor = ArrowCursor;
         _operations = operations; DurationMs = duration; _hoveredId = null;
         _selectedIds.IntersectWith(operations.Select(operation => operation.Id));
         CursorMs = Math.Clamp(CursorMs, 0, Math.Max(0, DurationMs));

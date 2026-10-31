@@ -23,7 +23,7 @@ internal static class Program
     {
         AppBuilder.Configure<TestApplication>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var failed = 0;
-        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, EditorBatchRequestsAndTaskGuard };
+        var tests = new Action[] { FirstOpenDuringTask, RefreshAndMutationGuard, RetryFailedInitialization, RecordingUsesCurrentTaskController, NoImplicitRecordingTarget, RenameCancelCollisionAndSave, RenameOtherFileKeepsEditorState, DurationTextApplies, DurationTextSavesWithoutExtraApply, TimelineBoxSelectMoveAndCancel, TimelineDocumentChangeCancelsGesture, EditorBatchRequestsAndTaskGuard };
         foreach (var test in tests)
         {
             try { test(); Console.WriteLine("PASS " + test.Method.Name); }
@@ -79,6 +79,41 @@ internal static class Program
         window.MouseUp(new Point(340,58), MouseButton.Left);
         Check(moves.Count==count,"Read-only timeline must not edit");
         window.Close();
+    }
+    private static void TimelineDocumentChangeCancelsGesture()
+    {
+        var timeline=new ScriptTimeline();
+        var window=new Window { Content=timeline,Width=1000,Height=320 };
+        var changes=0;
+        timeline.Moved+=(_,_)=>changes++; timeline.Edited+=(_,_,_)=>changes++;
+        window.Show();
+        try
+        {
+            timeline.Update([Operation("a",65,1000,1000)],10000); timeline.Fit(1000); Draw(window);
+            window.MouseDown(new Point(240,58),MouseButton.Left);
+            window.MouseMove(new Point(280,58),RawInputModifiers.LeftMouseButton);
+            // The same update happens when undo removes the held operation.
+            timeline.Update([],10000);
+            Console.WriteLine($"TRACE drag document replacement: selected={timeline.SelectedIds.Count}");
+            window.MouseMove(new Point(300,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(300,58),MouseButton.Left);
+            Check(changes==0,"Document replacement cancels the old group edit");
+
+            timeline.Update([Operation("a",65,1000,1000)],10000); Draw(window);
+            window.MouseDown(new Point(282,58),MouseButton.Left); // right resize handle
+            timeline.Update([Operation("a",65,4000,1000)],10000);
+            window.MouseMove(new Point(320,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(320,58),MouseButton.Left);
+            Check(changes==0,"A same-ID refresh also invalidates the old resize");
+
+            timeline.Update([Operation("a",65,1000,1000)],10000); Draw(window);
+            timeline.Update([],10000); // No rendered frame between update and press.
+            window.MouseDown(new Point(240,58),MouseButton.Left);
+            window.MouseMove(new Point(300,58),RawInputModifiers.LeftMouseButton);
+            window.MouseUp(new Point(300,58),MouseButton.Left);
+            Check(changes==0 && timeline.SelectedIds.Count==0,"Stale hit rectangles cannot revive deleted operations");
+        }
+        finally { window.Close(); }
     }
     private static void EditorBatchRequestsAndTaskGuard()
     {
