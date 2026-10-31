@@ -26,8 +26,7 @@ public static class TaskRecovery
             var pipeline = TaskRecoveryPolicy.MergePipelineOverrides(overrides);
             var parameters = InitializerParameters(pipeline, entry);
             var options = management == null ? TaskRecoveryOptions.Read(parameters)
-                : new TaskRecoveryOptions(management.RestartOnFailure, 3, management.SaveSlot, management.ExePath,
-                    TaskScriptPlan.IsAfkMode(overrides));
+                : new TaskRecoveryOptions(management.RestartOnFailure, 3, management.SaveSlot, management.ExePath);
             var resumeEntry = profile["resume_entry"]?.GetValue<string>();
             if (options.Enabled && string.IsNullOrWhiteSpace(resumeEntry))
                 throw new InvalidDataException("该任务没有配置恢复入口。");
@@ -228,7 +227,7 @@ public static class TaskRecovery
         {
             token.ThrowIfCancellationRequested();
             if (_target == null) return TaskAttempt.Fatal("没有经过校验的恢复目标。");
-            processor.AddLog($"任务：本轮自动恢复 {attempt}/{(options.UnlimitedBattleRetries ? "战败不限次" : options.MaxRetries.ToString())}，已完成轮数保持不变。");
+            processor.AddLog($"任务：本轮自动恢复 {attempt}/{options.MaxRetries}，已完成轮数保持不变。");
             using var reconnection = GameManagementService.SuppressReconnection(processor);
             return await TaskRecoveryPolicy.RestartAsync(this, slot, token);
         }

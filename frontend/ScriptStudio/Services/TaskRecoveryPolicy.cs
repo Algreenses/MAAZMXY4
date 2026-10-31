@@ -54,8 +54,7 @@ public sealed class TaskRecordingRevision
     }
 }
 
-public sealed record TaskRecoveryOptions(bool Enabled, int MaxRetries, int SaveSlot, string ExePath,
-    bool UnlimitedBattleRetries = false)
+public sealed record TaskRecoveryOptions(bool Enabled, int MaxRetries, int SaveSlot, string ExePath)
 {
     public static TaskRecoveryOptions Read(JsonObject parameters)
     {
@@ -291,18 +290,15 @@ public static class TaskRecoveryPolicy
         token.ThrowIfCancellationRequested();
         var outcome = await runRound(token);
         var restarts = 0;
-        var budgetedRestarts = 0;
         while (outcome.Status == TaskAttemptStatus.Recoverable && options.Enabled)
         {
             token.ThrowIfCancellationRequested();
             if (outcome.Reason is not ("white_screen" or "window_lost" or "battle_failed" or "battle_retry_exhausted" or "battle_return_failed" or "task_failed"))
                 return TaskAttempt.Fatal("不允许自动恢复的故障：" + outcome.Reason);
-            // AFK removes the battle-loss budget only. Unknown/fatal states and
-            // repeated window/capture faults must still stop safely.
-            var unlimitedBattle = options.UnlimitedBattleRetries && (outcome.Reason is "battle_failed" or "battle_retry_exhausted");
-            if (!unlimitedBattle && budgetedRestarts >= options.MaxRetries)
-                return TaskAttempt.Fatal("本轮自动恢复次数已用尽。");
-            if (!unlimitedBattle) budgetedRestarts++;
+            // Game defeats retry inside the same running Pipeline. Process
+            // recovery has a separate budget even for an unlimited task.
+            if (restarts >= options.MaxRetries)
+                return TaskAttempt.Fatal("本轮连续重启恢复失败，已达到上限，请检查游戏状态。");
             restarts++;
             outcome = await recover(options.SaveSlot, restarts, token);
             token.ThrowIfCancellationRequested();

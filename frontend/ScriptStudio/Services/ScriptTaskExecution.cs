@@ -17,6 +17,7 @@ public static class ScriptTaskExecution
         if (string.IsNullOrEmpty(entry) || string.IsNullOrEmpty(name)) return await execute(entry, overrides, token);
         try
         {
+            overrides = TaskScriptPlan.NormalizeRepeatLimits(overrides ?? "{}", entry);
             using var library = new ScriptStudioClient(AppPaths.DataRoot, releaseCaptureOnDisconnect: false);
             var plan = (await library.CallAsync("execution_plan", new JsonObject
             {

@@ -8,7 +8,7 @@
 
 用户操作说明见 [脚本工具使用说明](../docs/zh_cn/脚本工具-使用说明.md)。
 
-下一版本另有原生“游戏数据库”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
+下一版本另有原生“游戏百科”侧栏页，数据从 `agent/data/game_database/` 离线读取。相关来源、布局、开发工具与验收边界见[游戏数据库与导航素材](../docs/zh_cn/游戏数据库与导航素材.md)。它需要本轮定制前端与相应资源一起安装，单独更新资源不会给旧前端增加页签。
 
 ## 源码与构建
 
@@ -113,3 +113,5 @@ python -B tools/build_sfx.py --client-zip "<完整客户端.zip>" --official-sfx
 宿主互斥接口由页面源码中的 `MFAAvalonia.Services.ScriptStudioGuard` 提供：`SyncRoot`、`IsCapturing` 和 `ThrowIfCapturing()`。录制端必须在同一把锁内检查所有实例的任务状态并取得录制所有权，停止及异常时释放。
 
 上游源自 [MaaXYZ/MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia/tree/1080d3e1500f3439ac896ab2eca9aeb8e885f1f4)，保留上游依赖版本，未对其进行无关升级。构建产物附带 `LICENSE-MFAAvalonia.txt` 和 `script-studio-build.json`，用于记录上游许可与源码版本；本目录的补丁与页面源码随本工程提供。
+
+玩家界面统一字体与信息层级；百科优先显示获取方式、用途与技能，技术编号不在阅读区展示，属性参考和来源按需展开。时间轴支持框选、批量移动/删除及单次撤销。任务设置把旧版无限次数归入挂机模式，游戏内重试与盒子重启分别执行。相关回归包含 `frontend/tests/TaskOptions`（在前端构建后读取实际程序集）和 `tests/test_timeline_batch.py`。

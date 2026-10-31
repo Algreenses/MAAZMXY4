@@ -490,19 +490,47 @@ Sync("AFK overrides finite native quota and retry limit without changing saved i
     Require(TaskScriptPlan.Parameters(result.AsObject(), "脚本任务设置")["failure_retry"]!["max_retries"]!.GetValue<int>() == -1);
     Require(JsonNode.Parse(raw)!["Counter"]!["max_hit"]!.GetValue<int>() == 7);
 });
-Test("AFK retries confirmed defeats beyond twenty and remains cancellable", async () =>
+Sync("legacy unlimited count implies in-game retries even with restart enabled", () =>
 {
-    using var cancel = new CancellationTokenSource();
-    var count = 0;
-    await Throws<OperationCanceledException>(() => TaskRecoveryPolicy.RunRoundAsync(enabled with { UnlimitedBattleRetries = true },
-        _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, "battle_failed")),
-        (_, _, _) => { if (++count == 25) cancel.Cancel(); return Task.FromResult(Ready()); }, cancel.Token));
-    Require(count == 25);
+    var raw = """{"Counter":{"max_hit":-1},"脚本任务设置":{"action":{"param":{"custom_action_param":{"failure_retry":{"enabled":false,"max_retries":0}}}}}}""";
+    var normalized = TaskScriptPlan.NormalizeRepeatLimits(raw, "Counter");
+    Console.WriteLine("TRACE legacy unlimited normalized=" + normalized);
+    Require(TaskScriptPlan.IsAfkMode(normalized));
+    var plan = new JsonObject { ["binding"] = new JsonObject { ["mode"] = "pipeline" },
+        ["recording"] = Recording(), ["playback_nodes"] = new JsonArray("Fight"),
+        ["management_profile"] = new JsonObject { ["entry"] = "Begin", ["success_node"] = "Done",
+            ["native_repeat"] = true, ["repeat_limit"] = -1,
+            ["parameters"] = new JsonObject { ["failure_retry"] = new JsonObject { ["enabled"] = false, ["max_retries"] = 0 } } } };
+    var result = TaskScriptPlan.PrepareManaged(plan, "Counter", raw, new() { RestartOnFailure = true });
+    var settings = TaskScriptPlan.Parameters(result.Pipeline, "Begin");
+    Require(settings["afk_mode"]?.GetValue<bool>() == true);
+    Require(settings["failure_retry"]?["enabled"]?.GetValue<bool>() == true);
+    Require(settings["failure_retry"]?["max_retries"]?.GetValue<int>() == -1);
+    Require(result.Limit == long.MaxValue);
+    plan["management_profile"]!["repeat_limit"]=7;
+    Require(TaskScriptPlan.PrepareManaged(plan,"Counter",normalized,new()).Limit==long.MaxValue);
+    plan["management_profile"]!["native_repeat"]=false;
+    Require(TaskScriptPlan.PrepareManaged(plan,"Counter",normalized,new()).Limit==1); // Host owns the unlimited loop.
+    var finite = """{"脚本任务设置":{"action":{"param":{"custom_action_param":{"afk_mode":false,"failure_retry":{"enabled":true,"max_retries":3}}}}}}""";
+    var finitePlan=TaskScriptPlan.PrepareManaged(plan,"Begin",finite,new() { RestartOnFailure=true });
+    Require(TaskScriptPlan.Parameters(finitePlan.Pipeline,"Begin")["failure_retry"]?["max_retries"]?.GetValue<int>()==3);
+    Require(!TaskScriptPlan.IsAfkMode(finitePlan.Pipeline.ToJsonString()));
+});
+Test("process recovery remains bounded separately from unlimited in-game defeats", async () =>
+{
+    foreach (var reason in new[] { "battle_failed", "battle_retry_exhausted" })
+    {
+        var count = 0;
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
+            _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)),
+            (_, _, _) => { count++; return Task.FromResult(Ready()); }, default);
+        Require(count == 3 && result.Status == TaskAttemptStatus.Fatal);
+    }
 });
 Test("AFK still bounds window-loss recovery", async () =>
 {
     var count = 0;
-    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { UnlimitedBattleRetries = true },
+    var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
         _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, "window_lost")),
         (_, _, _) => { count++; return Task.FromResult(Ready()); }, default);
     Require(count == 3 && result.Status == TaskAttemptStatus.Fatal);
@@ -512,7 +540,7 @@ Test("AFK alone never enables process restart", async () =>
     Require(!new GameManagementOptions().Enabled);
     foreach (var reason in new[] { "battle_failed", "battle_retry_exhausted", "battle_return_failed", "task_failed", "window_lost" })
     {
-        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = false, UnlimitedBattleRetries = true },
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { Enabled = false },
             _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)), NoRecovery, default);
         Require(result.Status == TaskAttemptStatus.Recoverable);
     }
@@ -612,7 +640,7 @@ Test("terminal battle return failures may recover but remain bounded even in AFK
     foreach (var reason in new[] { "battle_return_failed", "task_failed" })
     {
         var restarts = 0;
-        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled with { UnlimitedBattleRetries = true },
+        var result = await TaskRecoveryPolicy.RunRoundAsync(enabled,
             _ => Task.FromResult(new TaskAttempt(TaskAttemptStatus.Recoverable, reason)),
             (_, _, _) => { restarts++; return Task.FromResult(Ready()); }, default);
         Require(restarts == 3 && result.Status == TaskAttemptStatus.Fatal);

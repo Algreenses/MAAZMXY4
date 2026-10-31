@@ -8,6 +8,7 @@ public sealed class AfkOptionControls
 {
     private readonly List<Control> _rows = new();
     public bool Enabled { get; private set; }
+    public void Reset() { _rows.Clear(); Enabled = false; }
     public void Add(Control row)
     {
         _rows.Add(row);

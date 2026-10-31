@@ -73,6 +73,9 @@ jobs:
       - name: Build native MFAAvalonia page
         shell: pwsh
         run: ./tools/build_frontend.ps1
+      - name: Built task options and AFK dependencies without a real window
+        shell: pwsh
+        run: dotnet run --project frontend/tests/TaskOptions/TaskOptions.csproj -c Release -- assets/interface.json
       - name: Build the manual-install project launcher
         shell: pwsh
         run: ./tools/build_launcher.ps1

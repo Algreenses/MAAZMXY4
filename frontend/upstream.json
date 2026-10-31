@@ -69,6 +69,9 @@
     "frontend/patches/53-afk-option-controls.json",
     "frontend/patches/54-afk-host-repeat.json",
     "frontend/patches/55-keyboard-only-hotkeys.json",
-    "frontend/patches/56-runtime-managed-memory.json"
+    "frontend/patches/56-runtime-managed-memory.json",
+    "frontend/patches/57-single-input-label.json",
+    "frontend/patches/58-single-input-help.json",
+    "frontend/patches/59-option-row-spacing.json"
   ]
 }

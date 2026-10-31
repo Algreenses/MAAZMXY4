@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using MFAAvalonia.Services;
+using MFAAvalonia.Controls;
 using MFAAvalonia.ViewModels.Pages;
 
 namespace MFAAvalonia.Views.UserControls;
@@ -15,7 +16,7 @@ namespace MFAAvalonia.Views.UserControls;
 /// <summary>Show the saved restart policy separately from per-task AFK and retry options.</summary>
 public sealed class GameManagementView : UserControl
 {
-    private readonly CheckBox _failure = new() { Content = "重试耗尽或任务失败后重启" };
+    private readonly CheckBox _failure = new() { Content = "任务无法继续时，重启后续跑" };
     private readonly CheckBox _memory = new() { Content = "内存超过 1.8 GB 自动重启" };
     private readonly CheckBox _interval = new() { Content = "按间隔自动重启" };
     private readonly TextBox _minutes = new() { Text = "60", Width = 80 };
@@ -31,12 +32,11 @@ public sealed class GameManagementView : UserControl
 
     public GameManagementView()
     {
-        FontFamily = FontFamily.Parse("Microsoft YaHei UI, Segoe UI");
-        FontSize = 13;
+        PlayerUi.Apply(this);
         var panel = new StackPanel { Spacing = 14, Margin = new Thickness(2, 4, 8, 8) };
-        panel.Children.Add(Text("挂机模式只控制无限刷取与游戏内重试。是否重启盒子，由下方开关独立控制。", 13));
+        panel.Children.Add(Text("先保存连接与存档，再选择重启条件。挂机与战败重试在任务设置中调整。", 13));
         var policies = new StackPanel { Spacing = 8 };
-        policies.Children.Add(Title("自动重启"));
+        policies.Children.Add(Title("2. 重启与续跑"));
         policies.Children.Add(_savedState);
         foreach (var check in new[] { _failure, _memory, _interval })
         {
@@ -45,15 +45,20 @@ public sealed class GameManagementView : UserControl
             check.IsCheckedChanged += async (_, _) => await SavePolicyChange();
         }
         policies.Children.Add(_failure);
-        policies.Children.Add(Text("先完成游戏内重试；重启就绪后继续原轮次，保留已完成次数。", 12));
+        policies.Children.Add(Text("先在游戏内完成战败重试。重试耗尽或返回流程无法恢复时，才重启盒子并继续未完成的轮次。", 12));
         policies.Children.Add(_memory);
         policies.Children.Add(_interval);
-        var interval = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var interval = new WrapPanel { Orientation = Orientation.Horizontal };
         interval.Children.Add(Text("重启间隔", 12)); interval.Children.Add(_minutes); interval.Children.Add(Text("分钟", 12));
+        interval.Children.Add(Button("应用间隔", () =>
+        {
+            Service().Save(Service().Options with { IntervalMinutes = ReadMinutes() });
+            ShowSavedPolicy(Service().Options); ShowDraftHint(); return Task.CompletedTask;
+        }));
+        foreach (var child in interval.Children) child.Margin = new Thickness(0, 0, 8, 6);
         policies.Children.Add(interval);
-        panel.Children.Add(Section(policies));
         var login = new StackPanel { Spacing = 8 };
-        login.Children.Add(Title("连接与存档"));
+        login.Children.Add(Title("1. 连接与存档"));
         login.Children.Add(Text("盒子程序", 12));
         login.Children.Add(_exe);
         var paths = new WrapPanel();
@@ -72,6 +77,8 @@ public sealed class GameManagementView : UserControl
         roleRow.Children.Add(_slot); login.Children.Add(roleRow);
         login.Children.Add(Button("保存设置", Save));
         panel.Children.Add(Section(login));
+        policies.Children.Add(Text("内存与定时重启会等待本轮结束。已完成轮数保留；同一轮连续恢复 3 次仍失败时停止并提示。", 12));
+        panel.Children.Add(Section(policies));
         panel.Children.Add(_feedback);
         panel.Children.Add(Title("手动操作"));
         var actions = new WrapPanel();
@@ -79,6 +86,9 @@ public sealed class GameManagementView : UserControl
         actions.Children.Add(Button("重启", async () => { if (Page?.Processor.IsTaskRunActive != true) await Save(); await Service().RequestRestartAsync(); }));
         actions.Children.Add(Button("关闭盒子", async () => { await Save(); await Service().CloseAsync(); }));
         panel.Children.Add(actions);
+        foreach (var field in new[] { _exe, _account, _role, _minutes })
+            field.TextChanged += (_, _) => ShowDraftHint();
+        _slot.SelectionChanged += (_, _) => ShowDraftHint();
         Content = new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         DataContextChanged += (_, _) => Load();
         AttachedToVisualTree += (_, _) => Load();
@@ -89,7 +99,7 @@ public sealed class GameManagementView : UserControl
         Text = value, FontSize = size, TextWrapping = TextWrapping.Wrap,
         VerticalAlignment = VerticalAlignment.Center, Opacity = size < 13 ? .78 : 1
     };
-    private static TextBlock Title(string value) => new() { Text = value, FontSize = 14, FontWeight = FontWeight.SemiBold };
+    private static TextBlock Title(string value) => new() { Text = value, FontSize = PlayerUi.SectionSize, FontWeight = FontWeight.SemiBold };
     private static Border Section(Control content) => new()
     {
         Child = content, Padding = new Thickness(12), CornerRadius = new CornerRadius(8),
@@ -106,13 +116,36 @@ public sealed class GameManagementView : UserControl
         _minutes.IsEnabled = options.RestartOnInterval;
     }
 
+    private void ShowDraftHint()
+    {
+        if (_loading || Page == null) return;
+        var saved = Service().Options;
+        var dirty = _exe.Text?.Trim() != saved.ExePath || _account.Text?.Trim() != saved.AccountName
+            || _role.Text?.Trim() != saved.RoleName || _slot.SelectedIndex + 1 != saved.SaveSlot
+            || _minutes.Text != saved.IntervalMinutes.ToString(CultureInfo.InvariantCulture);
+        _feedback.Text = dirty ? "有未保存的设置。连接与存档请点击“保存设置”，重启间隔请点击“应用间隔”。"
+            : "设置已保存。重启开关即时生效，游戏内战败重试由任务设置控制。";
+    }
+
     private async Task SavePolicyChange()
     {
         if (_loading || Page == null) return;
         try
         {
             if (_busy) throw new InvalidOperationException("请等待当前盒子操作完成后再修改重启设置。");
-            await Save();
+            var saved = Service().Options;
+            var minutes = saved.IntervalMinutes;
+            if (_interval.IsChecked == true && !saved.RestartOnInterval) minutes = ReadMinutes();
+            Service().Save(saved with
+            {
+                RestartOnFailure = _failure.IsChecked == true,
+                RestartOnMemory = _memory.IsChecked == true,
+                RestartOnInterval = _interval.IsChecked == true,
+                IntervalMinutes = minutes
+            });
+            ShowSavedPolicy(Service().Options);
+            ShowDraftHint();
+            await Task.CompletedTask;
         }
         catch (Exception error)
         {
@@ -172,8 +205,7 @@ public sealed class GameManagementView : UserControl
 
     private Task Save()
     {
-        if (!int.TryParse(_minutes.Text, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes))
-            throw new InvalidOperationException("重启间隔请输入整数分钟。");
+        var minutes = _interval.IsChecked == true ? ReadMinutes() : Service().Options.IntervalMinutes;
         Service().Save(new GameManagementOptions
         {
             RestartOnFailure = _failure.IsChecked == true, RestartOnMemory = _memory.IsChecked == true,
@@ -184,6 +216,14 @@ public sealed class GameManagementView : UserControl
         ShowSavedPolicy(Service().Options);
         _feedback.Text = "设置已保存；重启开关与当前实例同步。";
         return Task.CompletedTask;
+    }
+
+    private int ReadMinutes()
+    {
+        if (!int.TryParse(_minutes.Text, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes)
+            || minutes is < 1 or > 10080)
+            throw new InvalidOperationException("重启间隔请输入 1～10080 分钟。");
+        return minutes;
     }
 
     private async Task ChooseExe()

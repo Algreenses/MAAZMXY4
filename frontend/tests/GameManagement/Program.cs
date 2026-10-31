@@ -47,6 +47,7 @@ internal static class Program
         Require(checks[1].IsChecked != true && !GameManagementService.For(first.Processor).Options.Enabled,
             "An invalid policy save restores the actual switch state");
         exe.Text = Path.GetFullPath("zmBox.exe"); account.Text = "历史账号甲"; role.Text = "角色甲";
+        save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs();
         checks[1].IsChecked = true; checks[2].IsChecked = true; Dispatcher.UIThread.RunJobs();
         Require(GameManagementService.For(first.Processor).Options.RestartOnMemory
             && GameManagementService.For(first.Processor).Options.RestartOnInterval, "Restart switches save immediately");
@@ -64,6 +65,14 @@ internal static class Program
             "Invalid interval logs and preserves saved options");
         minutes.Text = "60"; save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); Dispatcher.UIThread.RunJobs();
         Require(GameManagementService.For(first.Processor).Options.RestartOnMemory, "Save applies memory policy");
+        // Unsaved invalid form edits must never prevent disabling a restart policy.
+        role.Text = ""; minutes.Text = "invalid";
+        checks[0].IsChecked = true; Dispatcher.UIThread.RunJobs();
+        Require(GameManagementService.For(first.Processor).Options.RoleName == "角色甲", "Policy toggle must not persist a draft login");
+        checks[0].IsChecked = false; checks[2].IsChecked = false; Dispatcher.UIThread.RunJobs();
+        Require(!GameManagementService.For(first.Processor).Options.RestartOnFailure && !GameManagementService.For(first.Processor).Options.RestartOnInterval,
+            "Invalid drafts cannot prevent disabling restart switches");
+        role.Text = "角色甲"; minutes.Text = "60"; checks[2].IsChecked = true; Dispatcher.UIThread.RunJobs();
         control.DataContext = second; Dispatcher.UIThread.RunJobs();
         Require(checks.All(c => c.IsChecked != true), "Another instance does not inherit policy");
         control.DataContext = first; Dispatcher.UIThread.RunJobs();

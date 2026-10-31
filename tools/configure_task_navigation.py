@@ -232,13 +232,14 @@ def configure(root=ROOT):
         guard_stage_entry(graph,prefix,parameters)
         write(path, graph)
         changed.append(task['name'])
-    interface['option']['失败自动重试'] = dict(type='select', label='任务失败后自动重试', default_case='关闭',
-        description='只对明确识别到的挑战失败生效：返回地图后重试，失败轮次不计数。未知界面、验证码、脚本损坏和人工停止不自动重试。',
+    interface['option']['失败自动重试'] = dict(type='select', label='战败后在游戏内重试', default_case='关闭',
+        description='确认战败并返回地图后重新进关，不重启盒子。重试用尽后，才按游戏管理中的失败重启开关处理。挂机模式下始终开启且不限次数。',
         cases=[dict(name='关闭', pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': False}}}}}}),
                dict(name='启用', option=['失败重试设置'], pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'enabled': True}}}}}})])
-    interface['option']['失败重试设置'] = dict(type='input', label='失败重试设置',
-        inputs=[dict(name='失败重试次数', label='重试次数（0不重开）', pipeline_type='int', default='3',
-                     verify='^([0-9]|1[0-9]|20)$', pattern_msg='请输入0至20，0表示不自动重开')],
+    interface['option']['失败重试设置'] = dict(type='input', label='游戏内重试次数',
+        description='每轮允许追加的游戏内重试次数，失败不计入完成轮数。挂机时不受此上限影响。',
+        inputs=[dict(name='失败重试次数', label='每轮最多重试', pipeline_type='int', default='3',
+                     verify='^([1-9]|1[0-9]|20)$', pattern_msg='请输入1至20；不重试请选择关闭')],
         pipeline_override={'脚本任务设置': {'action': {'param': {'custom_action_param': {'failure_retry': {'max_retries': '{失败重试次数}'}}}}}})
     marker='\n\n游戏管理：'
     interface['option']['挂机模式'] = dict(type='select', label='挂机模式', default_case='关闭',
