@@ -17,9 +17,25 @@ from build_release import collect
 import build_release
 from build_release import client_files, validate_client, validate_client_resources
 import setup_runtime
+import runtime_check
 
 
 class ReleasePackageTests(unittest.TestCase):
+    def test_pillow_native_extension_accepts_only_supported_312_windows_names(self):
+        relative = 'Lib/site-packages/PIL/_imaging.pyd'
+        tagged = self.root/'Lib/site-packages/PIL/_imaging.cp312-win_amd64.pyd'
+        self.write('Lib/site-packages/PIL/_imaging.cp313-win_amd64.pyd', b'wrong ABI')
+        with self.assertRaises(ValueError):
+            build_release.require_paths(self.root, [relative], 'Python')
+        self.write(tagged.relative_to(self.root).as_posix(), b'fixture extension')
+        build_release.require_paths(self.root, [relative], 'Python')
+        with patch.object(runtime_check, 'PY_DIR', str(self.root)), patch.object(runtime_check, 'REQUIRED', [relative]):
+            self.assertEqual(runtime_check.check_files(), [])
+            tagged.unlink()
+            self.assertEqual(runtime_check.check_files(), [relative])
+        self.write(relative, b'legacy extension')
+        build_release.require_paths(self.root, [relative], 'Python')
+
     @classmethod
     def setUpClass(cls):
         cls.package_temp = tempfile.TemporaryDirectory()

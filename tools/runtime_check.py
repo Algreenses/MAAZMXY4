@@ -18,6 +18,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY_DIR = os.path.join(ROOT, "runtimes", "python")
@@ -66,13 +67,19 @@ def _mb(n: int) -> str:
     return "%.1f MB" % (n / 1024 / 1024)
 
 
+def required_path_exists(root, relative):
+    """Accept both wheel naming conventions for the pinned CPython 3.12 x64 runtime."""
+    path = Path(root) / relative
+    candidates = [path]
+    if relative == 'Lib/site-packages/PIL/_imaging.pyd':
+        candidates.append(path.with_name('_imaging.cp312-win_amd64.pyd'))
+    is_directory = relative in ('DLLs', 'Lib/site-packages/MaaAgentBinary')
+    return any(not item.is_symlink() and (item.is_dir() if is_directory else item.is_file())
+               for item in candidates)
+
+
 def check_files() -> list:
-    bad = []
-    for rel in REQUIRED:
-        p = os.path.join(PY_DIR, rel)
-        if not os.path.exists(p):
-            bad.append(rel)
-    return bad
+    return [relative for relative in REQUIRED if not required_path_exists(PY_DIR, relative)]
 
 
 def check_probe() -> tuple:

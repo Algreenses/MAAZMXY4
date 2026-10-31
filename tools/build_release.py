@@ -116,7 +116,7 @@ def collect(root):
         raise SystemExit("缺少 interface.json（assets/ 或根目录都没有）")
     return files
 
-from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
+from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED, required_path_exists
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAUNCHER_NAME = 'MAA造梦西游4.exe'
@@ -135,9 +135,7 @@ PYTHON_REQUIRED = tuple(Path(name).as_posix() for name in AGENT_RUNTIME_REQUIRED
 
 def require_paths(root, names, label):
     for name in names:
-        path = Path(root) / name
-        is_directory = name in ('DLLs', 'Lib/site-packages/MaaAgentBinary')
-        if path.is_symlink() or not (path.is_dir() if is_directory else path.is_file()):
+        if not required_path_exists(root, name):
             raise ValueError(label + '缺少：' + name)
 
 
@@ -241,6 +239,7 @@ def client_files(root, frontend, python_runtime, launcher):
     for name in ('DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
+                 'docs/zh_cn/个人配置备份与迁移.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))

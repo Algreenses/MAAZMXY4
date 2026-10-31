@@ -72,6 +72,7 @@
     "frontend/patches/56-runtime-managed-memory.json",
     "frontend/patches/57-single-input-label.json",
     "frontend/patches/58-single-input-help.json",
-    "frontend/patches/59-option-row-spacing.json"
+    "frontend/patches/59-option-row-spacing.json",
+    "frontend/patches/58-personal-transfer-startup.json"
   ]
 }
