@@ -384,8 +384,8 @@ public sealed class GameManagementService : IDisposable
         var app = XDocument.Load(descriptor);
         if (!app.Descendants().Any(e => e.Name.LocalName == "id" && e.Value == "dusk.zmBox"))
             throw new InvalidDataException("所选程序不是已适配的造梦盒子 AIR 客户端。");
-        if (!app.Descendants().Any(e => e.Name.LocalName == "versionNumber" && e.Value == "1.9"))
-            throw new InvalidDataException("当前自动登录适配造梦盒子 1.9，请先核对所选版本。");
+        // 版本号不设限：造梦盒子 1.9 / 1.10 及后续版本都能直接用，
+        // 只校验它确实是造梦盒子（id = dusk.zmBox），不再锁死具体版本。
     }
     public void Dispose()
     {

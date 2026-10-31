@@ -1,9 +1,0 @@
-{
-  "description": "Route the generic frontend update entry to the project update engine.",
-  "path": "MFAAvalonia/Helper/VersionChecker.cs",
-  "find": "    public async static Task UpdateMFA(bool isGithub, bool noDialog = false)\n    {\n        Instances.RootViewModel.SetUpdating(true);",
-  "replace": "    public async static Task UpdateMFA(bool isGithub, bool noDialog = false)\n    {\n        if (!MFAAvalonia.Services.FrontendUpdatePolicy.OnlineFrontendUpdateEnabled)\n        {\n            await MFAAvalonia.Services.ProjectUpdater.DownloadAsync();\n            return;\n        }\n        Instances.RootViewModel.SetUpdating(true);",
-  "previous_replacements": [
-    "    public async static Task UpdateMFA(bool isGithub, bool noDialog = false)\n    {\n        if (!MFAAvalonia.Services.FrontendUpdatePolicy.OnlineFrontendUpdateEnabled)\n        {\n            ToastHelper.Info(\"项目客户端升级\", MFAAvalonia.Services.FrontendUpdatePolicy.ManualUpdateMessage);\n            return;\n        }\n        Instances.RootViewModel.SetUpdating(true);"
-  ]
-}

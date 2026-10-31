@@ -93,35 +93,11 @@
         "y": 93
       }
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "朱电（琉璃宫）-退出结果复核"
-    ]
-  },
-  "朱电（琉璃宫）-识别琉璃宫场景": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "琉璃宫场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "朱电（琉璃宫）-回放战斗"
     ],
-    "on_error": [
-      "朱电（琉璃宫）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    }
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-返回地图": {
     "recognition": {
@@ -145,7 +121,11 @@
         "y": 135
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "朱电（琉璃宫）-返回地图重试"
+    ],
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-刷取次数": {
     "recognition": {
@@ -154,7 +134,7 @@
     "next": [
       "朱电（琉璃宫）-准备本轮"
     ],
-    "post_delay": 1000,
+    "post_delay": 300,
     "action": {
       "type": "Custom",
       "param": {
@@ -169,7 +149,8 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    }
+    },
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-脚本返回确认": {
     "recognition": {
@@ -188,7 +169,8 @@
     "post_delay": 0,
     "next": [
       "朱电（琉璃宫）-本轮成功"
-    ]
+    ],
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-关卡入口": {
     "recognition": {
@@ -257,20 +239,21 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "timeout": 10000,
     "next": [
-      "朱电（琉璃宫）-识别琉璃宫场景"
+      "朱电（琉璃宫）-移开光标1"
     ],
     "on_error": [
-      "朱电（琉璃宫）-失败"
+      "朱电（琉璃宫）-关卡入口_重试1"
     ],
     "$__mpe_code": {
       "position": {
         "x": 1280,
         "y": 0
       }
-    }
+    },
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-准备本轮": {
     "recognition": {
@@ -581,10 +564,11 @@
       "朱电（琉璃宫）-脚本返回确认"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "朱电（琉璃宫）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-失败返回确认": {
     "recognition": {
@@ -663,7 +647,8 @@
     "post_delay": 0,
     "on_error": [
       "朱电（琉璃宫）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "朱电（琉璃宫）-已确认战斗失败": {
     "recognition": {
@@ -820,5 +805,346 @@
     "on_error": [
       "朱电（琉璃宫）-失败"
     ]
+  },
+  "朱电（琉璃宫）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    },
+    "post_delay": 300,
+    "on_error": [
+      "朱电（琉璃宫）-失败"
+    ],
+    "rate_limit": 200
+  },
+  "朱电（琉璃宫）-关卡入口_重试1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "琉璃宫.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s26-frame1.png",
+                          "navigation/stages/s26-frame2.png",
+                          "navigation/stages/s26-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-移开光标2"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "朱电（琉璃宫）-关卡入口_重试2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "琉璃宫.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s26-frame1.png",
+                          "navigation/stages/s26-frame2.png",
+                          "navigation/stages/s26-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "roi": [
+                          0,
+                          115,
+                          1045,
+                          500
+                        ],
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-移开光标3"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "朱电（琉璃宫）-移开光标1": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-识别场景1"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-关卡入口_重试1"
+    ]
+  },
+  "朱电（琉璃宫）-识别场景1": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-回放战斗"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-关卡入口_重试1"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
+  },
+  "朱电（琉璃宫）-移开光标2": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-识别场景2"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-关卡入口_重试2"
+    ]
+  },
+  "朱电（琉璃宫）-识别场景2": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-回放战斗"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
+  },
+  "朱电（琉璃宫）-移开光标3": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-识别场景3"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-失败"
+    ]
+  },
+  "朱电（琉璃宫）-识别场景3": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "琉璃宫场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "朱电（琉璃宫）-回放战斗"
+    ],
+    "on_error": [
+      "朱电（琉璃宫）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
   }
 }

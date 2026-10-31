@@ -1,6 +1,0 @@
-{
-  "description": "Route project updates and recovery through the shared update engine.",
-  "path": "MFAAvalonia/Helper/VersionChecker.cs",
-  "find": "    public static async Task CheckForResourceUpdatesAsync(\n        bool isGithub = true,\n        bool notifyWhenUpToDate = true,\n        bool notifyOnError = true)\n    {\n        Instances.RootViewModel.SetUpdating(true);",
-  "replace": "    public static async Task CheckForResourceUpdatesAsync(\n        bool isGithub = true,\n        bool notifyWhenUpToDate = true,\n        bool notifyOnError = true)\n    {\n        if (MFAAvalonia.Services.ProjectUpdater.Enabled)\n        {\n            await MFAAvalonia.Services.ProjectUpdater.CheckAsync();\n            return;\n        }\n        Instances.RootViewModel.SetUpdating(true);"
-}

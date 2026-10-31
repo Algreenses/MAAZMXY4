@@ -5,7 +5,7 @@
     python tools/build_release.py --client --launcher <官方解压目录/MAA造梦西游4.exe>
     python tools/build_release.py --verify-client <解压目录>
 
-完整包复用 build_update.collect 从 assets/resource、agent、assets/interface.json
+完整包从 assets/resource、agent、assets/interface.json
 取资源，再合并明确指定的前端和 Python。不要压缩正在使用的客户端目录。
 
 用法：
@@ -27,7 +27,95 @@ from pathlib import Path
 import sys
 import zipfile
 
-from build_update import collect, is_local_instructions
+# ---------------------------------------------------------------------------
+# 文件收集（原 tools/build_update.py 里的 collect 系列，更新机制剥离后内联到这里）
+# ---------------------------------------------------------------------------
+
+# 发布版 interface.json 优先取 assets/ 下那份（干净的对外配置），
+# 根目录那份是自用副本，可能多出私有任务。
+ITEMS = ("resource", "agent")
+INTERFACE_CANDIDATES = ("assets/interface.json", "interface.json")
+
+# 绝不进发布包的文件：私有插件、备份、字节码、私有 pipeline。
+EXCLUDE_NAMES = {
+    "adventure_order.py",         # 题序规则（自用）
+    "adventure_local_hook.py",    # 本地钩子（自用）
+    "adventure_drops.py",         # 掉落预判（自用）
+    "adventure_drops_action.py",  # 掉落预判的 CustomRecognition 注册（自用）
+    "掉落预判.json",               # 上面那个插件的 pipeline
+}
+EXCLUDE_DIRS = {"__pycache__", ".git", "recordings"}
+
+
+def is_local_instructions(name):
+    """Local agent instructions are never distributed as client data."""
+    return name.casefold() == "agents.md"
+
+
+def _skip(name):
+    if name in EXCLUDE_NAMES or is_local_instructions(name) or name in ('.gitignore', '.gitattributes', '.gitkeep'):
+        return True
+    if ".bak" in name or name.endswith(".pyc") or name.endswith(".pyo"):
+        return True
+    return False
+
+
+def _pick_dir(root, item):
+    """优先用 assets/ 下的规范源，没有再退回根目录的运行副本。"""
+    for cand in (os.path.join("assets", item), item):
+        p = os.path.join(root, cand)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def collect(root):
+    """返回 [(绝对路径, zip 内相对路径)]。"""
+    files = []
+    for item in ITEMS:
+        p = _pick_dir(root, item)
+        if not p:
+            raise SystemExit("缺少 %s，确认在包根目录运行" % item)
+        for dirpath, dirnames, filenames in os.walk(p):
+            dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
+            for name in filenames:
+                if _skip(name):
+                    continue
+                full = os.path.join(dirpath, name)
+                rel = os.path.relpath(full, p).replace("\\", "/")
+                files.append((full, item + "/" + rel))
+
+    # Root recordings are personal. agent/recordings contains only the reviewed
+    # manifest and its declared public defaults; never sweep that folder whole.
+    defaults = os.path.join(_pick_dir(root, 'agent'), 'recordings')
+    manifest = os.path.join(defaults, 'manifest.json')
+    if os.path.isfile(manifest):
+        with open(manifest, encoding='utf8') as stream:
+            bundle = json.load(stream)
+        if bundle.get('version') != 1 or not isinstance(bundle.get('items'), list):
+            raise ValueError('公共录制清单格式无效。')
+        files.append((manifest, 'agent/recordings/manifest.json'))
+        seen = set()
+        for item in bundle['items']:
+            name = item.get('file', '')
+            if (not name.endswith('.json') or name.startswith('.') or name == 'manifest.json'
+                    or any(char in name for char in '/\\:') or name in seen):
+                raise ValueError('公共录制清单路径无效。')
+            seen.add(name)
+            path = os.path.join(defaults, name)
+            if not os.path.isfile(path) or hashlib.sha256(Path(path).read_bytes()).hexdigest() != item.get('sha256'):
+                raise ValueError('公共录制与清单哈希不一致：' + name)
+            files.append((path, 'agent/recordings/' + name))
+
+    for cand in INTERFACE_CANDIDATES:
+        p = os.path.join(root, cand)
+        if os.path.isfile(p):
+            files.append((p, "interface.json"))
+            break
+    else:
+        raise SystemExit("缺少 interface.json（assets/ 或根目录都没有）")
+    return files
+
 from runtime_check import REQUIRED as AGENT_RUNTIME_REQUIRED
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -102,24 +190,11 @@ def validate_client_resources(root):
 
 
 def validate_client(root):
-    """Check the extracted client, including the launcher's Python/Tk entry chain."""
+    """Check the extracted client, direct launcher and bundled Python runtime."""
     root = Path(root)
     validate_launcher(root / LAUNCHER_NAME)
-    require_paths(root, FRONTEND_REQUIRED + ('updater.py', 'agent/main.py'), '完整客户端')
+    require_paths(root, FRONTEND_REQUIRED + ('agent/main.py',), '完整客户端')
     require_paths(root / 'runtimes/python', PYTHON_REQUIRED, '内嵌 Python')
-    sys.path.insert(0, str(Path(ROOT)))
-    from update_engine.transaction import installed_inventory, fingerprint
-    from update_engine.validation import validate_stage
-    inventory = installed_inventory(root)
-    if inventory is None:
-        raise ValueError('完整客户端缺少 client-installation.json 安装清单。')
-    # Test fixtures deliberately substitute the launcher bytes; production
-    # packages always contain the real build receipt.
-    if LAUNCHER_SHA256 is None:
-        validate_stage(root, inventory)
-    for name, expected in inventory.files.items():
-        if fingerprint(root / name) != expected:
-            raise ValueError('客户端文件与安装清单不一致：' + name)
     return validate_client_resources(root)
 
 
@@ -161,13 +236,12 @@ def client_files(root, frontend, python_runtime, launcher):
     files.extend((path, 'runtimes/python/' + path.relative_to(python_runtime).as_posix())
                  for path in python_runtime.rglob('*')
                  if path.is_file() and '__pycache__' not in path.parts and path.suffix not in ('.pyc', '.pyo'))
-    for name in ('updater.py', 'DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
+    for name in ('DependencySetup_依赖库安装_win.bat', 'LICENSE', 'NOTICE', 'README.md',
                  'docs/zh_cn/脚本工具-使用说明.md', 'docs/zh_cn/更新协议与发布规范.md',
                  'docs/zh_cn/游戏数据库与导航素材.md', 'docs/zh_cn/游戏管理.md',
                  'docs/zh_cn/通用导航迁移与失败重试说明.md', 'docs/zh_cn/2.3.9更新说明.md',
                  'docs/zh_cn/2.4.1-rc.1更新说明.md'):
         files.append((root / name, name))
-    files.extend((path, path.relative_to(root).as_posix()) for path in (root/'update_engine').glob('*.py'))
     files = [(source, relative) for source, relative in files
              if not is_local_instructions(Path(relative).name)]
     batch = (root / 'DependencySetup_依赖库安装_win.bat').read_bytes()
@@ -183,21 +257,8 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
     """Create a verified full client ZIP without overwriting any existing output."""
     import tempfile
     files = client_files(root, frontend, python_runtime, launcher)
-    sys.path.insert(0, str(Path(ROOT)))
-    from update_engine.packages import build_inventory, write_inventory_files, CLIENT_RECORD
-    from update_engine.protocol import Version, https_url
-    import re
-    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository) or channel not in ('stable', 'preview'):
-        raise ValueError('发布仓库或渠道无效。')
     resource_version = json.loads((Path(root)/'assets/interface.json').read_text(encoding='utf8'))['version']
-    client_version = str(Version(client_version or resource_version))
-    if channel == 'stable' and Version(client_version).prerelease:
-        raise ValueError('候选客户端必须使用 preview 渠道。')
-    if channel == 'preview' and not manifest_urls:
-        raise ValueError('候选渠道必须显式配置独立的版本清单地址。')
-    manifest_urls = manifest_urls or [f'https://github.com/{repository}/releases/latest/download/client-version.json']
-    source_config = dict(schema=1, product='MAAZMXY4', repository=repository, default_channel=channel,
-                         channels={channel: [https_url(url) for url in manifest_urls]})
+    client_version = str(client_version or resource_version)
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Validate the exact assembled resources, not root's optional runtime copy.
@@ -210,16 +271,11 @@ def build_client(root, frontend, python_runtime, destination, launcher, *, clien
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
         validate_client_resources(stage)
-    with tempfile.TemporaryDirectory() as temporary:
-        config_path = Path(temporary)/'update-config.json'
-        config_path.write_text(json.dumps(source_config, ensure_ascii=False, indent=2), encoding='utf8')
-        files.append((config_path, 'update-config.json'))
-        inventory = build_inventory(files, kind='client', client_version=client_version, resource_version=resource_version)
-        with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
-            write_inventory_files(archive, files, inventory)
-            archive.writestr(CLIENT_RECORD, json.dumps(inventory.to_dict(), ensure_ascii=False, indent=2))
-            # MaaFramework requires the optional plugin directory to exist.
-            archive.writestr('runtimes/win-x64/native/plugins/', b'')
+    with zipfile.ZipFile(destination, 'x', zipfile.ZIP_DEFLATED) as archive:
+        for source, relative in files:
+            archive.write(source, relative)
+        # MaaFramework requires the optional plugin directory to exist.
+        archive.writestr('runtimes/win-x64/native/plugins/', b'')
     return destination
 
 # (仓库内源路径, 包内路径)

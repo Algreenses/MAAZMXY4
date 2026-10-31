@@ -11,8 +11,8 @@
     python tools/setup_runtime.py          # 从本机 Python 3.12 重建
     python tools/setup_runtime.py --check  # 只做自检
 
-依赖的系统 Python 上必须有 maafw / numpy / strenum（即能 import maa）。
-缺的话先装：  py -3.12 -m pip install maa
+依赖的系统 Python 上必须有 maafw / numpy / strenum / pynput / Pillow。
+缺的话先装：  py -3.12 -m pip install maafw numpy strenum pynput Pillow
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ TOP_FILES = [
     "vcruntime140.dll", "vcruntime140_1.dll",
 ]
 
-# 不裁剪 updater.py 使用的 tkinter；只跳过测试、文档和开发工具。
+# 不裁剪 tkinter（agent 侧可能用到）；只跳过测试、文档和开发工具。
 LIB_EXCLUDE = {
     "site-packages", "__pycache__", "test", "tests", "idlelib",
     "turtledemo", "ensurepip", "venv", "pydoc_data", "lib2to3", "distutils",
@@ -39,7 +39,7 @@ LIB_EXCLUDE = {
 
 # 必须一起带走的第三方包（maa 的运行时依赖）
 SITE_PACKAGES = [
-    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum", "pynput",
+    "maa", "MaaAgentBinary", "numpy", "numpy.libs", "strenum", "pynput", "PIL", "pillow.libs",
 ]
 SITE_FILES = ["typing_extensions.py", "six.py"]
 
@@ -108,7 +108,7 @@ def build(prefix: str) -> int:
     print("2) DLLs")
     n = copy_tree(os.path.join(prefix, "DLLs"), os.path.join(PY_DIR, "DLLs"))
     print("   %d 个文件" % n)
-    # The standard launcher imports updater.py with pythonw, which needs Tk/Tcl.
+    # 保留 Tcl/Tk，维持已有 Python 组件的运行时兼容性。
     n = copy_tree(os.path.join(prefix, "tcl"), os.path.join(PY_DIR, "tcl"))
     print("   Tcl/Tk: %d 个文件" % n)
 
@@ -135,7 +135,7 @@ def build(prefix: str) -> int:
     for name in os.listdir(sp_src):
         if name.endswith(".dist-info") and any(
             name.lower().startswith(p.lower() + "-")
-            for p in ("maafw", "MaaAgentBinary", "numpy", "strenum", "pynput", "six")
+            for p in ("maafw", "MaaAgentBinary", "numpy", "strenum", "pynput", "six", "pillow")
         ):
             copy_tree(os.path.join(sp_src, name), os.path.join(sp_dst, name))
             print("   +", name)

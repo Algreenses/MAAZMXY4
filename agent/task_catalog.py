@@ -177,9 +177,10 @@ def task_catalog(root, bindings=None, *, overrides=None):
             if current in reachable or current not in graph: continue
             reachable.add(current)
             pending.extend(node_links(graph, graph[current]))
+        # 轮次边界由 begin/success 声明，不依赖可选的 navigation 策略。
+        # 使用传统导航的任务也能声明游戏管理入口。
         begins = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'begin'
-                  and _action_parameters(graph[n]).get('custom_action') == 'script_task_state'
-                  and custom_parameters(graph[n]).get('navigation')]
+                  and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
         successes = [n for n in reachable if custom_parameters(graph[n]).get('phase') == 'success'
                      and _action_parameters(graph[n]).get('custom_action') == 'script_task_state']
         if len(begins) == 1 and len(successes) == 1:

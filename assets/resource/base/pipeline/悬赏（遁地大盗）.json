@@ -43,7 +43,7 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "悬赏（遁地大盗）-回放后分流"
     ],
@@ -132,7 +132,8 @@
               "type": "OCR",
               "param": {
                 "expected": [
-                  "^遁地大[盗盜]$"
+                  "^遁地大[盗盜]$",
+                  "^捉拿大[盗盜]$"
                 ],
                 "roi": [
                   500,
@@ -294,7 +295,10 @@
         "y": 100
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "悬赏（遁地大盗）-返回地图重试"
+    ]
   },
   "悬赏（遁地大盗）-脚本返回确认": {
     "recognition": {
@@ -332,7 +336,12 @@
             "kind": "bounty",
             "target_node": "悬赏（遁地大盗）-点击前往副本",
             "label": "悬赏（遁地大盗）",
-            "title": "遁地大盗"
+            "title": "遁地大盗",
+            "title_aliases": [
+              "遁地大盜",
+              "捉拿大盗",
+              "捉拿大盜"
+            ]
           },
           "navigation_entry": "悬赏（遁地大盗）-通用导航",
           "result_guard": {
@@ -859,6 +868,33 @@
     ],
     "post_delay": 0,
     "timeout": 15000,
+    "on_error": [
+      "悬赏（遁地大盗）-失败"
+    ]
+  },
+  "悬赏（遁地大盗）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "悬赏（遁地大盗）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 100
+      }
+    },
+    "post_delay": 300,
     "on_error": [
       "悬赏（遁地大盗）-失败"
     ]

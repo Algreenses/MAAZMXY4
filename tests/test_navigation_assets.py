@@ -9,6 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'agent'))
+sys.path.insert(0, str(ROOT/'tools'))
 from navigation import select_state, validate_navigation
 from navigation.catalog import task_graph
 from task_catalog import custom_parameters, task_key
@@ -126,7 +127,7 @@ class NavigationAssetsTests(unittest.TestCase):
         self.assertGreaterEqual(count,11)
 
     def test_standard_package_collection_includes_runtime_graph_and_images(self):
-        spec=importlib.util.spec_from_file_location('navigation_update_collect',ROOT/'tools/build_update.py')
+        spec=importlib.util.spec_from_file_location('navigation_update_collect',ROOT/'tools/build_release.py')
         builder=importlib.util.module_from_spec(spec)
         spec.loader.exec_module(builder)
         files={relative:Path(source) for source,relative in builder.collect(str(ROOT))}

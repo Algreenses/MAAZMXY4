@@ -43,7 +43,7 @@
         }
       }
     },
-    "post_delay": 0,
+    "post_delay": 1000,
     "next": [
       "悬赏（守卫太宗）-回放后分流"
     ],
@@ -294,7 +294,10 @@
         "y": 100
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "悬赏（守卫太宗）-返回地图重试"
+    ]
   },
   "悬赏（守卫太宗）-脚本返回确认": {
     "recognition": {
@@ -859,6 +862,33 @@
     ],
     "post_delay": 0,
     "timeout": 15000,
+    "on_error": [
+      "悬赏（守卫太宗）-失败"
+    ]
+  },
+  "悬赏（守卫太宗）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "悬赏（守卫太宗）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 640,
+        "y": 100
+      }
+    },
+    "post_delay": 300,
     "on_error": [
       "悬赏（守卫太宗）-失败"
     ]

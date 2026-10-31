@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'agent'))
+sys.path.insert(0,str(ROOT/'tools'))
 from task_catalog import task_catalog
 from test_bounty_candle import runtime
 
@@ -189,7 +190,7 @@ class GameManagementTests(unittest.TestCase):
                 restore.assert_not_called()
 
     def test_release_collection_contains_management_and_no_test_frames(self):
-        spec = importlib.util.spec_from_file_location('managed_package', ROOT/'tools/build_update.py')
+        spec = importlib.util.spec_from_file_location('managed_package', ROOT/'tools/build_release.py')
         builder = importlib.util.module_from_spec(spec); spec.loader.exec_module(builder)
         files = {relative for _, relative in builder.collect(str(ROOT))}
         expected = {'agent/game_management_login.py', 'agent/navigation/stage_view.py',

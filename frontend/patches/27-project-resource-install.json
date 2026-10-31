@@ -1,6 +1,0 @@
-{
-  "description": "Route project updates and recovery through the shared update engine.",
-  "path": "MFAAvalonia/Helper/VersionChecker.cs",
-  "find": "    public async static Task UpdateResource(bool isGithub = true, bool closeDialog = false, bool noDialog = false, Action action = null, string currentVersion = \"\", string? localPackagePath = null)\n    {",
-  "replace": "    public async static Task UpdateResource(bool isGithub = true, bool closeDialog = false, bool noDialog = false, Action action = null, string currentVersion = \"\", string? localPackagePath = null)\n    {\n        if (MFAAvalonia.Services.ProjectUpdater.Enabled)\n        {\n            await MFAAvalonia.Services.ProjectUpdater.DownloadAsync(localPackagePath);\n            return;\n        }"
-}

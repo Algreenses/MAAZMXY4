@@ -1,4 +1,4 @@
-"""Exercise the real three-item package and updater in isolated installation roots."""
+"""Validate full-client packaging and privacy without installing or launching it."""
 import hashlib
 import json
 from pathlib import Path
@@ -13,10 +13,9 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT/'tools'))
-from build_update import collect
+from build_release import collect
 import build_release
 from build_release import client_files, validate_client, validate_client_resources
-import updater
 import setup_runtime
 
 
@@ -49,10 +48,6 @@ class ReleasePackageTests(unittest.TestCase):
         reply=json.loads(result.stdout.strip())
         self.assertTrue(reply['ok'],reply)
         return reply['result']
-
-    def apply(self):
-        with patch.object(updater,'BASE',str(self.root)),patch.object(updater,'LOG_PATH',str(self.root/'temp/updater.log')):
-            return updater.apply_update(str(self.package),{},lambda *_:None)
 
     def test_clean_package_worker_loads_only_unbound_example_without_assets(self):
         with zipfile.ZipFile(self.package) as archive: archive.extractall(self.root)
@@ -193,10 +188,6 @@ class ReleasePackageTests(unittest.TestCase):
                 destination = stage/relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, destination)
-            from update_engine.packages import build_inventory, CLIENT_RECORD
-            version = json.loads((stage/'interface.json').read_text(encoding='utf8'))['version']
-            inventory = build_inventory(files, kind='client', client_version=version, resource_version=version)
-            (stage/CLIENT_RECORD).write_text(json.dumps(inventory.to_dict()), encoding='utf8')
             self.assertEqual(len(validate_client(stage)), 10)
             (stage/'runtimes/python/pythonw.exe').unlink()
             with self.assertRaisesRegex(ValueError, 'pythonw.exe'):
@@ -218,63 +209,6 @@ class ReleasePackageTests(unittest.TestCase):
         for name in required:
             self.assertEqual((target/name).read_bytes(), b'tk dependency', name)
 
-    def test_resource_update_preserves_user_files_and_does_not_claim_to_update_frontend(self):
-        self.write('interface.json',b'{"version":"2.2"}')
-        self.write('agent/old.py',b'# old agent')
-        self.write('resource/old.txt',b'old resource')
-        template=next(path for path in (ROOT/'agent/recordings').glob('*.json') if path.name!='manifest.json')
-        protected={
-            'recordings/personal.json':template.read_bytes(),
-            'recordings/.bindings.json':b'{"version":2,"tasks":{"bounty-candle":{"file":"personal.json","mode":"pipeline"}}}',
-            'config/instances/personal.json':b'{"TaskItems":[],"repeat_count":999}',
-            'MFAAvalonia.exe':b'old frontend sentinel; never executed',
-        }
-        for name,raw in protected.items(): self.write(name,raw)
-        self.assertTrue(self.apply()[0])
-        listing=self.list_from_installed_worker()
-        self.assertEqual(len(listing['items']),2)
-        for name,raw in protected.items(): self.assertEqual((self.root/name).read_bytes(),raw,name)
-        self.assertTrue((self.root/'agent/recordings/manifest.json').is_file())
-
-    def test_update_keeps_existing_retired_default_and_its_binding(self):
-        template = ROOT/'agent/recordings/示例-移动与攻击.json'
-        protected = {
-            'recordings/旧用户脚本.json': template.read_bytes(),
-            'recordings/.defaults.json': json.dumps({'version': 1, 'items': {
-                'retired-template': {'file': '旧用户脚本.json', 'state': 'present'}},
-                'bindings_initialized': True}).encode('utf8'),
-            'recordings/.bindings.json': json.dumps({'version': 2, 'tasks': {
-                'bounty-candle': {'file': '旧用户脚本.json', 'mode': 'pipeline'}}},
-                ensure_ascii=False).encode('utf8'),
-        }
-        for name, raw in protected.items(): self.write(name, raw)
-        self.assertTrue(self.apply()[0])
-        listing = self.list_from_installed_worker()
-        self.assertEqual({item['file'] for item in listing['items']},
-                         {'旧用户脚本.json', '示例-移动与攻击.json'})
-        for name, raw in protected.items():
-            if name.endswith('.defaults.json'):
-                self.assertEqual(json.loads((self.root/name).read_bytes())['items']['retired-template'],
-                                 json.loads(raw)['items']['retired-template'])
-            else:
-                self.assertEqual((self.root/name).read_bytes(), raw, name)
-
-    def test_failed_resource_replacement_restores_the_old_installation(self):
-        old={'interface.json':b'{"version":"2.2"}','agent/main.py':b'# old agent','resource/old.txt':b'old resource'}
-        for name,raw in old.items(): self.write(name,raw)
-        real_move=shutil.move
-        failed=False
-        def fail_once(source,destination,*args,**kwargs):
-            nonlocal failed
-            if not failed and Path(source).name=='agent' and Path(source).parent.name=='extract':
-                failed=True
-                raise OSError('injected replacement failure')
-            return real_move(source,destination,*args,**kwargs)
-        with patch.object(updater.shutil,'move',side_effect=fail_once):
-            result=self.apply()
-        self.assertFalse(result[0])
-        self.assertTrue(failed)
-        for name,raw in old.items(): self.assertEqual((self.root/name).read_bytes(),raw,name)
 
 
 if __name__=='__main__': unittest.main()

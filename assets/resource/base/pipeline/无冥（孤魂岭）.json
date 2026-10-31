@@ -93,35 +93,11 @@
         "y": 93
       }
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "on_error": [
       "无冥（孤魂岭）-退出结果复核"
-    ]
-  },
-  "无冥（孤魂岭）-识别孤魂岭场景": {
-    "recognition": {
-      "type": "TemplateMatch",
-      "param": {
-        "template": [
-          "孤魂岭场景.png"
-        ]
-      }
-    },
-    "pre_delay": 100,
-    "post_delay": 1000,
-    "timeout": 10000,
-    "next": [
-      "无冥（孤魂岭）-回放战斗"
     ],
-    "on_error": [
-      "无冥（孤魂岭）-失败"
-    ],
-    "$__mpe_code": {
-      "position": {
-        "x": 0,
-        "y": 65
-      }
-    }
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-返回地图": {
     "recognition": {
@@ -145,7 +121,11 @@
         "y": 135
       }
     },
-    "post_delay": 1000
+    "post_delay": 300,
+    "on_error": [
+      "无冥（孤魂岭）-返回地图重试"
+    ],
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-刷取次数": {
     "recognition": {
@@ -154,7 +134,7 @@
     "next": [
       "无冥（孤魂岭）-准备本轮"
     ],
-    "post_delay": 1000,
+    "post_delay": 300,
     "action": {
       "type": "Custom",
       "param": {
@@ -169,7 +149,8 @@
         "content": "./debug/loop/panel.md",
         "display": "log"
       }
-    }
+    },
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-脚本返回确认": {
     "recognition": {
@@ -188,7 +169,8 @@
     "post_delay": 0,
     "next": [
       "无冥（孤魂岭）-本轮成功"
-    ]
+    ],
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-关卡入口": {
     "recognition": {
@@ -250,20 +232,21 @@
     "action": {
       "type": "Click"
     },
-    "post_delay": 1000,
+    "post_delay": 500,
     "timeout": 10000,
     "next": [
-      "无冥（孤魂岭）-识别孤魂岭场景"
+      "无冥（孤魂岭）-移开光标1"
     ],
     "on_error": [
-      "无冥（孤魂岭）-失败"
+      "无冥（孤魂岭）-关卡入口_重试1"
     ],
     "$__mpe_code": {
       "position": {
         "x": 1280,
         "y": 0
       }
-    }
+    },
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-准备本轮": {
     "recognition": {
@@ -574,10 +557,11 @@
       "无冥（孤魂岭）-脚本返回确认"
     ],
     "timeout": 10000,
-    "post_delay": 500,
+    "post_delay": 300,
     "on_error": [
       "无冥（孤魂岭）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-失败返回确认": {
     "recognition": {
@@ -656,7 +640,8 @@
     "post_delay": 0,
     "on_error": [
       "无冥（孤魂岭）-失败"
-    ]
+    ],
+    "rate_limit": 200
   },
   "无冥（孤魂岭）-已确认战斗失败": {
     "recognition": {
@@ -813,5 +798,332 @@
     "on_error": [
       "无冥（孤魂岭）-失败"
     ]
+  },
+  "无冥（孤魂岭）-返回地图重试": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "Nav_SettingsReturn"
+        ]
+      }
+    },
+    "action": {
+      "type": "Click"
+    },
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-脚本返回确认"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 960,
+        "y": 135
+      }
+    },
+    "post_delay": 300,
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ],
+    "rate_limit": 200
+  },
+  "无冥（孤魂岭）-关卡入口_重试1": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "孤魂岭.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s47-frame1.png",
+                          "navigation/stages/s47-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-移开光标2"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "无冥（孤魂岭）-关卡入口_重试2": {
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          {
+            "recognition": {
+              "type": "TemplateMatch",
+              "param": {
+                "template": "任务.png",
+                "roi": [
+                  0,
+                  540,
+                  1147,
+                  180
+                ]
+              }
+            }
+          },
+          {
+            "recognition": {
+              "type": "Or",
+              "param": {
+                "any_of": [
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "孤魂岭.png"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "recognition": {
+                      "type": "TemplateMatch",
+                      "param": {
+                        "template": [
+                          "navigation/stages/s47-frame1.png",
+                          "navigation/stages/s47-frame3.png"
+                        ],
+                        "threshold": 0.82,
+                        "method": 5
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "Result_NoRevivePrompt"
+        ],
+        "box_index": 1
+      }
+    },
+    "pre_delay": 80,
+    "action": {
+      "type": "Click"
+    },
+    "post_delay": 1000,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-移开光标3"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 1280,
+        "y": 0
+      }
+    },
+    "rate_limit": 200
+  },
+  "无冥（孤魂岭）-移开光标1": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-识别场景1"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-关卡入口_重试1"
+    ]
+  },
+  "无冥（孤魂岭）-识别场景1": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-回放战斗"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-关卡入口_重试1"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
+  },
+  "无冥（孤魂岭）-移开光标2": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-识别场景2"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-关卡入口_重试2"
+    ]
+  },
+  "无冥（孤魂岭）-识别场景2": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-回放战斗"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-关卡入口_重试2"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
+  },
+  "无冥（孤魂岭）-移开光标3": {
+    "recognition": {
+      "type": "DirectHit"
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "move_cursor",
+        "custom_action_param": {
+          "x": 20,
+          "y": 20
+        }
+      }
+    },
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-识别场景3"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ]
+  },
+  "无冥（孤魂岭）-识别场景3": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "template": [
+          "孤魂岭场景.png"
+        ]
+      }
+    },
+    "pre_delay": 100,
+    "post_delay": 200,
+    "timeout": 10000,
+    "next": [
+      "无冥（孤魂岭）-回放战斗"
+    ],
+    "on_error": [
+      "无冥（孤魂岭）-失败"
+    ],
+    "$__mpe_code": {
+      "position": {
+        "x": 0,
+        "y": 65
+      }
+    },
+    "rate_limit": 200
   }
 }

@@ -8,7 +8,7 @@ import unittest
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'agent/data/game_database'
 sys.path.insert(0,str(ROOT/'tools'))
-from build_update import collect
+from build_release import collect
 
 
 class GameDatabaseAssetsTests(unittest.TestCase):

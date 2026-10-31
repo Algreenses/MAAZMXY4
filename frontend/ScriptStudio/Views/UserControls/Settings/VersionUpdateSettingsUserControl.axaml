@@ -1,48 +1,16 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:suki="clr-namespace:SukiUI.Controls;assembly=SukiUI"
-             xmlns:services="clr-namespace:MFAAvalonia.Services"
+             xmlns:settings="clr-namespace:MFAAvalonia.ViewModels.UsersControls.Settings"
              x:Class="MFAAvalonia.Views.UserControls.Settings.VersionUpdateSettingsUserControl"
-             x:DataType="services:ProjectUpdateViewModel">
-  <StackPanel Spacing="18" Margin="0,0,0,20">
-    <suki:GlassCard Padding="24">
-      <StackPanel Spacing="12">
-        <TextBlock Text="项目版本与更新" FontSize="22" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding Versions}" FontSize="17" TextWrapping="Wrap" />
-        <TextBlock Text="{Binding Source}" Opacity="0.7" TextWrapping="Wrap" />
-        <Separator />
-        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
-        <ProgressBar Value="{Binding Progress}" IsIndeterminate="{Binding ProgressIndeterminate}" Maximum="100" Height="6" IsVisible="{Binding Busy}" />
-        <WrapPanel Orientation="Horizontal">
-          <Button Content="检查更新" Command="{Binding CheckCommand}" Margin="0,0,10,8" />
-          <Button Content="下载更新" Command="{Binding DownloadCommand}" Margin="0,0,10,8" />
-          <Button Content="取消" Command="{Binding CancelCommand}" IsVisible="{Binding Busy}" Margin="0,0,10,8" />
-        </WrapPanel>
-        <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
-      </StackPanel>
-    </suki:GlassCard>
-    <suki:GlassCard Padding="24">
-      <StackPanel Spacing="12">
-        <TextBlock Text="安装已下载的更新" FontSize="18" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding InstallHint}" TextWrapping="Wrap" Opacity="0.8" />
-        <CheckBox Content="允许备份并替换我修改过的程序或资源文件" IsChecked="{Binding AllowModified}" />
-        <TextBlock Text="个人录制、任务绑定和配置会保留；任务选项如需迁移，会与程序一起备份。" TextWrapping="Wrap" Opacity="0.7" />
-        <WrapPanel>
-          <Button Content="退出并安装" Command="{Binding InstallCommand}" Margin="0,0,10,8" />
-          <Button Content="导入完整 ZIP…" Click="ImportPackage" IsEnabled="{Binding !Busy}" Margin="0,0,10,8" />
-          <Button Content="检查完整修复包" Command="{Binding RepairCommand}" Margin="0,0,10,8" />
-          <Button Content="查看更新日志" Click="OpenLog" Margin="0,0,10,8" />
-        </WrapPanel>
-        <TextBlock Text="导入的完整包须与当前渠道的发布清单一致。首次安装或运行文件损坏时，请使用完整 EXE 手动修复。" TextWrapping="Wrap" Opacity="0.7" />
-      </StackPanel>
-    </suki:GlassCard>
-    <suki:GlassCard Padding="24">
-      <StackPanel Spacing="10">
-        <TextBlock Text="更新偏好" FontSize="18" FontWeight="SemiBold" />
-        <CheckBox Content="启动时检查项目更新" IsChecked="{Binding CheckOnStart}" />
-        <CheckBox Content="发现更新后自动下载，安装前仍由我确认" IsChecked="{Binding AutoDownload}" />
-        <Button Content="保存偏好" Command="{Binding SavePreferencesCommand}" HorizontalAlignment="Left" />
-      </StackPanel>
-    </suki:GlassCard>
-  </StackPanel>
+             x:DataType="settings:VersionUpdateSettingsUserControlModel">
+    <StackPanel Spacing="16" Margin="20">
+        <TextBlock Text="版本与手动升级" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Text="本项目已停用自动更新。升级时请关闭助手，使用新版完整客户端，并保留个人录制、绑定和配置。" TextWrapping="Wrap" />
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
+            <TextBlock Text="前端版本" /><TextBlock Grid.Column="1" Text="{Binding MfaVersion}" />
+            <TextBlock Grid.Row="1" Text="项目资源版本" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ResourceVersion}" />
+            <TextBlock Grid.Row="2" Text="MaaFramework" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MaaFwVersion}" />
+        </Grid>
+        <Button Content="查看手动升级说明" Command="{Binding CheckMFAUpdateCommand}" HorizontalAlignment="Left" />
+    </StackPanel>
 </UserControl>
